@@ -60,6 +60,7 @@ model User {
     email         String?   @unique
     emailVerified DateTime?
     image         String?
+    password      String?   // 密码，需加密存储
     accounts      Account[]
     sessions      Session[]
     posts         Post[]

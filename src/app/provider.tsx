@@ -5,8 +5,8 @@ import { ChakraProvider } from "@chakra-ui/react";
 import { ThemeProvider } from "next-themes";
 import { createSystem, defaultConfig } from "@chakra-ui/react"
 import { buttonRecipe } from "./theme/button.recipe"
-
-
+import { SessionProvider } from "next-auth/react";
+import { Toaster } from "@/app/_components/ui/toaster";
 export const system = createSystem(defaultConfig, {
     globalCss: {
         html: {
@@ -43,10 +43,14 @@ export function Provider({ children }: { children: React.ReactNode }) {
     const [mounted, setMounted] = React.useState(false);
     React.useEffect(() => setMounted(true), []);
     return (
-        <ChakraProvider value={system}>
-            <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-                {mounted ? children : null}
-            </ThemeProvider>
-        </ChakraProvider>
+
+        <SessionProvider>
+            <ChakraProvider value={system}>
+                <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+                    {mounted ? children : null}
+                </ThemeProvider>
+                <Toaster />
+            </ChakraProvider >
+        </SessionProvider>
     );
 }

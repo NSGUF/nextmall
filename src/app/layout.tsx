@@ -14,7 +14,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    // ������Ϊ�˽��chakra-ui��color-scheme���� ����ɾ
+    // 这里是为了解决chakra-ui的color-scheme问题 请勿删
     <html lang="en" style={{ colorScheme: "light" }} className="light">
       <body>
         <Provider>

@@ -35,3 +35,7 @@ EMAIL_FROM=发件人邮箱
 # EMAIL_SERVER=smtp://user:pass@smtp.163.com:465
 # EMAIL_FROM=your@email.com
 
+## 更改数据库
+1. 更改schema.prisma
+2. npx prisma generate
+2. npx prisma db push

@@ -1,0 +1,108 @@
+<svg data-v-0dd9719b="" version="1.0" xmlns="http://www.w3.org/2000/svg"
+    xmlns:xlink="http://www.w3.org/1999/xlink"
+    viewBox="0 0 215.000000 62.000000" preserveAspectRatio="xMidYMid meet"
+    color-interpolation-filters="sRGB" style="margin: auto;">
+
+    <g data-v-0dd9719b="" fill="#363383" class="icon-text-wrapper icon-svg-group iconsvg"
+        transform="translate(0, 0)">
+        <g fill="#ff3938" class="iconsvg-imagesvg icon_container" transform="translate(0,0)">
+            <rect fill="#363383" fill-opacity="0" stroke-width="2" x="0" y="0" width="61"
+                height="61" class="image-rect"></rect>
+            <svg viewBox="0 0 60 60" x="0" y="0" width="61" height="61" class="image-svg-svg bn"
+                style="overflow: visible;">
+                <g hollow-target="iconBnFill" mask="url(#dd6befe6-a6a4-4dee-bb32-c092261094c6)">
+                    <g>
+                        <svg fill="#000000" xmlns="http://www.w3.org/2000/svg"
+                            xmlns:xlink="http://www.w3.org/1999/xlink"
+                            xmlns:sketch="http://www.bohemiancoding.com/sketch/ns"
+                            viewBox="0 0 60 60" version="1.1" x="0" y="0" style="overflow: visible;"
+                            width="60" height="60" filtersec="colorsf5401022967"
+                            filter="url(#3YZC980uqcETLxEAlfdkj)">
+                            <g transform="scale(1, 1) skewX(0)">
+                                <title>96 - Rounded (Solid)</title>
+                                <desc>Created with Sketch.</desc>
+                                <g fill-rule="evenodd">
+                                    <g fill="#000000">
+                                        <path
+                                            d="M49.001,0 L10.999,0 C4.934,0 0,4.934 0,10.999 L0,49.001 C0,55.066 4.934,60 10.999,60 L49.001,60 C55.065,60 60,55.066 60,49.001 L60,10.999 C60,4.934 55.065,0 49.001,0"></path>
+                                    </g>
+                                </g>
+                            </g>
+                            <defs>
+                                <filter id="3YZC980uqcETLxEAlfdkj">
+                                    <feColorMatrix type="matrix"
+                                        values="0 0 0 0 0.99609375  0 0 0 0 0.22265625  0 0 0 0 0.21875  0 0 0 1 0"></feColorMatrix>
+                                </filter>
+                            </defs>
+                        </svg>
+                    </g>
+                    <g filter="url(#colors8137702452)">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                            xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 79.425 57.09375"
+                            width="37" height="37" x="11.5" y="11.5" class="image-svg-letter">
+                            <path transform="translate(-0.5625 56.25)"
+                                d="M44.44-53.72L40.78-56.25L22.50-29.25L4.50-56.25L0.56-53.72L20.25-24.47L20.25 0L24.75 0L24.75-24.47ZM72.39-28.41C76.33-31.22 78.30-35.16 78.30-40.50C78.30-48.66 72.11-55.41 64.52-55.41L43.99-55.41L43.99 0.84L65.64 0.84C73.52 0.84 79.99-5.91 79.99-14.63C79.99-20.53 76.89-25.88 72.39-28.41ZM48.49-50.91L64.52-50.91C69.86-50.91 73.80-46.13 73.80-40.50C73.80-34.88 69.86-30.09 64.52-30.09L48.49-30.09ZM48.49-3.66L48.49-25.59L49.61-25.59L65.64-25.59C70.99-25.59 75.49-21.09 75.49-14.63C75.49-8.72 71.27-3.66 65.64-3.66Z"></path>
+                        </svg>
+                    </g>
+                </g>
+                <mask id="dd6befe6-a6a4-4dee-bb32-c092261094c6">
+                    <g fill="white">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                            xmlns:xlink="http://www.w3.org/1999/xlink"
+                            xmlns:sketch="http://www.bohemiancoding.com/sketch/ns"
+                            viewBox="0 0 60 60" version="1.1" x="0" y="0" style="overflow: visible;"
+                            width="60" height="60" filtersec="colorsf5401022967">
+                            <g transform="scale(1, 1) skewX(0)">
+                                <title>96 - Rounded (Solid)</title>
+                                <desc>Created with Sketch.</desc>
+                                <g fill-rule="evenodd">
+                                    <g>
+                                        <path
+                                            d="M49.001,0 L10.999,0 C4.934,0 0,4.934 0,10.999 L0,49.001 C0,55.066 4.934,60 10.999,60 L49.001,60 C55.065,60 60,55.066 60,49.001 L60,10.999 C60,4.934 55.065,0 49.001,0"></path>
+                                    </g>
+                                </g>
+                            </g>
+                            <defs></defs>
+                        </svg>
+                    </g>
+                    <g fill="black">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                            xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 79.425 57.09375"
+                            width="37" height="37" x="11.5" y="11.5" class="image-svg-letter">
+                            <path transform="translate(-0.5625 56.25)"
+                                d="M44.44-53.72L40.78-56.25L22.50-29.25L4.50-56.25L0.56-53.72L20.25-24.47L20.25 0L24.75 0L24.75-24.47ZM72.39-28.41C76.33-31.22 78.30-35.16 78.30-40.50C78.30-48.66 72.11-55.41 64.52-55.41L43.99-55.41L43.99 0.84L65.64 0.84C73.52 0.84 79.99-5.91 79.99-14.63C79.99-20.53 76.89-25.88 72.39-28.41ZM48.49-50.91L64.52-50.91C69.86-50.91 73.80-46.13 73.80-40.50C73.80-34.88 69.86-30.09 64.52-30.09L48.49-30.09ZM48.49-3.66L48.49-25.59L49.61-25.59L65.64-25.59C70.99-25.59 75.49-21.09 75.49-14.63C75.49-8.72 71.27-3.66 65.64-3.66Z"></path>
+                        </svg>
+                    </g>
+                </mask>
+            </svg>
+            <defs>
+                <filter id="colors8137702452">
+                    <feColorMatrix type="matrix"
+                        values="0 0 0 0 0.2109375  0 0 0 0 0.19921875  0 0 0 0 0.51171875  0 0 0 1 0"
+                        class="icon-fecolormatrix"></feColorMatrix>
+                </filter>
+                <filter id="colorsf5401022967">
+                    <feColorMatrix type="matrix"
+                        values="0 0 0 0 0.99609375  0 0 0 0 0.99609375  0 0 0 0 0.99609375  0 0 0 1 0"
+                        class="icon-fecolormatrix"></feColorMatrix>
+                </filter>
+                <filter id="colorsb9354374061">
+                    <feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0"
+                        class="icon-fecolormatrix"></feColorMatrix>
+                </filter>
+            </defs>
+        </g>
+        <g transform="translate(68,12.319997787475586)">
+            <g data-gra="path-name" fill-rule="" class="tp-name iconsvg-namesvg">
+                <g transform="scale(1)">
+                    <g>
+                        <path
+                            d="M5.79-26.87L5.79-24.94 30.58-24.94 30.58-26.87ZM17.81-14.99L33.4-14.99 33.4-16.77 2.97-16.77 2.97-14.99 15.59-14.99 5.94 1.04 6.68 2.52C14.25 2.52 21.52 1.93 28.5 0.74L30.28 3.86 31.91 2.97 25.09-9.2 23.45-8.16 27.61-0.89C21.23 0.15 14.84 0.59 8.31 0.59ZM41.71-14.99L41.71-20.63 39.78-20.63 39.78-14.99ZM49.13-14.99L50.91-14.99 50.91-20.63 49.13-20.63ZM39.63 5.49C42.6 1.78 44.53-3.12 45.57-8.46 46.46-5.34 47.95-2.52 49.88 0.15L51.36-1.04C47.95-5.2 46.31-10.39 46.31-16.48L46.31-29.24 44.53-29.24 44.53-16.48C44.53-8.16 42.3-0.89 38.3 4.3ZM69.91 3.41L69.91-7.42 69.02-8.46 56.26-8.46 55.37-7.42 55.37 3.41 56.26 4.3 69.02 4.3ZM67.98 2.52L57.15 2.52 57.15-6.53 67.98-6.53ZM58.48-17.66L58.48-20.93 56.7-20.93 56.7-17.66ZM72.88-14.99L67.39-14.99 68.58-20.78 66.8-21.08 65.61-14.99 52.4-14.99 52.4-13.06 72.88-13.06ZM53.14-24.2L72.14-24.2 72.14-25.98 53.14-25.98ZM61.75-29.98L61.75-27.02 63.53-27.02 63.53-29.98ZM108.66 0.74L93.22 0.74 93.22-24.49 106.43-24.49 106.43-26.27 78.23-26.27 78.23-24.49 91.44-24.49 91.44 0.74 75.85 0.74 75.85 2.67 108.66 2.67ZM124.54 0.15L124.24-1.63 119.34-0.74 119.34-15.14 124.39-15.14 124.39-17.07 119.34-17.07 119.34-26.87 117.41-26.87 117.41-17.07 112.37-17.07 112.37-15.14 117.41-15.14 117.41-0.45 112.22 0.45 112.66 2.23ZM146.21-22.41L125.73-22.41 125.73-20.63 130.92-20.63 130.92-16.03C130.92-9.35 130.48-1.63 127.06 5.64L128.84 6.38C130.48 2.67 132.26-2.67 132.7-13.36L132.7-12.02 142.05-12.02 142.05-1.19C142.05 1.04 141.61 3.27 140.87 5.64L142.65 6.23C143.39 3.71 143.84 1.19 143.84-1.19L143.84-12.91 142.95-13.8 132.7-13.8 132.7-16.03 132.7-20.63 146.21-20.63ZM135.08-28.8L135.08-25.53 136.86-25.53 136.86-28.8Z"
+                            transform="translate(-2.9700000286102295, 29.979999542236328)"></path>
+                    </g> <!----> <!----> <!----> <!----> <!----> <!----> <!---->
+                </g>
+            </g> <!---->
+        </g>
+    </g>
+    <defs v-gra="od"></defs>
+</svg>
