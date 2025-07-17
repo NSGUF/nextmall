@@ -41,3 +41,11 @@ EMAIL_FROM=发件人邮箱
 2. npx prisma generate
 2. 开发阶段 npx prisma db push
 生产阶段：   npx prisma migrate dev --name add-super-admin-to-user   迁移新增到数据库
+
+# 报错
+
+1. EPERM: operation not permitted, rename 'D:\nextmall\node_modules\.pnpm\@prisma+client@6.12.0_prism_852c2f50
+8fa5d5c04099a9cee124d4df\node_modules\.prisma\client\query_engine-windows.dll.node.tmp9116' ->
+'D:\nextmall\node_modules\.pnpm\@prisma+client@6.12.0_prism_852c2f508fa5d5c04099a9cee124d4df\node_modules\.
+prisma\client\query_engine-windows.dll.node' 你的数据库 schema 已经同步成功，不影响开发。这个 EPERM 错误通常是 Windows 下文件被占用或权限问题，重启、关闭杀毒、用管理员权限、清理 node_modules 都能解决。不用处理
+
