@@ -15,61 +15,244 @@ datasource db {
 }
 
 model Post {
-    id        Int      @id @default(autoincrement())
-    name      String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+    id        Int      @id @default(autoincrement()) // 帖子ID
+    name      String   // 帖子名称
+    createdAt DateTime @default(now()) // 创建时间
+    updatedAt DateTime @updatedAt // 更新时间
 
-    createdBy   User   @relation(fields: [createdById], references: [id])
-    createdById String
+    createdBy   User   @relation(fields: [createdById], references: [id]) // 创建人
+    createdById String // 创建人ID
 
     @@index([name])
 }
 
 // Necessary for Next auth
 model Account {
-    id                       String  @id @default(cuid())
-    userId                   String
-    type                     String
-    provider                 String
-    providerAccountId        String
-    refresh_token            String? // @db.Text
-    access_token             String? // @db.Text
-    expires_at               Int?
-    token_type               String?
-    scope                    String?
-    id_token                 String? // @db.Text
-    session_state            String?
-    user                     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-    refresh_token_expires_in Int?
+    id                       String  @id @default(cuid()) // 账号ID
+    userId                   String  // 用户ID
+    type                     String  // 账号类型
+    provider                 String  // 第三方登录提供商
+    providerAccountId        String  // 第三方账号ID
+    refresh_token            String? // 刷新令牌
+    access_token             String? // 访问令牌
+    expires_at               Int?    // 过期时间
+    token_type               String? // 令牌类型
+    scope                    String? // 权限范围
+    id_token                 String? // ID令牌
+    session_state            String? // 会话状态
+    user                     User    @relation(fields: [userId], references: [id], onDelete: Cascade) // 关联用户
+    refresh_token_expires_in Int?    // 刷新令牌有效期
 
     @@unique([provider, providerAccountId])
 }
 
 model Session {
-    id           String   @id @default(cuid())
-    sessionToken String   @unique
-    userId       String
-    expires      DateTime
-    user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    id           String   @id @default(cuid()) // 会话ID
+    sessionToken String   @unique // 会话令牌
+    userId       String   // 用户ID
+    expires      DateTime // 过期时间
+    user         User     @relation(fields: [userId], references: [id], onDelete: Cascade) // 关联用户
 }
 
 model User {
-    id            String    @id @default(cuid())
-    name          String?
-    email         String?   @unique
-    emailVerified DateTime?
-    image         String?
+    id            String    @id @default(cuid()) // 用户ID
+    name          String?   // 用户名
+    email         String?   @unique // 邮箱
+    phone         String?   // 手机号
+    status        Int       @default(1) // 用户状态 1正常 0禁用
+    gender        String?   // 性别
+    birthday      DateTime? // 生日
+    emailVerified DateTime? // 邮箱验证时间
+    image         String?   // 头像
     password      String?   // 密码，需加密存储
-    accounts      Account[]
-    sessions      Session[]
-    posts         Post[]
+    accounts      Account[] // 账号列表
+    sessions      Session[] // 会话列表
+    posts         Post[]    // 帖子列表
+    role          UserRole  @default(NORMAL) // 用户角色
+    addresses     Address[] // 收货地址
+    products      Product[] @relation("UserProducts") // 用户发布的商品
+    orders        Order[]   // 用户订单
+    favorites     Product[] @relation("UserFavorites") // 商品收藏
+    footprints    Footprint[] // 浏览足迹
+    cartItems     CartItem[] // 购物车
+    favoriteCourses Course[] @relation("UserFavoriteCourses") // 收藏课程
+    createdAt     DateTime  @default(now()) // 创建时间
+    updatedAt     DateTime  @updatedAt // 更新时间
+    isDeleted     Boolean   @default(false) // 是否已删除
 }
 
+enum UserRole {
+    SUPERADMIN // 超级管理员
+    VENDOR     // 供应商
+    STORE      // 普通门店
+    NORMAL     // 普通用户
+}
+
+model Address {
+  id        String   @id @default(cuid()) // 地址ID
+  user      User     @relation(fields: [userId], references: [id]) // 关联用户
+  userId    String   // 用户ID
+  name      String   // 收件人姓名
+  phone     String   // 联系电话
+  province  String   // 省份
+  city      String   // 城市
+  district  String   // 区/县
+  detail    String   // 详细地址
+  isDefault Boolean  @default(false) // 是否默认地址
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+}
+
+model Product {
+  id          String   @id @default(cuid()) // 商品ID
+  title       String   // 商品标题
+  images      String[] // 商品图片
+  price       Float    // 商品价格
+  stock       Int      // 库存数量
+  owner       User     @relation("UserProducts", fields: [ownerId], references: [id]) // 所属用户
+  ownerId     String   // 用户ID
+  logistics   String   // 物流方式
+  description String   // 商品详情
+  isActive    Boolean  @default(true) // 是否上架
+  sales       Int      @default(0) // 销量
+  isDeleted   Boolean  @default(false) // 是否已删除
+  specs       ProductSpec[] // 商品规格
+  createdAt   DateTime @default(now()) // 创建时间
+  updatedAt   DateTime @updatedAt // 更新时间
+  favoredBy   User[]   @relation("UserFavorites") // 被哪些用户收藏
+  cartItems   CartItem[] // 购物车项
+  orderItems  OrderItem[] // 订单项
+  category    ProductCategory? @relation(fields: [categoryId], references: [id])
+  categoryId  String?          // 分类ID
+}
+
+model ProductSpec {
+  id        String   @id @default(cuid()) // 规格ID
+  product   Product  @relation(fields: [productId], references: [id])
+  productId String   // 商品ID
+  name      String   // 规格名
+  value     String   // 规格值
+  price     Float?   // 该规格价格
+  stock     Int?     // 该规格库存
+}
+
+model Order {
+  id            String      @id @default(cuid()) // 订单ID
+  user          User        @relation(fields: [userId], references: [id]) // 购买用户
+  userId        String      // 用户ID
+  items         OrderItem[] // 订单商品项
+  totalPrice    Float       // 订单总价
+  address       Address?    @relation(fields: [addressId], references: [id])
+  addressId     String?     // 收货地址ID
+  status        OrderStatus @default(PENDING) // 订单状态
+  paymentMethod String?     // 支付方式
+  paidAt        DateTime?   // 支付时间
+  trackingNumber String?    // 物流单号
+  paymentInfo   String?     // 支付相关信息
+  shippingInfo  String?     // 发货相关信息
+  refundInfo    String?     // 退款/售后信息
+  remark        String?     // 订单备注
+  createdAt     DateTime    @default(now()) // 创建时间
+  updatedAt     DateTime    @updatedAt // 更新时间
+  isDeleted     Boolean     @default(false) // 是否已删除
+}
+
+model OrderItem {
+  id        String   @id @default(cuid()) // 订单项ID
+  order     Order    @relation(fields: [orderId], references: [id])
+  orderId   String   // 订单ID
+  product   Product  @relation(fields: [productId], references: [id])
+  productId String   // 商品ID
+  spec      ProductSpec? @relation(fields: [specId], references: [id])
+  specId    String?  // 规格ID
+  quantity  Int      // 购买数量
+  price     Float    // 购买时单价
+}
+
+model CartItem {
+  id        String   @id @default(cuid()) // 购物车项ID
+  user      User     @relation(fields: [userId], references: [id]) // 关联用户
+  userId    String   // 用户ID
+  product   Product  @relation(fields: [productId], references: [id]) // 关联商品
+  productId String   // 商品ID
+  spec      ProductSpec? @relation(fields: [specId], references: [id])
+  specId    String?  // 规格ID
+  quantity  Int      @default(1) // 数量
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+}
+
+model Course {
+  id           String    @id @default(cuid()) // 课程ID
+  title        String    // 课程标题
+  description  String    // 课程描述
+  videoUrl     String    // 视频地址
+  coverImage   String?   // 封面图
+  duration     Int       // 时长（秒）
+  views        Int       @default(0) // 播放次数
+  creator      User      @relation(fields: [creatorId], references: [id]) // 创建者
+  creatorId    String    // 创建者ID
+  publishedAt  DateTime? // 发布时间
+  isPublished  Boolean   @default(false) // 是否上架
+  collection   Collection? @relation(fields: [collectionId], references: [id]) // 所属合集
+  collectionId String    // 合集ID
+  favoredBy    User[]    @relation("UserFavoriteCourses") // 被哪些用户收藏
+  tags         String[]  // 课程标签
+  isFree       Boolean   @default(true) // 是否免费
+  price        Float?    // 课程价格
+  order        Int?      // 排序
+  isDeleted    Boolean   @default(false) // 是否已删除
+  createdAt    DateTime  @default(now()) // 创建时间
+  updatedAt    DateTime  @updatedAt // 更新时间
+}
+
+model Collection {
+  id        String   @id @default(cuid()) // 合集ID
+  title     String   // 合集标题
+  category  Category @relation(fields: [categoryId], references: [id]) // 所属类别
+  categoryId String  // 类别ID
+  courses   Course[] // 合集下的课程
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+}
+
+model Category {
+  id          String       @id @default(cuid()) // 类别ID
+  name        String       // 类别名称
+  description String?      // 类别描述
+  collections Collection[] // 类别下的合集
+  createdAt   DateTime     @default(now()) // 创建时间
+  updatedAt   DateTime     @updatedAt // 更新时间
+}
+
+model CoursePlayRecord {
+  id        String   @id @default(cuid()) // 播放记录ID
+  user      User     @relation(fields: [userId], references: [id]) // 关联用户
+  userId    String   // 用户ID
+  course    Course   @relation(fields: [courseId], references: [id]) // 关联课程
+  courseId  String   // 课程ID
+  playedAt  DateTime @default(now()) // 播放时间
+}
+
+model ProductCategory {
+  id          String            @id @default(cuid()) // 分类ID
+  name        String            // 分类名称
+  parent      ProductCategory?  @relation("CategoryParent", fields: [parentId], references: [id])
+  parentId    String?           // 父级分类ID
+  children    ProductCategory[] @relation("CategoryParent")
+  description String?           // 分类描述
+  icon        String?           // 分类图标
+  sort        Int               @default(0) // 排序
+  products    Product[]         // 该分类下的商品
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+}
+
+
 model VerificationToken {
-    identifier String
-    token      String   @unique
-    expires    DateTime
+    identifier String // 标识符
+    token      String   @unique // 验证令牌
+    expires    DateTime // 过期时间
 
     @@unique([identifier, token])
 }

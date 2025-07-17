@@ -26,7 +26,8 @@ docker compose up -d
 3. pnpm dev
 
 # 环境变量
-
+1. 修改secret: openssl rand -base64 44 命令行快速生成
+2. 
 # 邮箱登录配置
 EMAIL_SERVER=smtp://用户名:密码@smtp服务器:端口
 EMAIL_FROM=发件人邮箱
@@ -35,7 +36,8 @@ EMAIL_FROM=发件人邮箱
 # EMAIL_SERVER=smtp://user:pass@smtp.163.com:465
 # EMAIL_FROM=your@email.com
 
-## 更改数据库
+## 更改数据库 
 1. 更改schema.prisma
 2. npx prisma generate
-2. npx prisma db push
+2. 开发阶段 npx prisma db push
+生产阶段：   npx prisma migrate dev --name add-super-admin-to-user   迁移新增到数据库
