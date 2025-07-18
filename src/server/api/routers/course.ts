@@ -8,6 +8,7 @@ export const courseRouter = createTRPCRouter({
             z.object({
                 orderBy: z.string().optional(),
                 order: z.enum(["asc", "desc"]).optional(),
+                collectionId: z.string().optional(),
             }).optional()
         )
         .query(async ({ ctx, input }) => {
@@ -15,6 +16,7 @@ export const courseRouter = createTRPCRouter({
                 orderBy: input?.orderBy
                     ? { [input.orderBy]: input.order ?? "asc" }
                     : { createdAt: "desc" },
+                where: input?.collectionId ? { collectionId: input.collectionId } : undefined,
             });
         }),
 
