@@ -127,7 +127,7 @@ export default function AdminPage() {
         close: closeDeleteConfirm,
     } = useConfirmDialog({
         title: "确认删除",
-        content: "确定要删除该分类吗？",
+        content: "确定要删除该产品吗？",
         confirmText: "删除",
         cancelText: "取消",
         buttonProps: { style: { display: "none" } }, // 不显示按钮，手动控制
@@ -148,7 +148,7 @@ export default function AdminPage() {
     // 排序
     // 已由后端排序...
 
-    // Map 分类s to ensure no nulls for string fields before passing to DataTable
+    // Map 产品s to ensure no nulls for string fields before passing to DataTable
     const normalizedProducts: Product[] = useMemo(() =>
         products.map(p => ({
             ...p,
@@ -191,7 +191,7 @@ export default function AdminPage() {
     return (
         <Box borderRadius="lg" minHeight="full" p={4} bg="white" boxShadow="xs">
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
-                <Heading size="lg">分类管理</Heading>
+                <Heading size="lg">产品管理</Heading>
             </Box>
             <DataTable
                 columns={columns.map(col =>

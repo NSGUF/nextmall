@@ -3,285 +3,13 @@ import { useState } from "react";
 import { Box, Flex, Text, VStack, Image, Input } from "@chakra-ui/react";
 import { InputGroup } from "@/app/_components/ui";
 import { FiSearch, FiThumbsUp, FiClock, FiZap, FiGift, FiCheckSquare, FiUsers, FiTrendingUp, FiStar, FiShoppingBag, FiDollarSign } from "react-icons/fi";
-
-// 假数据
-const categories = [
-    {
-        id: 1,
-        name: "美妆护肤",
-        items: [
-            { id: 101, name: "ASd234", img: "/logo.svg" },
-            { id: 102, name: "通用品牌", img: "/logo.svg" },
-            { id: 103, name: "品牌2", img: "/logo.svg" },
-            { id: 104, name: "1022", img: "/logo.svg" },
-            { id: 105, name: "1234", img: "/logo.svg" },
-        ],
-    },
-    {
-        id: 1,
-        name: "美妆护肤",
-        items: [
-            { id: 101, name: "ASd234", img: "/logo.svg" },
-            { id: 102, name: "通用品牌", img: "/logo.svg" },
-            { id: 103, name: "品牌2", img: "/logo.svg" },
-            { id: 104, name: "1022", img: "/logo.svg" },
-            { id: 105, name: "1234", img: "/logo.svg" },
-        ],
-    },
-    {
-        id: 1,
-        name: "美妆护肤",
-        items: [
-            { id: 101, name: "ASd234", img: "/logo.svg" },
-            { id: 102, name: "通用品牌", img: "/logo.svg" },
-            { id: 103, name: "品牌2", img: "/logo.svg" },
-            { id: 104, name: "1022", img: "/logo.svg" },
-            { id: 105, name: "1234", img: "/logo.svg" },
-        ],
-    },
-    {
-        id: 1,
-        name: "美妆护肤",
-        items: [
-            { id: 101, name: "ASd234", img: "/logo.svg" },
-            { id: 102, name: "通用品牌", img: "/logo.svg" },
-            { id: 103, name: "品牌2", img: "/logo.svg" },
-            { id: 104, name: "1022", img: "/logo.svg" },
-            { id: 105, name: "1234", img: "/logo.svg" },
-        ],
-    },
-    {
-        id: 1,
-        name: "美妆护肤",
-        items: [
-            { id: 101, name: "ASd234", img: "/logo.svg" },
-            { id: 102, name: "通用品牌", img: "/logo.svg" },
-            { id: 103, name: "品牌2", img: "/logo.svg" },
-            { id: 104, name: "1022", img: "/logo.svg" },
-            { id: 105, name: "1234", img: "/logo.svg" },
-        ],
-    },
-    {
-        id: 1,
-        name: "美妆护肤",
-        items: [
-            { id: 101, name: "ASd234", img: "/logo.svg" },
-            { id: 102, name: "通用品牌", img: "/logo.svg" },
-            { id: 103, name: "品牌2", img: "/logo.svg" },
-            { id: 104, name: "1022", img: "/logo.svg" },
-            { id: 105, name: "1234", img: "/logo.svg" },
-        ],
-    },
-    {
-        id: 1,
-        name: "美妆护肤",
-        items: [
-            { id: 101, name: "ASd234", img: "/logo.svg" },
-            { id: 102, name: "通用品牌", img: "/logo.svg" },
-            { id: 103, name: "品牌2", img: "/logo.svg" },
-            { id: 104, name: "1022", img: "/logo.svg" },
-            { id: 105, name: "1234", img: "/logo.svg" },
-        ],
-    },
-    {
-        id: 1,
-        name: "美妆护肤",
-        items: [
-            { id: 101, name: "ASd234", img: "/logo.svg" },
-            { id: 102, name: "通用品牌", img: "/logo.svg" },
-            { id: 103, name: "品牌2", img: "/logo.svg" },
-            { id: 104, name: "1022", img: "/logo.svg" },
-            { id: 105, name: "1234", img: "/logo.svg" },
-        ],
-    },
-    {
-        id: 1,
-        name: "美妆护肤",
-        items: [
-            { id: 101, name: "ASd234", img: "/logo.svg" },
-            { id: 102, name: "通用品牌", img: "/logo.svg" },
-            { id: 103, name: "品牌2", img: "/logo.svg" },
-            { id: 104, name: "1022", img: "/logo.svg" },
-            { id: 105, name: "1234", img: "/logo.svg" },
-        ],
-    },
-    {
-        id: 1,
-        name: "美妆护肤",
-        items: [
-            { id: 101, name: "ASd234", img: "/logo.svg" },
-            { id: 102, name: "通用品牌", img: "/logo.svg" },
-            { id: 103, name: "品牌2", img: "/logo.svg" },
-            { id: 104, name: "1022", img: "/logo.svg" },
-            { id: 105, name: "1234", img: "/logo.svg" },
-        ],
-    },
-    {
-        id: 1,
-        name: "美妆护肤",
-        items: [
-            { id: 101, name: "ASd234", img: "/logo.svg" },
-            { id: 102, name: "通用品牌", img: "/logo.svg" },
-            { id: 103, name: "品牌2", img: "/logo.svg" },
-            { id: 104, name: "1022", img: "/logo.svg" },
-            { id: 105, name: "1234", img: "/logo.svg" },
-        ],
-    },
-    {
-        id: 1,
-        name: "美妆护肤",
-        items: [
-            { id: 101, name: "ASd234", img: "/logo.svg" },
-            { id: 102, name: "通用品牌", img: "/logo.svg" },
-            { id: 103, name: "品牌2", img: "/logo.svg" },
-            { id: 104, name: "1022", img: "/logo.svg" },
-            { id: 105, name: "1234", img: "/logo.svg" },
-        ],
-    },
-    {
-        id: 1,
-        name: "美妆护肤",
-        items: [
-            { id: 101, name: "ASd234", img: "/logo.svg" },
-            { id: 102, name: "通用品牌", img: "/logo.svg" },
-            { id: 103, name: "品牌2", img: "/logo.svg" },
-            { id: 104, name: "1022", img: "/logo.svg" },
-            { id: 105, name: "1234", img: "/logo.svg" },
-        ],
-    },
-    {
-        id: 1,
-        name: "美妆护肤",
-        items: [
-            { id: 101, name: "ASd234", img: "/logo.svg" },
-            { id: 102, name: "通用品牌", img: "/logo.svg" },
-            { id: 103, name: "品牌2", img: "/logo.svg" },
-            { id: 104, name: "1022", img: "/logo.svg" },
-            { id: 105, name: "1234", img: "/logo.svg" },
-        ],
-    },
-    {
-        id: 1,
-        name: "美妆护肤",
-        items: [
-            { id: 101, name: "ASd234", img: "/logo.svg" },
-            { id: 102, name: "通用品牌", img: "/logo.svg" },
-            { id: 103, name: "品牌2", img: "/logo.svg" },
-            { id: 104, name: "1022", img: "/logo.svg" },
-            { id: 105, name: "1234", img: "/logo.svg" },
-        ],
-    },
-    {
-        id: 1,
-        name: "美妆护肤",
-        items: [
-            { id: 101, name: "ASd234", img: "/logo.svg" },
-            { id: 102, name: "通用品牌", img: "/logo.svg" },
-            { id: 103, name: "品牌2", img: "/logo.svg" },
-            { id: 104, name: "1022", img: "/logo.svg" },
-            { id: 105, name: "1234", img: "/logo.svg" },
-        ],
-    },
-    {
-        id: 1,
-        name: "美妆护肤",
-        items: [
-            { id: 101, name: "ASd234", img: "/logo.svg" },
-            { id: 102, name: "通用品牌", img: "/logo.svg" },
-            { id: 103, name: "品牌2", img: "/logo.svg" },
-            { id: 104, name: "1022", img: "/logo.svg" },
-            { id: 105, name: "1234", img: "/logo.svg" },
-        ],
-    },
-    {
-        id: 1,
-        name: "美妆护肤",
-        items: [
-            { id: 101, name: "ASd234", img: "/logo.svg" },
-            { id: 102, name: "通用品牌", img: "/logo.svg" },
-            { id: 103, name: "品牌2", img: "/logo.svg" },
-            { id: 104, name: "1022", img: "/logo.svg" },
-            { id: 105, name: "1234", img: "/logo.svg" },
-        ],
-    },
-    {
-        id: 1,
-        name: "美妆护肤",
-        items: [
-            { id: 101, name: "ASd234", img: "/logo.svg" },
-            { id: 102, name: "通用品牌", img: "/logo.svg" },
-            { id: 103, name: "品牌2", img: "/logo.svg" },
-            { id: 104, name: "1022", img: "/logo.svg" },
-            { id: 105, name: "1234", img: "/logo.svg" },
-        ],
-    },
-    {
-        id: 1,
-        name: "美妆护肤",
-        items: [
-            { id: 101, name: "ASd234", img: "/logo.svg" },
-            { id: 102, name: "通用品牌", img: "/logo.svg" },
-            { id: 103, name: "品牌2", img: "/logo.svg" },
-            { id: 104, name: "1022", img: "/logo.svg" },
-            { id: 105, name: "1234", img: "/logo.svg" },
-        ],
-    },
-    {
-        id: 1,
-        name: "美妆护肤",
-        items: [
-            { id: 101, name: "ASd234", img: "/logo.svg" },
-            { id: 102, name: "通用品牌", img: "/logo.svg" },
-            { id: 103, name: "品牌2", img: "/logo.svg" },
-            { id: 104, name: "1022", img: "/logo.svg" },
-            { id: 105, name: "1234", img: "/logo.svg" },
-        ],
-    },
-    {
-        id: 1,
-        name: "美妆护肤",
-        items: [
-            { id: 101, name: "ASd234", img: "/logo.svg" },
-            { id: 102, name: "通用品牌", img: "/logo.svg" },
-            { id: 103, name: "品牌2", img: "/logo.svg" },
-            { id: 104, name: "1022", img: "/logo.svg" },
-            { id: 105, name: "1234", img: "/logo.svg" },
-        ],
-    },
-    {
-        id: 1,
-        name: "美妆护肤",
-        items: [
-            { id: 101, name: "ASd234", img: "/logo.svg" },
-            { id: 102, name: "通用品牌", img: "/logo.svg" },
-            { id: 103, name: "品牌2", img: "/logo.svg" },
-            { id: 104, name: "1022", img: "/logo.svg" },
-            { id: 105, name: "1234", img: "/logo.svg" },
-        ],
-    },
-    {
-        id: 2,
-        name: "个护清洁",
-        items: [
-            { id: 201, name: "新增商品", img: "/logo.svg" },
-            { id: 202, name: "1", img: "/logo.svg" },
-            { id: 203, name: "粉底液/膏", img: "/logo.svg" },
-        ],
-    },
-    {
-        id: 3,
-        name: "居家餐厨",
-        items: [
-            { id: 301, name: "餐具", img: "/logo.svg" },
-            { id: 302, name: "锅具", img: "/logo.svg" },
-        ],
-    },
-    // ...可继续添加更多分类
-];
+import { api } from "@/trpc/react";
 
 export default function CategoryPage() {
+    const { data: categories = [] } = api.category.list.useQuery();
     const [activeIndex, setActiveIndex] = useState(0);
     const activeCategory = categories[activeIndex];
+    const { data: products = [] } = api.product.list.useQuery(activeCategory ? { categoryId: activeCategory.id } : undefined);
 
     return (
         <Flex h="calc(100vh - 64px)" flexDirection="column" overflow="hidden">
@@ -337,10 +65,10 @@ export default function CategoryPage() {
                 {/* 右侧内容区 */}
                 <Box flex={1} h="100%" overflowY="auto" p={4} minW={0}>
                     <Text fontSize="md" fontWeight="bold" mb={4}>
-                        {activeCategory.name}分类
+                        {activeCategory ? activeCategory.name : ""}分类
                     </Text>
                     <Flex wrap="wrap" gap={3}>
-                        {activeCategory.items.map((item) => (
+                        {products.map((item) => (
                             <Box
                                 key={item.id}
                                 w="90px"
@@ -352,8 +80,8 @@ export default function CategoryPage() {
                                 _hover={{ boxShadow: "md" }}
                             >
                                 <Image
-                                    src={item.img}
-                                    alt={item.name}
+                                    src={item.images?.[0] ?? "/logo.svg"}
+                                    alt={item.title}
                                     w="70px"
                                     h="70px"
                                     mx="auto"
@@ -363,7 +91,7 @@ export default function CategoryPage() {
                                     bg="gray.100"
                                 />
                                 <Text fontSize="xs" color="gray.700">
-                                    {item.name}
+                                    {item.title}
                                 </Text>
                             </Box>
                         ))}
