@@ -3,7 +3,7 @@
 import { Container, Image, Input, Text, Flex, Link } from "@chakra-ui/react";
 import { useForm } from "react-hook-form";
 import { FiLock, FiMail } from "react-icons/fi";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Button, Field, InputGroup, PasswordInput } from "@/app/_components/ui";
 import useCustomToast from "@/app/hooks/useCustomToast"
@@ -16,6 +16,7 @@ type LoginForm = {
 
 export default function Login() {
     const router = useRouter();
+    const { data: session, update } = useSession();
     const {
         register,
         handleSubmit,
@@ -30,20 +31,31 @@ export default function Login() {
     });
 
     const onSubmit = async (data: LoginForm) => {
-        const res = await signIn("credentials", {
-            email: data.username,
-            password: data.password,
-            redirect: false, // 防止自动跳转，方便前端拿到 session
-        });
-        console.log(res)
-        debugger;
-        if (res?.error) {
-            handleError({ message: "邮箱或密码错误" });
-        } else {
-            // router.replace("/");
+        try {
+            const res = await signIn("credentials", {
+                email: data.username,
+                password: data.password,
+                redirect: false, // 防止自动跳转，方便前端拿到 session
+            });
+
+            console.log("SignIn result:", res);
+
+            if (res?.error) {
+                handleError({ message: "邮箱或密码错误" });
+            } else if (res?.ok) {
+                // 强制更新session
+                await update();
+
+                // 等待一小段时间确保session更新
+                setTimeout(() => {
+                    router.replace("/");
+                }, 500);
+            }
+        } catch (error) {
+            console.error("Login error:", error);
+            handleError({ message: "登录失败，请重试" });
         }
     };
-
     return (
         <Container
             as="form"

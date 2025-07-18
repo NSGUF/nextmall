@@ -64,7 +64,8 @@ export const authConfig = {
      * @see https://next-auth.js.org/providers/github
      */
   ],
-  adapter: PrismaAdapter(db),
+  // 使用JWT策略时不需要adapter
+  // adapter: PrismaAdapter(db),
   callbacks: {
     session: async ({ session, token, user }) => {
       // token存在时优先用token
