@@ -11,7 +11,6 @@ import { useSession } from "next-auth/react";
 const Header = () => {
     const { data: session } = useSession();
     const userName = session?.user?.name ?? session?.user?.email ?? "用户";
-    console.log(session)
     return (
         <Box
             borderBottomWidth="1px"

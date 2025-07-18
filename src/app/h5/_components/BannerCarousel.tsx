@@ -5,25 +5,12 @@ import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { useRef } from "react";
 import { useEffect } from "react";
 
-export interface BannerItem {
-    img: string;
-    link: string;
-    alt?: string;
-}
-
-export interface BannerCarouselProps {
-    banners: BannerItem[];
-    height?: string | number;
-}
-
-export default function BannerCarousel({ banners, height = "140px" }: BannerCarouselProps) {
+export default function BannerCarousel({ banners = [], height = "140px" }) {
     const [index, setIndex] = useState(0);
     const [fade, setFade] = useState(true);
     const touchStartX = useRef(0);
     const touchEndX = useRef(0);
     const timerRef = useRef<NodeJS.Timeout | null>(null);
-    // hooks 必须在组件顶层调用，不能在 return 前提前 return
-    if (!banners || banners.length === 0) return null;
 
     const prev = () => {
         setFade(false);
@@ -90,11 +77,13 @@ export default function BannerCarousel({ banners, height = "140px" }: BannerCaro
             onTouchMove={onTouchMove}
             onTouchEnd={onTouchEnd}
         >
-            {banners[index]?.img && (
+            {(!banners || banners.length === 0) ? (
+                <></>
+            ) : banners[index]?.image && (
                 <a href={banners[index]?.link} target="_blank" rel="noopener noreferrer">
                     <Image
-                        src={banners[index].img}
-                        alt={banners[index]?.alt ?? "banner"}
+                        src={banners[index].image}
+                        alt={banners[index]?.description ?? "banner"}
                         borderRadius="xl"
                         w="100%"
                         h={height}

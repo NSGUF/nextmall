@@ -3,11 +3,12 @@ import { createTRPCRouter, publicProcedure, superAdminProcedure } from "@/server
 
 export const bannerRouter = createTRPCRouter({
     // 获取所有banner，支持排序
-    list: superAdminProcedure
+    list: publicProcedure
         .input(
             z.object({
                 orderBy: z.string().optional(),
                 order: z.enum(["asc", "desc"]).optional(),
+                isActive: z.boolean().optional(), // 新增 isActive 参数
             }).optional()
         )
         .query(async ({ ctx, input }) => {
@@ -15,6 +16,7 @@ export const bannerRouter = createTRPCRouter({
                 orderBy: input?.orderBy
                     ? { [input.orderBy]: input.order ?? "asc" }
                     : { sort: "asc" },
+                where: input?.isActive === true ? { isActive: true } : undefined, // 新增 where 条件
             });
         }),
 

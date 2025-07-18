@@ -4,6 +4,7 @@ import { Box, Flex, Input, SimpleGrid, Text, Image } from "@chakra-ui/react";
 import { InputGroup } from "@/app/_components/ui";
 import { FiSearch, FiThumbsUp, FiClock, FiZap, FiGift, FiCheckSquare, FiUsers, FiTrendingUp, FiStar, FiShoppingBag, FiDollarSign } from "react-icons/fi";
 import BannerCarousel from "./_components/BannerCarousel";
+import { api } from "@/trpc/react";
 
 
 const quickEntries = [
@@ -19,17 +20,10 @@ const quickEntries = [
     { icon: FiDollarSign, label: "分销中心" },
 ];
 
-const banners = [{
-    img: '/image.png',
-    link: 'http://localhost:8000/api/v1/utils/file/2019-04-05_20250714151954.png',
-    alt: 'http://localhost:8000/api/v1/utils/file/2019-04-05_20250714151954.png',
-}, {
-    img: 'http://localhost:8000/api/v1/utils/file/2019-04-05_20250714151954.png',
-    link: 'http://localhost:8000/api/v1/utils/file/2019-04-05_20250714151954.png',
-    alt: 'http://localhost:8000/api/v1/utils/file/2019-04-05_20250714151954.png',
-}]
-
 export default function H5Home() {
+    // 获取 isActive 的 banners
+    const { data: banners = [], isLoading } = api.banner.list.useQuery({ isActive: true });
+
     return (
         <Box
             h="calc(100vh - 64px)"
@@ -76,48 +70,6 @@ export default function H5Home() {
             <Box px={4} mt={2} pb={4}>
                 <SimpleGrid columns={2} gap={2}>
                     {[
-                        {
-                            id: 1,
-                            img: "/image.png",
-                            title: "法式半夏花向阳花开陶瓷杯碟礼盒套装",
-                            price: 38.97,
-                            total: 100,
-                        },
-                        {
-                            id: 2,
-                            img: "/image.png",
-                            title: "狗狗项圈圈跨境新款宠物用品",
-                            price: 0.01,
-                            total: 100,
-                        },
-                        {
-                            id: 1,
-                            img: "/image.png",
-                            title: "法式半夏花向阳花开陶瓷杯碟礼盒套装",
-                            price: 38.97,
-                            total: 100,
-                        },
-                        {
-                            id: 2,
-                            img: "/image.png",
-                            title: "狗狗项圈圈跨境新款宠物用品",
-                            price: 0.01,
-                            total: 100,
-                        },
-                        {
-                            id: 1,
-                            img: "/image.png",
-                            title: "法式半夏花向阳花开陶瓷杯碟礼盒套装",
-                            price: 38.97,
-                            total: 100,
-                        },
-                        {
-                            id: 2,
-                            img: "/image.png",
-                            title: "狗狗项圈圈跨境新款宠物用品",
-                            price: 0.01,
-                            total: 100,
-                        },
                         {
                             id: 1,
                             img: "/image.png",
