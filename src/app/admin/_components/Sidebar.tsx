@@ -38,6 +38,11 @@ const Sidebar = () => {
       url: "/admin/banner",
       icon: FiBookOpen,
     },
+    {
+      title: "分类管理",
+      url: "/admin/category",
+      icon: MonitorCog,
+    },
     // {
     //   title: "Business",
     //   url: "/business-entities",

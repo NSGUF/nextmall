@@ -125,7 +125,7 @@ model Product {
   favoredBy   User[]   @relation("UserFavorites") // 被哪些用户收藏
   cartItems   CartItem[] // 购物车项
   orderItems  OrderItem[] // 订单项
-  category    ProductCategory? @relation(fields: [categoryId], references: [id])
+  category    Category? @relation(fields: [categoryId], references: [id])
   categoryId  String?          // 分类ID
   footprints   Footprint[] // 自动修复：反向关系，商品的浏览足迹
 }
@@ -216,8 +216,6 @@ model Course {
 model Collection {
   id        String   @id @default(cuid()) // 合集ID
   title     String   // 合集标题
-  category  Category @relation(fields: [categoryId], references: [id]) // 所属类别
-  categoryId String  // 类别ID
   courses   Course[] // 合集下的课程
   createdAt DateTime @default(now()) // 创建时间
   updatedAt DateTime @updatedAt @default(now()) // 更新时间
@@ -226,8 +224,9 @@ model Collection {
 model Category {
   id          String       @id @default(cuid()) // 类别ID
   name        String       // 类别名称
-  description String?      // 类别描述
-  collections Collection[] // 类别下的合集
+  description String      // 类别描述
+  icon        String      // 类别图标
+  products    Product[]    // 类别下的商品
   createdAt   DateTime     @default(now()) // 创建时间
   updatedAt   DateTime     @updatedAt @default(now()) // 更新时间
 }
@@ -239,20 +238,6 @@ model CoursePlayRecord {
   course    Course   @relation(fields: [courseId], references: [id]) // 关联课程
   courseId  String   // 课程ID
   playedAt  DateTime @default(now()) // 播放时间
-}
-
-model ProductCategory {
-  id          String            @id @default(cuid()) // 分类ID
-  name        String            // 分类名称
-  parent      ProductCategory?  @relation("CategoryParent", fields: [parentId], references: [id])
-  parentId    String?           // 父级分类ID
-  children    ProductCategory[] @relation("CategoryParent")
-  description String?           // 分类描述
-  icon        String?           // 分类图标
-  sort        Int               @default(0) // 排序
-  products    Product[]         // 该分类下的商品
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt @default(now())
 }
 
 

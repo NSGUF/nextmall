@@ -22,7 +22,8 @@ const quickEntries = [
 
 export default function H5Home() {
     // 获取 isActive 的 banners
-    const { data: banners = [], isLoading } = api.banner.list.useQuery({ isActive: true });
+    const { data: banners = [] } = api.banner.list.useQuery({ isActive: true });
+    const { data: category = [] } = api.category.list.useQuery();
 
     return (
         <Box
@@ -50,11 +51,11 @@ export default function H5Home() {
             </Box>
 
             <Box px={4} mt={4}>
-                <SimpleGrid columns={5} rowGap={4} bg="white" borderRadius="xl" py={4} shadow="md">
-                    {quickEntries.map((entry) => (
-                        <Flex key={entry.label} direction="column" align="center" justify="center">
-                            <Box as={entry.icon} color="red.400" mb={1} boxSize="28px" />
-                            <Text fontSize="xs" color="gray.700" truncate>{entry.label}</Text>
+                <SimpleGrid columns={4} rowGap={4} bg="white" borderRadius="xl" py={4} shadow="md">
+                    {category.map((entry) => (
+                        <Flex key={entry.name} direction="column" align="center" justify="center">
+                            <Image src={entry.icon} height={11} alt={entry.description} />
+                            <Text fontSize="xs" color="gray.700" truncate>{entry.name}</Text>
                         </Flex>
                     ))}
                 </SimpleGrid>
