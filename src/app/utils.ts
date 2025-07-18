@@ -1,5 +1,6 @@
 
 import useCustomToast from "./hooks/useCustomToast"
+import { toaster } from "@/app/_components/ui/toaster";
 
 export const emailPattern = {
   value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
@@ -44,12 +45,49 @@ export const confirmPasswordRules = (
   return rules
 }
 
-export const handleError = (err) => {
-  const { showErrorToast } = useCustomToast()
-  const errDetail = err?.message
-  let errorMessage = errDetail ?? "系统错误"
-  if (Array.isArray(errDetail) && errDetail.length > 0) {
-    errorMessage = errDetail[0].msg
+/**
+ * @deprecated 请使用 handleGlobalError 代替
+ */
+export function handleError(err: any) {
+  // 仅保留兼容性，推荐用 handleGlobalError
+  let errorMessage = "发生未知错误";
+  if (err instanceof Error) {
+    errorMessage = err.message ?? errorMessage;
+  } else if (typeof err === "string") {
+    errorMessage = err ?? errorMessage;
   }
-  showErrorToast(errorMessage)
+  // 这里不能用 hook，直接用 toaster
+  toaster.create({
+    type: "error",
+    title: "错误",
+    description: errorMessage,
+  });
+}
+
+/**
+ * 全局错误处理函数，自动弹出 toast
+ * 用于 tRPC、fetch、React Query 等 API 错误处理
+ */
+export function handleGlobalError(error: any) {
+  // tRPC error
+  if (error?.data?.code && error?.message) {
+    toaster.create({
+      type: "error",
+      description: error.message,
+    });
+    return;
+  }
+  // 普通 Error
+  if (error instanceof Error) {
+    toaster.create({
+      type: "error",
+      description: error.message,
+    });
+    return;
+  }
+  // 其它未知错误
+  toaster.create({
+    type: "error",
+    description: String(error),
+  });
 }

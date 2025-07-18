@@ -33,12 +33,14 @@ export default function Login() {
         const res = await signIn("credentials", {
             email: data.username,
             password: data.password,
-            redirect: false,
+            redirect: false, // 防止自动跳转，方便前端拿到 session
         });
+        console.log(res)
+        debugger;
         if (res?.error) {
             handleError({ message: "邮箱或密码错误" });
         } else {
-            router.replace("/");
+            // router.replace("/");
         }
     };
 
@@ -110,4 +112,4 @@ export default function Login() {
             </Button>
         </Container>
     );
-} 
+}

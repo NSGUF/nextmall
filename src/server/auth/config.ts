@@ -32,6 +32,11 @@ declare module "next-auth" {
  * @see https://next-auth.js.org/configuration/options
  */
 export const authConfig = {
+  secret: process.env.NEXTAUTH_SECRET,
+  session: {
+    strategy: "jwt", // 显式指定
+    maxAge: 30 * 24 * 60 * 60, // 30天
+  },
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -61,12 +66,26 @@ export const authConfig = {
   ],
   adapter: PrismaAdapter(db),
   callbacks: {
-    session: ({ session, user }) => ({
-      ...session,
-      user: {
-        ...session.user,
-        id: user.id,
-      },
-    }),
+    session: async ({ session, token, user }) => {
+      // token存在时优先用token
+      return {
+        ...session,
+        user: {
+          ...session.user,
+          id: token?.id ?? user?.id,
+          email: token?.email ?? user?.email,
+          name: token?.name ?? user?.name,
+        },
+      };
+    },
+    jwt: async ({ token, user }) => {
+      // 登录时把user信息放进token
+      if (user) {
+        token.id = user.id;
+        token.email = user.email;
+        token.name = user.name;
+      }
+      return token;
+    },
   },
 } satisfies NextAuthConfig;

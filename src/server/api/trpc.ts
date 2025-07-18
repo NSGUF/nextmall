@@ -122,11 +122,33 @@ export const protectedProcedure = t.procedure
   .use(timingMiddleware)
   .use(({ ctx, next }) => {
     if (!ctx.session?.user) {
-      throw new TRPCError({ code: "UNAUTHORIZED" });
+      throw new TRPCError({ code: "UNAUTHORIZED", message: '请登录' });
     }
     return next({
       ctx: {
         // infers the `session` as non-nullable
+        session: { ...ctx.session, user: ctx.session.user },
+      },
+    });
+  });
+
+/**
+ * SuperAdmin (超级管理员) procedure
+ * Only allows access if the user is logged in and has role SUPERADMIN
+ */
+export const superAdminProcedure = t.procedure
+  .use(timingMiddleware)
+  .use(async ({ ctx, next }) => {
+    if (!ctx.session?.user) {
+      throw new TRPCError({ code: "UNAUTHORIZED", message: '请登录' });
+    }
+    // 查询用户角色
+    const user = await ctx.db.user.findUnique({ where: { id: ctx.session.user.id } });
+    if (!user || user.role !== "SUPERADMIN") {
+      throw new TRPCError({ code: "FORBIDDEN", message: "仅超级管理员可操作" });
+    }
+    return next({
+      ctx: {
         session: { ...ctx.session, user: ctx.session.user },
       },
     });

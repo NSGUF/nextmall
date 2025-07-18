@@ -1,3 +1,4 @@
+"use client";
 import { Box, IconButton, Wrap, Avatar, Flex } from "@chakra-ui/react";
 import {
     FiBell,
@@ -5,8 +6,12 @@ import {
     FiMenu,
     FiList,
 } from "react-icons/fi";
+import { useSession } from "next-auth/react";
 
 const Header = () => {
+    const { data: session } = useSession();
+    const userName = session?.user?.name ?? session?.user?.email ?? "用户";
+    console.log(session)
     return (
         <Box
             borderBottomWidth="1px"
@@ -54,10 +59,10 @@ const Header = () => {
                     >
                         <FiList size={21} />
                     </IconButton>
-                    <Avatar.Root colorPalette="orange" ml={1} size="sm">
-                        <Avatar.Fallback name="Rahul Bayad" />
-                        <Avatar.Image src="/userAvatar.jpg" h="36px" w="36px" />
+                    <Avatar.Root>
+                        <Avatar.Fallback name={userName} />
                     </Avatar.Root>
+
                 </Wrap>
             </Flex>
         </Box>

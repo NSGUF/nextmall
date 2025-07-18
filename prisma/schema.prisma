@@ -77,7 +77,7 @@ model User {
     cartItems     CartItem[] // 购物车
     favoriteCourses Course[] @relation("UserFavoriteCourses") // 收藏课程
     createdAt     DateTime  @default(now()) // 创建时间
-    updatedAt     DateTime  @updatedAt // 更新时间
+    updatedAt     DateTime  @updatedAt @default(now()) // 更新时间
     isDeleted     Boolean   @default(false) // 是否已删除
     createdCourses Course[] // 自动修复：反向关系，用户创建的课程
     coursePlayRecords CoursePlayRecord[] // 自动修复：反向关系，用户的课程播放记录
@@ -102,7 +102,7 @@ model Address {
   detail    String   // 详细地址
   isDefault Boolean  @default(false) // 是否默认地址
   createdAt DateTime @default(now()) // 创建时间
-  updatedAt DateTime @updatedAt // 更新时间
+  updatedAt DateTime @updatedAt @default(now()) // 更新时间
   orders    Order[]  // 自动修复：反向关系，地址下的订单
 }
 
@@ -121,7 +121,7 @@ model Product {
   isDeleted   Boolean  @default(false) // 是否已删除
   specs       ProductSpec[] // 商品规格
   createdAt   DateTime @default(now()) // 创建时间
-  updatedAt   DateTime @updatedAt // 更新时间
+  updatedAt   DateTime @updatedAt @default(now()) // 更新时间
   favoredBy   User[]   @relation("UserFavorites") // 被哪些用户收藏
   cartItems   CartItem[] // 购物车项
   orderItems  OrderItem[] // 订单项
@@ -159,7 +159,7 @@ model Order {
   refundInfo    String?     // 退款/售后信息
   remark        String?     // 订单备注
   createdAt     DateTime    @default(now()) // 创建时间
-  updatedAt     DateTime    @updatedAt // 更新时间
+  updatedAt     DateTime    @updatedAt @default(now()) // 更新时间
   isDeleted     Boolean     @default(false) // 是否已删除
 }
 
@@ -185,7 +185,7 @@ model CartItem {
   specId    String?  // 规格ID
   quantity  Int      @default(1) // 数量
   createdAt DateTime @default(now()) // 创建时间
-  updatedAt DateTime @updatedAt // 更新时间
+  updatedAt DateTime @updatedAt @default(now()) // 更新时间
 }
 
 model Course {
@@ -209,7 +209,7 @@ model Course {
   order        Int?      // 排序
   isDeleted    Boolean   @default(false) // 是否已删除
   createdAt    DateTime  @default(now()) // 创建时间
-  updatedAt    DateTime  @updatedAt // 更新时间
+  updatedAt    DateTime  @updatedAt @default(now()) // 更新时间
   playRecords  CoursePlayRecord[] // 自动修复：反向关系，课程的播放记录
 }
 
@@ -220,7 +220,7 @@ model Collection {
   categoryId String  // 类别ID
   courses   Course[] // 合集下的课程
   createdAt DateTime @default(now()) // 创建时间
-  updatedAt DateTime @updatedAt // 更新时间
+  updatedAt DateTime @updatedAt @default(now()) // 更新时间
 }
 
 model Category {
@@ -229,7 +229,7 @@ model Category {
   description String?      // 类别描述
   collections Collection[] // 类别下的合集
   createdAt   DateTime     @default(now()) // 创建时间
-  updatedAt   DateTime     @updatedAt // 更新时间
+  updatedAt   DateTime     @updatedAt @default(now()) // 更新时间
 }
 
 model CoursePlayRecord {
@@ -252,7 +252,7 @@ model ProductCategory {
   sort        Int               @default(0) // 排序
   products    Product[]         // 该分类下的商品
   createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
+  updatedAt   DateTime          @updatedAt @default(now())
 }
 
 
@@ -273,7 +273,7 @@ model Banner {
   sort        Int      @default(0) // 排序
   isActive    Boolean  @default(true) // 是否启用
   createdAt   DateTime @default(now()) // 创建时间
-  updatedAt   DateTime @updatedAt // 更新时间
+  updatedAt   DateTime @updatedAt @default(now()) // 更新时间
 }
 
 // 自动修复：订单状态枚举

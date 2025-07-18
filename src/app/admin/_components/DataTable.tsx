@@ -160,7 +160,7 @@ const DataTable = <T extends object>({
                     <Menu.Positioner width={200}>
                         <Menu.Content>
                             <Menu.ItemGroup>
-                                <Menu.ItemGroupLabel>Table Columns</Menu.ItemGroupLabel>
+                                <Menu.ItemGroupLabel>表格列</Menu.ItemGroupLabel>
                                 <Separator />
                                 <Menu.Item>
                                     <Checkbox.Root
@@ -170,7 +170,7 @@ const DataTable = <T extends object>({
                                     >
                                         <Checkbox.HiddenInput />
                                         <Checkbox.Control />
-                                        <Checkbox.Label>All Columns</Checkbox.Label>
+                                        <Checkbox.Label>所有列</Checkbox.Label>
                                     </Checkbox.Root>
                                 </Menu.Item>
                                 {table.getAllColumns().map((column, index: number) => (
@@ -316,7 +316,7 @@ const DataTable = <T extends object>({
                                     >
                                         <Box display="flex" alignItems="center" gap={1}>
                                             {flexRender(header.column.columnDef.header, header.getContext())}
-                                            {header.column.getCanSort() && (
+                                            {header.column.getCanSort() && header.column.id !== 'action' && (
                                                 <IconButton
                                                     aria-label="排序"
                                                     size="xs"
@@ -326,7 +326,7 @@ const DataTable = <T extends object>({
                                                     {header.column.getIsSorted() === "asc" ? <FiArrowUp /> : header.column.getIsSorted() === "desc" ? <FiArrowDown /> : <FiArrowUp style={{ opacity: 0.3 }} />}
                                                 </IconButton>
                                             )}
-                                            <HeaderMenu header={header} table={table} />
+                                            {header.column.id !== 'action' && < HeaderMenu header={header} table={table} />}
                                         </Box>
                                     </Table.ColumnHeader>
                                 ))}

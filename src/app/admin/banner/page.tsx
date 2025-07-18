@@ -1,176 +1,259 @@
 "use client";
-
-import React, { useMemo, useState, useEffect } from "react";
-import { Heading, Wrap } from "@chakra-ui/react";
-import {
-    Box,
-    Button,
-    IconButton,
-    Input,
-    Text,
-    useDisclosure,
-    Textarea,
-    VStack,
-    Portal,
-    CloseButton,
-    Table,
-    Dialog, Field, Menu, Checkbox, NativeSelect, Pagination, ButtonGroup,
-    Separator,
-} from "@chakra-ui/react";
+import React, { useMemo, useState } from "react";
+import { Box, Button, Heading, Wrap, useDisclosure, Text, Input, Switch, Stack, Field } from "@chakra-ui/react";
 import DataTable from "../_components/DataTable";
-import FilterButton from "../_components/FilterButton";
-import { EditBtn, ViewBtn, MenuBtn } from "../_components/Buttons";
+import { api } from "@/trpc/react";
+import { useForm } from "react-hook-form";
+import { Controller } from "react-hook-form";
+import { useConfirmDialog } from "@/app/hooks/useConfirmDialog";
 
-const companyTableData = [
-];
-
-// 业务相关：定义 columns，包括 action 列
-const columns = [
-    { accessorKey: "title", header: "标题", width: 150 },
-    { accessorKey: "description", header: "描述", width: 150 },
-    { accessorKey: "image", header: "图片", width: 150 },
-    { accessorKey: "isActive", header: "是否启用", width: 150 },
-    {
-        id: "action",
-        header: "Action",
-        width: 150,
-        cell: ({ row }) => (
-            <Wrap gap={1} flexWrap="nowrap">
-                <EditBtn row={row.original} />
-                <ViewBtn row={row.original} />
-                <MenuBtn row={row.original} />
-            </Wrap>
-        ),
-    },
-];
-
-// 导入弹窗
-const ImportDialog: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
-    const [file, setFile] = React.useState<File | null>(null);
-    const [reason, setReason] = React.useState("");
-    const handleImport = () => {
-        if (!file || !reason) {
-            alert("请上传文件并填写理由");
-            return;
-        }
-        // TODO: 实际导入逻辑
-        alert("导入成功（模拟）");
-        onClose();
-    };
-    return (
-        <Dialog.Root open={isOpen} onOpenChange={open => { if (!open) onClose(); }}>
-            <Dialog.Backdrop />
-            <Dialog.Positioner>
-                <Dialog.Content maxWidth={450}>
-                    <Dialog.Header>
-                        <Dialog.Title fontSize="xl">添加banner</Dialog.Title>
-                    </Dialog.Header>
-                    <Dialog.Body>
-                        <Box display="flex" flexDirection="column" gap={4}>
-                            <Field.Root>
-                                <Field.Label fontWeight="normal">上传文件</Field.Label>
-                                <Input
-                                    type="file"
-                                    onChange={e => setFile(e.target.files?.[0] ?? null)}
-                                />
-                            </Field.Root>
-                            <Field.Root>
-                                <Field.Label fontWeight="normal">导入理由</Field.Label>
-                                <Textarea
-                                    placeholder="请输入导入理由"
-                                    value={reason}
-                                    onChange={e => setReason(e.target.value)}
-                                />
-                            </Field.Root>
-                        </Box>
-                    </Dialog.Body>
-                    <Dialog.Footer>
-                        <Button onClick={onClose} mr={3} variant="ghost">取消</Button>
-                        <Button colorScheme="blue" onClick={handleImport}>导入</Button>
-                    </Dialog.Footer>
-                    <Dialog.CloseTrigger asChild>
-                        <CloseButton size="sm" />
-                    </Dialog.CloseTrigger>
-                </Dialog.Content>
-            </Dialog.Positioner>
-        </Dialog.Root>
-    );
+// react-hook-form
+type Banner = {
+    id: string;
+    title: string;
+    description: string;
+    image: string;
+    isActive: boolean;
+    sort: number;
+    link: string;
+    createdAt: Date;
+    updatedAt: Date;
 };
-// 导出弹窗
-const ExportDialog: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
-    const [reason, setReason] = React.useState("");
-    const handleExport = () => {
-        if (!reason) {
-            alert("请填写导出理由");
-            return;
-        }
-        // TODO: 实际导出逻辑
-        alert("导出成功（模拟）");
-        onClose();
-    };
-    return (
-        <Dialog.Root open={isOpen} onOpenChange={open => { if (!open) onClose(); }}>
-            <Dialog.Backdrop />
-            <Dialog.Positioner>
-                <Dialog.Content maxWidth={400}>
-                    <Dialog.Header>
-                        <Dialog.Title fontSize="xl">导出数据</Dialog.Title>
-                    </Dialog.Header>
-                    <Dialog.Body>
-                        <Box display="flex" flexDirection="column" gap={4}>
-                            <Field.Root>
-                                <Field.Label fontWeight="normal">导出理由</Field.Label>
-                                <Textarea
-                                    placeholder="请输入导出理由"
-                                    value={reason}
-                                    onChange={e => setReason(e.target.value)}
-                                />
-                            </Field.Root>
-                        </Box>
-                    </Dialog.Body>
-                    <Dialog.Footer>
-                        <Button onClick={onClose} mr={3} variant="ghost">取消</Button>
-                        <Button colorScheme="blue" onClick={handleExport}>导出</Button>
-                    </Dialog.Footer>
-                    <Dialog.CloseTrigger asChild>
-                        <CloseButton size="sm" />
-                    </Dialog.CloseTrigger>
-                </Dialog.Content>
-            </Dialog.Positioner>
-        </Dialog.Root>
-    );
-};
+type BannerForm = Omit<Banner, "id" | "createdAt" | "updatedAt"> & { id?: string };
 export default function AdminPage() {
-    const [data] = useState(companyTableData);
-    // 业务相关：批量操作区
-    const handleBulkDelete = (rows: any[]) => {
-        if (!rows.length) return;
-        alert(`批量删除：${rows.length} 行（模拟）` + JSON.stringify(rows));
+    // tRPC hooks
+    // 排序 state
+    const [sorting, setSorting] = useState<any[]>([]);
+    const orderBy = sorting[0]?.id;
+    const order = sorting[0]?.desc ? "desc" : "asc";
+    const { data: banners = [], refetch, isLoading } = api.banner.list.useQuery(
+        orderBy ? { orderBy, order } : undefined
+    );
+    const createBanner = api.banner.create.useMutation({ onSuccess: () => refetch() });
+    const updateBanner = api.banner.update.useMutation({ onSuccess: () => refetch() });
+    const deleteBanner = api.banner.delete.useMutation({ onSuccess: () => refetch() });
+    const deleteMany = api.banner.deleteMany.useMutation({ onSuccess: () => refetch() });
+
+    // 新增/编辑弹窗
+    const [editing, setEditing] = useState<Banner | null>(null);
+    const { open: isOpen, onOpen, onClose } = useDisclosure();
+
+    const {
+        register,
+        handleSubmit,
+        reset,
+        formState: { errors, isSubmitting },
+        setValue,
+        control,
+    } = useForm<BannerForm>({
+        defaultValues: { title: "", image: "", isActive: true, description: "", sort: 0, link: "" },
+    });
+
+    const openEdit = (banner?: any) => {
+        setEditing(banner ?? null);
+        if (banner) {
+            reset({
+                title: banner.title ?? "",
+                description: banner.description ?? "",
+                image: banner.image ?? "",
+                isActive: banner.isActive ?? true,
+                sort: banner.sort ?? 0,
+                link: banner.link ?? "",
+            });
+        } else {
+            reset({ title: "", image: "", isActive: true, description: "", sort: 0, link: "" });
+        }
+        onOpen();
     };
-    const [importOpen, setImportOpen] = React.useState(false);
+
+    const onSubmit = async (data: BannerForm) => {
+        // Ensure no nulls for string fields
+        const payload = {
+            ...data,
+            title: data.title ?? "",
+            description: data.description ?? "",
+            image: data.image ?? "",
+            link: data.link ?? "",
+        };
+        if (editing) {
+            await updateBanner.mutateAsync({ ...payload, id: editing.id });
+        } else {
+            await createBanner.mutateAsync(payload);
+        }
+        onClose();
+    };
+
+    // 批量删除
+    const handleBulkDelete = async (rows: any[]) => {
+        if (!rows.length) return;
+        await deleteMany.mutateAsync({ ids: rows.map(r => (r).id) });
+    };
+    const handleDelete = async (id: string) => {
+        await deleteBanner.mutateAsync({ id });
+    };
+
+    // 删除确认弹窗
+    const [deleteId, setDeleteId] = useState<string | null>(null);
+    const {
+        ConfirmDialog: DeleteConfirmDialog,
+        open: openDeleteConfirm,
+        close: closeDeleteConfirm,
+    } = useConfirmDialog({
+        title: "确认删除",
+        content: "确定要删除该Banner吗？",
+        confirmText: "删除",
+        cancelText: "取消",
+        buttonProps: { style: { display: "none" } }, // 不显示按钮，手动控制
+        onConfirm: async () => {
+            if (deleteId) {
+                await handleDelete(deleteId);
+                setDeleteId(null);
+            }
+        },
+        onCancel: () => setDeleteId(null),
+    });
+
+    const handleDeleteWithConfirm = (id: string) => {
+        setDeleteId(id);
+        openDeleteConfirm();
+    };
+
+    // 排序
+    // 已由后端排序...
+
+    // Map banners to ensure no nulls for string fields before passing to DataTable
+    const normalizedBanners: Banner[] = useMemo(() =>
+        banners.map(b => ({
+            ...b,
+            title: b.title ?? "",
+            description: b.description ?? "",
+            link: b.link ?? "",
+        })),
+        [banners]
+    );
+
+    const columns = useMemo(() => [
+        { accessorKey: "title", header: "标题", width: 150 },
+        { accessorKey: "description", header: "描述", width: 150 },
+        { accessorKey: "image", header: "图片", width: 150, cell: ({ row }: { row: any }) => <img src={row.original.image} alt="" style={{ width: 50, height: 30, objectFit: "cover" }} /> },
+        { accessorKey: "isActive", header: "是否启用", width: 100, cell: ({ row }: { row: any }) => row.original.isActive ? "是" : "否" },
+        { accessorKey: "sort", header: "排序", width: 80 },
+        {
+            id: "action",
+            header: "操作",
+            width: 180,
+            cell: ({ row }: { row: { original: Banner } }) => (
+                <Wrap gap={1} flexWrap="nowrap">
+                    <Button size="2xs" colorScheme="blue" onClick={() => openEdit(row.original)}>编辑</Button>
+                    <Button size="2xs" colorScheme="red" onClick={() => handleDeleteWithConfirm(row.original.id)}>删除</Button>
+                </Wrap>
+            ),
+        },
+    ], [openEdit]);
+
     return (
         <Box borderRadius="lg" minHeight="full" p={4} bg="white" boxShadow="xs">
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
                 <Heading size="lg">banner管理</Heading>
             </Box>
-            {/* 业务相关：批量操作区通过 renderBulkActions 传递 */}
             <DataTable
-                columns={columns}
-                data={data}
+                columns={columns.map(col =>
+                    col.id === "action"
+                        ? {
+                            ...col, cell: ({ row }: { row: { original: Banner } }) => (
+                                <Wrap gap={1} flexWrap="nowrap">
+                                    <Button size="2xs" colorScheme="blue" onClick={() => openEdit(row.original)}>编辑</Button>
+                                    <Button size="2xs" colorScheme="red" onClick={() => handleDeleteWithConfirm(row.original.id)}>删除</Button>
+                                </Wrap>
+                            )
+                        }
+                        : col
+                )}
+                data={useMemo(() => {
+                    return banners.map(b => ({
+                        ...b,
+                        title: b.title ?? "",
+                        description: b.description ?? "",
+                        link: b.link ?? "",
+                    }));
+                }, [banners])}
                 selectable
+                manualSorting
+                onSortingChange={setSorting}
                 renderBulkActions={rows => {
                     const hasSelection = rows.length > 0;
                     return (
                         <>
-                            <ImportDialog isOpen={importOpen} onClose={() => setImportOpen(false)} />
                             <Button size="sm" colorScheme="red" onClick={() => handleBulkDelete(rows)} disabled={!hasSelection}>
-                                删除
+                                批量删除
                             </Button>
-                            {hasSelection && <span style={{ fontSize: 14 }}>已选 {rows.length} 行</span>}
+                            <Button colorScheme="blue" onClick={() => openEdit()}>新增</Button>
                         </>
                     );
                 }}
             />
+
+            {/* 新增/编辑弹窗 */}
+            {isOpen && (
+                <Box position="fixed" left={0} top={0} w="100vw" h="100vh" bg="blackAlpha.400" zIndex={1000} display="flex" alignItems="center" justifyContent="center">
+                    <Box bg="white" p={6} borderRadius="md" minW={400}>
+                        <Heading size="md" mb={4}>{editing ? "编辑" : "新增"}Banner</Heading>
+                        <form onSubmit={handleSubmit(onSubmit)}>
+                            <Stack gap={2}>
+                                <Field.Root invalid={!!errors.title}>
+                                    <Field.Label>标题</Field.Label>
+                                    <Input placeholder="标题" {...register("title", { required: "请输入标题" })} />
+                                </Field.Root>
+                                <Field.Root>
+                                    <Field.Label>描述</Field.Label>
+                                    <Input placeholder="描述" {...register("description")} />
+                                </Field.Root>
+                                <Field.Root invalid={!!errors.image}>
+                                    <Field.Label>图片URL</Field.Label>
+                                    <Input placeholder="图片URL" {...register("image", { required: "请输入图片URL" })} />
+                                </Field.Root>
+                                <Field.Root>
+                                    <Field.Label>是否启用</Field.Label>
+                                    <Controller
+                                        name="isActive"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <>
+                                                <Switch.Root
+                                                    name={field.name}
+                                                    checked={field.value}
+                                                    onCheckedChange={({ checked }) => field.onChange(checked)}
+                                                >
+                                                    <Switch.HiddenInput onBlur={field.onBlur} />
+                                                    <Switch.Control>
+                                                        <Switch.Thumb />
+                                                    </Switch.Control>
+                                                    <Switch.Label />
+                                                </Switch.Root>
+                                                {/* 可选：错误提示 */}
+                                                {/* <Field.ErrorText>{errors.isActive?.message}</Field.ErrorText> */}
+                                            </>
+                                        )}
+                                    />
+                                </Field.Root>
+                                <Field.Root>
+                                    <Field.Label>排序</Field.Label>
+                                    <Input placeholder="排序" type="number" {...register("sort", { valueAsNumber: true })} />
+                                </Field.Root>
+                                <Field.Root>
+                                    <Field.Label>跳转链接</Field.Label>
+                                    <Input placeholder="跳转链接" {...register("link")} />
+                                </Field.Root>
+                            </Stack>
+                            <Box display="flex" justifyContent="flex-end" gap={2} mt={4}>
+                                <Button onClick={onClose} type="button">取消</Button>
+                                <Button colorScheme="blue" type="submit" loading={isSubmitting}>保存</Button>
+                            </Box>
+                        </form>
+                    </Box>
+                </Box>
+            )}
+            {DeleteConfirmDialog}
         </Box>
     );
 }

@@ -20,6 +20,9 @@
     "start": "next start",
     "typecheck": "tsc --noEmit"
   },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
   "dependencies": {
     "@auth/prisma-adapter": "^2.7.2",
     "@chakra-ui/react": "^3.22.0",
