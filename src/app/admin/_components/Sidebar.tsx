@@ -2,14 +2,14 @@
 
 import React, { memo, useEffect, useState } from "react";
 import {
-  FiBox as BoxIcon,
+  FiBox,
   FiBook,
-  FiHome as Landmark,
-  FiDollarSign as BadgeIndianRupee,
-  FiUsers as Users,
-  FiSettings as Settings,
-  FiMonitor as MonitorCog,
-  FiActivity as Gauge,
+  FiHome,
+  FiDollarSign,
+  FiUsers,
+  FiSettings,
+  FiMonitor,
+  FiActivity,
   FiCircle as Dot,
   FiChevronDown as ChevronDown,
   FiBookOpen,
@@ -31,7 +31,7 @@ const Sidebar = () => {
     {
       title: "首页",
       url: "/admin",
-      icon: Gauge,
+      icon: FiHome,
     },
     {
       title: "banner管理",
@@ -39,14 +39,24 @@ const Sidebar = () => {
       icon: FiBookOpen,
     },
     {
-      title: "分类管理",
+      title: "产品分类",
       url: "/admin/category",
-      icon: MonitorCog,
+      icon: FiMonitor,
     },
     {
       title: "产品管理",
       url: "/admin/product",
       icon: FiBook,
+    },
+    {
+      title: "视频分类",
+      url: "/admin/video/collection",
+      icon: FiActivity,
+    },
+    {
+      title: "视频管理",
+      url: "/admin/video/course",
+      icon: FiDollarSign,
     },
     // {
     //   title: "Business",
