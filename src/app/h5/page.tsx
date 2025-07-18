@@ -24,6 +24,9 @@ export default function H5Home() {
     // 获取 isActive 的 banners
     const { data: banners = [] } = api.banner.list.useQuery({ isActive: true });
     const { data: category = [] } = api.category.list.useQuery();
+    const { data: products = [] } = api.product.list.useQuery({
+        orderBy: 'sales'
+    });
 
     return (
         <Box
@@ -70,41 +73,23 @@ export default function H5Home() {
             {/* 商品推荐区块 */}
             <Box px={4} mt={2} pb={4}>
                 <SimpleGrid columns={2} gap={2}>
-                    {[
-                        {
-                            id: 1,
-                            img: "/image.png",
-                            title: "法式半夏花向阳花开陶瓷杯碟礼盒套装",
-                            price: 38.97,
-                            total: 100,
-                        },
-                        {
-                            id: 2,
-                            img: "/image.png",
-                            title: "狗狗项圈圈跨境新款宠物用品",
-                            price: 0.01,
-                            total: 100,
-                        },
-                        // 可继续添加更多商品
-                    ].map((item) => {
-                        return (
-                            <Box key={item.id} bg="white" borderRadius="sm" boxShadow="2xs" p={2} display="flex" flexDirection="column" alignItems="center">
-                                <Box w="100%" h="140px" mb={2} borderRadius="md" overflow="hidden" bg="#f7f7f7" position="relative">
-                                    <Image src={item.img} alt={item.title} w="100%" h="100%" objectFit="cover" position="absolute" top={0} left={0} />
-                                </Box>
-                                <Text fontSize="sm" py={2} color="gray.800" fontWeight="medium" truncate w="100%" textAlign="center" title={item.title}>
-                                    {item.title}
-                                </Text>
-                                <Flex w="100%" align="center" justify="space-between">
-                                    <Text fontSize="sm" color="red.500" fontWeight="bold" textAlign="left">
-                                        <Text as="span" fontSize="md" color="red.400" verticalAlign="baseline">￥</Text>
-                                        {item.price.toFixed(2)}
-                                    </Text>
-                                    <Text fontSize="2xs" fontWeight="normal" color="gray.500">已售{item.total}件</Text>
-                                </Flex>
+                    {products.map((item) => (
+                        <Box key={item.id} bg="white" borderRadius="sm" boxShadow="2xs" p={2} display="flex" flexDirection="column" alignItems="center">
+                            <Box w="100%" h="140px" mb={2} borderRadius="md" overflow="hidden" bg="#f7f7f7" position="relative">
+                                <Image src={item.images?.[0]} alt={item.title} w="100%" h="100%" objectFit="cover" position="absolute" top={0} left={0} />
                             </Box>
-                        );
-                    })}
+                            <Text fontSize="sm" py={2} color="gray.800" fontWeight="medium" truncate w="100%" textAlign="center" title={item.title}>
+                                {item.title}
+                            </Text>
+                            <Flex w="100%" align="center" justify="space-between">
+                                <Text fontSize="sm" color="red.500" fontWeight="bold" textAlign="left">
+                                    <Text as="span" fontSize="md" color="red.400" verticalAlign="baseline">￥</Text>
+                                    {item.price.toFixed(2)}
+                                </Text>
+                                <Text fontSize="2xs" fontWeight="normal" color="gray.500">已售{item.sales}件</Text>
+                            </Flex>
+                        </Box>
+                    ))}
                 </SimpleGrid>
             </Box>
         </Box>

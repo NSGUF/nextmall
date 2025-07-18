@@ -3,7 +3,7 @@
 import React, { memo, useEffect, useState } from "react";
 import {
   FiBox as BoxIcon,
-  FiBook as BookText,
+  FiBook,
   FiHome as Landmark,
   FiDollarSign as BadgeIndianRupee,
   FiUsers as Users,
@@ -42,6 +42,11 @@ const Sidebar = () => {
       title: "分类管理",
       url: "/admin/category",
       icon: MonitorCog,
+    },
+    {
+      title: "产品管理",
+      url: "/admin/product",
+      icon: FiBook,
     },
     // {
     //   title: "Business",
