@@ -1,9 +1,6 @@
 "use client";
-import { useState } from "react";
-import { Box, Image, Flex, IconButton } from "@chakra-ui/react";
-import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
-import { useRef } from "react";
-import { useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
+import { Box, Image, Flex } from "@chakra-ui/react";
 
 export default function BannerCarousel({ banners = [], height = "140px" }) {
     const [index, setIndex] = useState(0);
@@ -23,7 +20,7 @@ export default function BannerCarousel({ banners = [], height = "140px" }) {
     const next = () => {
         setFade(false);
         setTimeout(() => {
-            setIndex((i) => (i === banners.length - 1 ? 0 : i + 1));
+            setIndex((i) => (i + 1 >= banners.length ? 0 : i + 1));
             setFade(true);
         }, 200);
         resetAutoPlay();
@@ -33,9 +30,10 @@ export default function BannerCarousel({ banners = [], height = "140px" }) {
     useEffect(() => {
         startAutoPlay();
         return () => stopAutoPlay();
-    }, [index]);
+    }, [index, banners]);
 
     const startAutoPlay = () => {
+        if (banners.length <= 1) return;
         stopAutoPlay();
         timerRef.current = setTimeout(() => {
             next();
@@ -80,11 +78,24 @@ export default function BannerCarousel({ banners = [], height = "140px" }) {
             {(!banners || banners.length === 0) ? (
                 <></>
             ) : banners[index]?.image && (
-                <a href={banners[index]?.link} target="_blank" rel="noopener noreferrer">
+                banners[index]?.link ? (
+                    <a href={banners[index]?.link} target="_blank" rel="noopener noreferrer">
+                        <Image
+                            src={banners[index].image}
+                            alt={banners[index]?.description ?? "banner"}
+                            borderRadius="xl"
+                            w="100%"
+                            h={height}
+                            objectFit="cover"
+                            cursor="pointer"
+                            transition="opacity 0.4s"
+                            opacity={fade ? 1 : 0}
+                        />
+                    </a>
+                ) : (
                     <Image
                         src={banners[index].image}
                         alt={banners[index]?.description ?? "banner"}
-                        borderRadius="xl"
                         w="100%"
                         h={height}
                         objectFit="cover"
@@ -92,42 +103,8 @@ export default function BannerCarousel({ banners = [], height = "140px" }) {
                         transition="opacity 0.4s"
                         opacity={fade ? 1 : 0}
                     />
-                </a>
+                )
             )}
-            {/* 左右切换按钮（移动端可隐藏，仅PC显示） */}
-            <Flex
-                position="absolute"
-                top="0"
-                left="0"
-                h="100%"
-                w="100%"
-                justify="space-between"
-                align="center"
-                px={2}
-                pointerEvents="none"
-                display={["none", "flex"]} // 移动端隐藏
-            >
-                <IconButton
-                    aria-label="上一张"
-                    onClick={prev}
-                    size="sm"
-                    pointerEvents="auto"
-                    bg="whiteAlpha.700"
-                    _hover={{ bg: "whiteAlpha.900" }}
-                >
-                    <FiChevronLeft />
-                </IconButton>
-                <IconButton
-                    aria-label="下一张"
-                    onClick={next}
-                    size="sm"
-                    pointerEvents="auto"
-                    bg="whiteAlpha.700"
-                    _hover={{ bg: "whiteAlpha.900" }}
-                >
-                    <FiChevronRight />
-                </IconButton>
-            </Flex>
             {/* 指示点 */}
             <Flex position="absolute" bottom="2" left="50%" transform="translateX(-50%)" gap={2}>
                 {banners.map((_, i) => (

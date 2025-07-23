@@ -4,6 +4,7 @@ import { Box, Flex, Grid, Button, Text, Badge, Avatar } from "@chakra-ui/react";
 import { FiSettings, FiHeadphones, FiBell, FiChevronRight, FiCreditCard, FiGift, FiShoppingBag, FiTruck, FiCheckCircle, FiRefreshCw, FiUser, FiMapPin, FiList, FiDollarSign } from "react-icons/fi";
 import { LuCrown, LuLanguages } from "react-icons/lu";
 import * as React from "react";
+import Link from "next/link";
 
 function IconCircleButton({ icon, label }: { icon: React.ReactNode; label: string }) {
     return (
@@ -47,20 +48,20 @@ export default function MePage() {
                 <Flex mt={6} justify="space-between" align="center" px={8}>
                     <Box textAlign="center">
                         <Text fontWeight="bold" fontSize="lg">0</Text>
-                        <Text color="gray.500" fontSize="sm">余额</Text>
-                    </Box>
-                    <Box textAlign="center">
-                        <Text fontWeight="bold" fontSize="lg">10</Text>
-                        <Text color="gray.500" fontSize="sm">积分</Text>
-                    </Box>
-                    <Box textAlign="center">
-                        <Text fontWeight="bold" fontSize="lg">0</Text>
                         <Text color="gray.500" fontSize="sm">优惠券</Text>
                     </Box>
-                    <Box textAlign="center">
-                        <Text fontWeight="bold" fontSize="lg">0</Text>
-                        <Text color="gray.500" fontSize="sm">收藏</Text>
-                    </Box>
+                    <Link href="/full/favorite">
+                        <Box textAlign="center">
+                            <Text fontWeight="bold" fontSize="lg">0</Text>
+                            <Text color="gray.500" fontSize="sm">我的收藏</Text>
+                        </Box>
+                    </Link>
+                    <Link href="/full/footprint">
+                        <Box textAlign="center">
+                            <Text fontWeight="bold" fontSize="lg">0</Text>
+                            <Text color="gray.500" fontSize="sm">我的足迹</Text>
+                        </Box>
+                    </Link>
                 </Flex>
             </Box>
 
@@ -122,22 +123,20 @@ export default function MePage() {
             <Box bg="white" mx={4} borderRadius="xl" p={4} mb={4} boxShadow="2xs">
                 <Text fontWeight="bold" mb={3}>服务与工具</Text>
                 <Grid templateColumns="repeat(4, 1fr)" gap={4}>
-                    <Flex direction="column" align="center" cursor="pointer">
-                        <FiMapPin size={24} />
-                        <Text fontSize="sm" mt={1}>地址管理</Text>
-                    </Flex>
-                    <Flex direction="column" align="center" cursor="pointer">
-                        <FiList size={24} />
-                        <Text fontSize="sm" mt={1}>我的足迹</Text>
-                    </Flex>
-                    <Flex direction="column" align="center" cursor="pointer">
+                    <Link href="/full/address">
+                        <Flex direction="column" align="center" cursor="pointer">
+                            <FiMapPin size={24} />
+                            <Text fontSize="sm" mt={1}>地址管理</Text>
+                        </Flex>
+                    </Link>
+                    {/* <Flex direction="column" align="center" cursor="pointer">
                         <FiHeadphones size={24} />
                         <Text fontSize="sm" mt={1}>官方客服</Text>
                     </Flex>
                     <Flex direction="column" align="center" cursor="pointer">
                         <FiSettings size={24} />
                         <Text fontSize="sm" mt={1}>系统设置</Text>
-                    </Flex>
+                    </Flex> */}
                 </Grid>
             </Box>
         </Box>

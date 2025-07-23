@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, publicProcedure, superAdminProcedure } from "@/server/api/trpc";
 import { hash } from "bcryptjs";
 import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
@@ -81,11 +81,20 @@ export const userRouter = createTRPCRouter({
             const transporter = nodemailer.createTransport(options);
             await transporter.sendMail({
                 from: `"NextMall" <${process.env.SMTP_USER}>`, // 必须和 SMTP_USER 一致
-                to: user.email,
+                to: user.email ?? undefined,
                 subject: "密码重置",
                 html: `<p>点击 <a href="${resetUrl}">这里</a> 重置你的密码。30分钟内有效。</p>`,
             });
 
             return { message: "已发送密码找回邮件" };
         }),
+    // 获取所有供应商接口
+    getAllVendors: superAdminProcedure.query(async ({ ctx }) => {
+        // UserRole.VENDOR
+        const vendors = await ctx.db.user.findMany({
+            where: { role: "VENDOR" },
+            orderBy: { createdAt: "desc" },
+        });
+        return vendors;
+    }),
 }); 

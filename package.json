@@ -34,6 +34,7 @@
     "@trpc/react-query": "^11.0.0",
     "@trpc/server": "^11.0.0",
     "bcryptjs": "^3.0.2",
+    "china-division": "^2.7.0",
     "jsonwebtoken": "^9.0.2",
     "next": "^15.2.3",
     "next-auth": "5.0.0-beta.25",

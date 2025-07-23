@@ -1,41 +1,11 @@
 "use client";
 import React, { useMemo, useState } from "react";
-import { Box, Button, Heading, Wrap, useDisclosure, NativeSelect, Input, Switch, Stack, Field } from "@chakra-ui/react";
+import { Box, Button, Heading, Wrap, useDisclosure, NativeSelect, Input, Switch, Stack, Field, Flex, Textarea, Text } from "@chakra-ui/react";
 import DataTable from "../_components/DataTable";
 import { api } from "@/trpc/react";
-import { useForm } from "react-hook-form";
-import { Controller } from "react-hook-form";
+import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { useConfirmDialog } from "@/app/hooks/useConfirmDialog";
-
-// react-hook-form
-type Category = {
-    id: string;
-    name: string;
-    description?: string;
-    icon?: string;
-    createdAt: Date;
-    updatedAt: Date;
-};
-type CategoryForm = Omit<Category, "id" | "createdAt" | "updatedAt"> & { id?: string };
-
-// Product 类型
-type Product = {
-    id: string;
-    title: string;
-    images: string[];
-    price: number;
-    stock: number;
-    ownerId: string;
-    logistics: string;
-    description: string;
-    isActive: boolean;
-    sales: number;
-    isDeleted: boolean;
-    createdAt: Date;
-    updatedAt: Date;
-    categoryId?: string;
-};
-type ProductForm = Omit<Product, "id" | "createdAt" | "updatedAt" | "sales" | "isDeleted"> & { id?: string };
+import { FiTrash2 } from "react-icons/fi";
 
 export default function AdminPage() {
     // tRPC hooks
@@ -46,6 +16,7 @@ export default function AdminPage() {
     const { data: products = [], refetch, isLoading } = api.product.list.useQuery(
         orderBy ? { orderBy, order } : undefined
     );
+    console.log(products)
     const createProduct = api.product.create.useMutation({ onSuccess: () => refetch() });
     const updateProduct = api.product.update.useMutation({ onSuccess: () => refetch() });
     const deleteProduct = api.product.delete.useMutation({ onSuccess: () => refetch() });
@@ -53,11 +24,24 @@ export default function AdminPage() {
 
     // 获取分类列表用于下拉
     const { data: categories = [] } = api.category.list.useQuery();
+    // 供应商
+    const { data: vendors = [] } = api.user.getAllVendors.useQuery();
 
     // 新增/编辑弹窗
-    const [editing, setEditing] = useState<Product | null>(null);
+    const [editing, setEditing] = useState(null);
     const { open: isOpen, onOpen, onClose } = useDisclosure();
 
+    const defaultValues = {
+        title: "",
+        images: [],
+        minAmount: 0,
+        logistics: "包邮",
+        logiPrice: 0,
+        description: "",
+        isActive: true,
+        categoryId: undefined,
+        specs: [{ name: '', value: '', price: undefined, stock: undefined, image: '' }]
+    }
     const {
         register,
         handleSubmit,
@@ -65,43 +49,28 @@ export default function AdminPage() {
         formState: { errors, isSubmitting },
         setValue,
         control,
-    } = useForm<ProductForm>({
-        defaultValues: { title: "", images: [], price: 0, stock: 0, ownerId: "", logistics: "", description: "", isActive: true, categoryId: undefined },
+    } = useForm({
+        defaultValues
+    });
+
+    // 规格 useFieldArray
+    const { fields: specFields, append: appendSpec, remove: removeSpec } = useFieldArray({
+        control,
+        name: "specs"
     });
 
     const openEdit = (product?: any) => {
         setEditing(product ?? null);
         if (product) {
-            reset({
-                title: product.title ?? "",
-                images: product.images ?? [],
-                price: product.price ?? 0,
-                stock: product.stock ?? 0,
-                ownerId: product.ownerId ?? "",
-                logistics: product.logistics ?? "",
-                description: product.description ?? "",
-                isActive: product.isActive ?? true,
-                categoryId: product.categoryId ?? undefined,
-            });
+            reset(product);
         } else {
-            reset({ title: "", images: [], price: 0, stock: 0, ownerId: "", logistics: "", description: "", isActive: true, categoryId: undefined });
+            reset(defaultValues);
         }
         onOpen();
     };
 
-    const onSubmit = async (data: ProductForm) => {
-        const payload = {
-            ...data,
-            title: data.title ?? "",
-            images: data.images ?? [],
-            price: data.price ?? 0,
-            stock: data.stock ?? 0,
-            ownerId: data.ownerId ?? "",
-            logistics: data.logistics ?? "",
-            description: data.description ?? "",
-            isActive: data.isActive ?? true,
-            categoryId: data.categoryId ?? undefined,
-        };
+    const onSubmit = async (data) => {
+        const payload = data;
         if (editing) {
             await updateProduct.mutateAsync({ ...payload, id: editing.id });
         } else {
@@ -145,31 +114,11 @@ export default function AdminPage() {
         openDeleteConfirm();
     };
 
-    // 排序
-    // 已由后端排序...
-
-    // Map 产品s to ensure no nulls for string fields before passing to DataTable
-    const normalizedProducts: Product[] = useMemo(() =>
-        products.map(p => ({
-            ...p,
-            title: p.title ?? "",
-            images: p.images ?? [],
-            price: p.price ?? 0,
-            stock: p.stock ?? 0,
-            ownerId: p.ownerId ?? "",
-            logistics: p.logistics ?? "",
-            description: p.description ?? "",
-            isActive: p.isActive ?? true,
-            categoryId: p.categoryId ?? undefined,
-        })),
-        [products]
-    );
 
     const columns = useMemo(() => [
         { accessorKey: "title", header: "标题", width: 150 },
         { accessorKey: "images", header: "图片", width: 120, cell: ({ row }: { row: any }) => row.original.images && row.original.images.length > 0 ? <img src={row.original.images[0]} alt="product" style={{ width: 32, height: 32, objectFit: "cover" }} /> : null },
-        { accessorKey: "price", header: "价格", width: 100 },
-        { accessorKey: "stock", header: "库存", width: 80 },
+
         { accessorKey: "isActive", header: "上架", width: 80, cell: ({ row }: { row: any }) => row.original.isActive ? "是" : "否" },
         { accessorKey: "sales", header: "销量", width: 80 },
         { accessorKey: "categoryId", header: "分类ID", width: 120 },
@@ -179,7 +128,7 @@ export default function AdminPage() {
             id: "action",
             header: "操作",
             width: 180,
-            cell: ({ row }: { row: { original: Product } }) => (
+            cell: ({ row }: { row: { original } }) => (
                 <Wrap gap={1} flexWrap="nowrap">
                     <Button size="2xs" colorScheme="blue" onClick={() => openEdit(row.original)}>编辑</Button>
                     <Button size="2xs" colorScheme="red" onClick={() => handleDeleteWithConfirm(row.original.id)}>删除</Button>
@@ -197,7 +146,7 @@ export default function AdminPage() {
                 columns={columns.map(col =>
                     col.id === "action"
                         ? {
-                            ...col, cell: ({ row }: { row: { original: Product } }) => (
+                            ...col, cell: ({ row }: { row: { original } }) => (
                                 <Wrap gap={1} flexWrap="nowrap">
                                     <Button size="2xs" colorScheme="blue" onClick={() => openEdit(row.original)}>编辑</Button>
                                     <Button size="2xs" colorScheme="red" onClick={() => handleDeleteWithConfirm(row.original.id)}>删除</Button>
@@ -207,18 +156,7 @@ export default function AdminPage() {
                         : col
                 )}
                 data={useMemo(() => {
-                    return products.map(p => ({
-                        ...p,
-                        title: p.title ?? "",
-                        images: p.images ?? [],
-                        price: p.price ?? 0,
-                        stock: p.stock ?? 0,
-                        ownerId: p.ownerId ?? "",
-                        logistics: p.logistics ?? "",
-                        description: p.description ?? "",
-                        isActive: p.isActive ?? true,
-                        categoryId: p.categoryId ?? undefined,
-                    }));
+                    return products
                 }, [products])}
                 selectable
                 manualSorting
@@ -239,35 +177,104 @@ export default function AdminPage() {
             {/* 新增/编辑弹窗 */}
             {isOpen && (
                 <Box position="fixed" left={0} top={0} w="100vw" h="100vh" bg="blackAlpha.400" zIndex={1000} display="flex" alignItems="center" justifyContent="center">
-                    <Box bg="white" p={6} borderRadius="md" minW={400}>
+                    <Box bg="white" p={6} borderRadius="md" minW={600}>
                         <Heading size="md" mb={4}>{editing ? "编辑" : "新增"}商品</Heading>
                         <form onSubmit={handleSubmit(onSubmit)}>
                             <Stack gap={2}>
-                                <Field.Root invalid={!!errors.title}>
-                                    <Field.Label>标题</Field.Label>
-                                    <Input placeholder="标题" {...register("title", { required: "请输入标题" })} />
-                                </Field.Root>
-                                <Field.Root>
+                                <Flex gap={2}>
+                                    <Field.Root invalid={!!errors.categoryId}>
+                                        <Field.Label>分类</Field.Label>
+                                        <NativeSelect.Root size="md">
+                                            <NativeSelect.Field
+                                                placeholder="选择分类"
+                                                {...register("categoryId", { required: "请选择分类" })}
+                                            >
+                                                {categories.map((cat: any) => (
+                                                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                                ))}
+                                            </NativeSelect.Field>
+                                            <NativeSelect.Indicator />
+                                        </NativeSelect.Root>
+                                        {errors.categoryId && <Text color="red.500" fontSize="sm">{errors.categoryId.message as string}</Text>}
+                                    </Field.Root>
+                                    <Field.Root invalid={!!errors.vendorId}>
+                                        <Field.Label>供应商</Field.Label>
+                                        <NativeSelect.Root size="md">
+                                            <NativeSelect.Field
+                                                placeholder="选择供应商"
+                                                {...register("vendorId", { required: "请选择供应商" })}
+                                            >
+                                                {vendors.map((cat: any) => (
+                                                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                                ))}
+                                            </NativeSelect.Field>
+                                            <NativeSelect.Indicator />
+                                        </NativeSelect.Root>
+                                        {errors.vendorId && <Text color="red.500" fontSize="sm">{errors.vendorId.message as string}</Text>}
+                                    </Field.Root>
+                                    <Field.Root invalid={!!errors.title}>
+                                        <Field.Label>标题</Field.Label>
+                                        <Input placeholder="标题" {...register("title", { required: "请输入标题" })} />
+                                        {errors.title && <Text color="red.500" fontSize="sm">{errors.title.message as string}</Text>}
+                                    </Field.Root>
+                                </Flex>
+                                <Field.Root invalid={!!errors.images}>
                                     <Field.Label>图片（逗号分隔URL）</Field.Label>
                                     <Input placeholder="图片URL,多个用逗号分隔" {...register("images", {
+                                        required: "请填写图片URL",
                                         setValueAs: v => typeof v === 'string' ? v.split(',').map((s: string) => s.trim()).filter(Boolean) : v
                                     })} />
+                                    {errors.images && <Text color="red.500" fontSize="sm">{errors.images.message as string}</Text>}
                                 </Field.Root>
-                                <Field.Root invalid={!!errors.price}>
-                                    <Field.Label>价格</Field.Label>
-                                    <Input placeholder="价格" type="number" step="0.01" {...register("price", { required: "请输入价格", valueAsNumber: true })} />
-                                </Field.Root>
-                                <Field.Root invalid={!!errors.stock}>
-                                    <Field.Label>库存</Field.Label>
-                                    <Input placeholder="库存" type="number" {...register("stock", { required: "请输入库存", valueAsNumber: true })} />
-                                </Field.Root>
-                                <Field.Root>
-                                    <Field.Label>物流</Field.Label>
-                                    <Input placeholder="物流方式" {...register("logistics")} />
-                                </Field.Root>
-                                <Field.Root>
+                                <Flex gap={2}>
+                                    <Field.Root invalid={!!errors.minAmount}>
+                                        <Field.Label>最低购买价</Field.Label>
+                                        <Input placeholder="最低购买" type="number" {...register("minAmount", { required: "请输入最低购买价", valueAsNumber: true })} />
+                                    </Field.Root>
+                                    <Field.Root invalid={!!errors.logistics}>
+                                        <Field.Label>物流方式</Field.Label>
+                                        <Input placeholder="物流方式" {...register("logistics", { required: "请输入物流方式" })} />
+                                        {errors.logistics && <Text color="red.500" fontSize="sm">{errors.logistics.message as string}</Text>}
+                                    </Field.Root>
+                                    <Field.Root>
+                                        <Field.Label>物流价格</Field.Label>
+                                        <Input placeholder="物流价格（包邮默认写0）" type="number" {...register("logiPrice", { valueAsNumber: true })} />
+                                    </Field.Root>
+                                </Flex>
+
+                                {/* 规格管理区 */}
+                                <Box flex={1}>
+                                    <Text fontWeight="bold" mb={1}>规格</Text>
+                                    {specFields.map((field, idx) => (
+                                        <Flex key={field.id} gap={2} align="center" border="1px solid #eee" borderRadius="md" p={3} mb={1}>
+                                            <Input placeholder="单位" {...register(`specs.${idx}.name` as const, { required: "必填" })} />
+                                            <Input placeholder="规格描述" {...register(`specs.${idx}.value` as const, { required: "必填" })} />
+                                            <Input
+                                                placeholder="价格"
+                                                type="number"
+                                                {...register(`specs.${idx}.price` as const, { required: "必填", valueAsNumber: true })}
+                                            />
+                                            <Input
+                                                placeholder="库存"
+                                                type="number"
+                                                {...register(`specs.${idx}.stock` as const, { required: "必填", valueAsNumber: true })}
+                                            />
+                                            <Input placeholder="图片URL" {...register(`specs.${idx}.image`, {
+                                                required: "请填写图片URL"
+                                            })} />
+                                            {specFields.length > 1 && (
+                                                <Button variant="ghost" colorScheme="red" onClick={() => removeSpec(idx)}><FiTrash2 /></Button>
+                                            )}
+                                        </Flex>
+                                    ))}
+                                    <Button mt={2} onClick={() => appendSpec({ name: '', value: '', price: undefined, stock: undefined, image: '' })} colorScheme="blue" variant="outline">
+                                        + 添加规格
+                                    </Button>
+                                </Box>
+                                <Field.Root invalid={!!errors.description}>
                                     <Field.Label>描述</Field.Label>
-                                    <Input placeholder="描述" {...register("description")} />
+                                    <Textarea placeholder="描述" {...register("description", { required: "请输入描述" })} />
+                                    {errors.description && <Text color="red.500" fontSize="sm">{errors.description.message as string}</Text>}
                                 </Field.Root>
                                 <Field.Root>
                                     <Field.Label>是否上架</Field.Label>
@@ -294,20 +301,6 @@ export default function AdminPage() {
                                             )}
                                         />
                                     </Field.Root>
-                                </Field.Root>
-                                <Field.Root>
-                                    <Field.Label>分类ID</Field.Label>
-                                    <NativeSelect.Root size="sm" width="240px">
-                                        <NativeSelect.Field
-                                            placeholder="选择分类"
-                                            {...register("categoryId")}
-                                        >
-                                            {categories.map((cat: any) => (
-                                                <option key={cat.id} value={cat.id}>{cat.name}</option>
-                                            ))}
-                                        </NativeSelect.Field>
-                                        <NativeSelect.Indicator />
-                                    </NativeSelect.Root>
                                 </Field.Root>
                             </Stack>
                             <Box display="flex" justifyContent="flex-end" gap={2} mt={4}>

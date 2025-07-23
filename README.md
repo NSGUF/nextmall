@@ -41,7 +41,8 @@ EMAIL_FROM=发件人邮箱
 2. npx prisma generate
 2. 开发阶段 npx prisma db push
 生产阶段：   npx prisma migrate dev --name add-super-admin-to-user   迁移新增到数据库
-
+npx prisma db seed 创建超级管理员
+npx prisma migrate deploy
 # 报错
 
 1. EPERM: operation not permitted, rename 'D:\nextmall\node_modules\.pnpm\@prisma+client@6.12.0_prism_852c2f50

@@ -57,7 +57,6 @@ export default function AdminPage() {
 
     // 获取分类列表用于下拉
     const { data: collections = [] } = api.collection.list.useQuery();
-    debugger;
 
     // 新增/编辑弹窗
     const [editing, setEditing] = useState<Course | null>(null);

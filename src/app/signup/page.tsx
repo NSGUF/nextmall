@@ -39,7 +39,6 @@ export default function SignUp() {
             router.replace("/login");
         },
         onError: (err: any) => {
-            debugger;
             showErrorToast(err?.message ?? "注册失败");
         },
     });

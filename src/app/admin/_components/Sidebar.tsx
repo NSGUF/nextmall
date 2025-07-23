@@ -49,12 +49,12 @@ const Sidebar = () => {
       icon: FiBook,
     },
     {
-      title: "视频分类",
+      title: "课程分类",
       url: "/admin/video/collection",
       icon: FiActivity,
     },
     {
-      title: "视频管理",
+      title: "课程管理",
       url: "/admin/video/course",
       icon: FiDollarSign,
     },

@@ -71,16 +71,18 @@ model User {
     role          UserRole  @default(NORMAL) // 用户角色
     addresses     Address[] // 收货地址
     products      Product[] @relation("UserProducts") // 用户发布的商品
+    vendorProducts Product[] @relation("VendorProducts") // 作为供应商发布的商品
     orders        Order[]   // 用户订单
-    favorites     Product[] @relation("UserFavorites") // 商品收藏
+    favorites     ProductFavorite[] // 用户收藏的商品
     footprints    Footprint[] // 浏览足迹
     cartItems     CartItem[] // 购物车
-    favoriteCourses Course[] @relation("UserFavoriteCourses") // 收藏课程
+    // favoriteCourses Course[] @relation("UserFavoriteCourses") // 收藏课程 —— 移除数组收藏
     createdAt     DateTime  @default(now()) // 创建时间
     updatedAt     DateTime  @updatedAt @default(now()) // 更新时间
     isDeleted     Boolean   @default(false) // 是否已删除
     createdCourses Course[] // 自动修复：反向关系，用户创建的课程
     coursePlayRecords CoursePlayRecord[] // 自动修复：反向关系，用户的课程播放记录
+    courseFavorites CourseFavorite[] // 用户收藏课程（新表）
 }
 
 enum UserRole {
@@ -109,25 +111,49 @@ model Address {
 model Product {
   id          String   @id @default(cuid()) // 商品ID
   title       String   // 商品标题
-  images      String[] // 商品图片
-  price       Float    // 商品价格
-  stock       Int      // 库存数量
+  images      String[]? // 商品图片
   owner       User     @relation("UserProducts", fields: [ownerId], references: [id]) // 所属用户
   ownerId     String   // 用户ID
+  vendor      User     @relation("VendorProducts", fields: [vendorId], references: [id]) // 供应商
+  vendorId    String   // 供应商ID
   logistics   String   // 物流方式
+  logiPrice   Float    @default(0)// 物流价格
   description String   // 商品详情
-  isActive    Boolean  @default(true) // 是否上架
+  isActive    Boolean  @default(true) // 是否上架 
+  minAmount   Float    @default(0) // 起购价
   sales       Int      @default(0) // 销量
   isDeleted   Boolean  @default(false) // 是否已删除
   specs       ProductSpec[] // 商品规格
   createdAt   DateTime @default(now()) // 创建时间
   updatedAt   DateTime @updatedAt @default(now()) // 更新时间
-  favoredBy   User[]   @relation("UserFavorites") // 被哪些用户收藏
   cartItems   CartItem[] // 购物车项
   orderItems  OrderItem[] // 订单项
   category    Category? @relation(fields: [categoryId], references: [id])
   categoryId  String?          // 分类ID
   footprints   Footprint[] // 自动修复：反向关系，商品的浏览足迹
+  favorites   ProductFavorite[] // 被哪些用户收藏（反向关系）
+}
+
+model ProductFavorite {
+  id        String   @id @default(cuid()) // 收藏ID
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String   // 用户ID
+  product   Product  @relation(fields: [productId], references: [id])
+  productId String   // 商品ID
+  createdAt DateTime @default(now()) // 收藏时间
+
+  @@unique([userId, productId])
+}
+
+model CourseFavorite {
+  id        String   @id @default(cuid()) // 收藏ID
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String   // 用户ID
+  course    Course   @relation(fields: [courseId], references: [id])
+  courseId  String   // 课程ID
+  createdAt DateTime @default(now()) // 收藏时间
+
+  @@unique([userId, courseId])
 }
 
 model ProductSpec {
@@ -136,8 +162,9 @@ model ProductSpec {
   productId String   // 商品ID
   name      String   // 规格名
   value     String   // 规格值
-  price     Float?   // 该规格价格
-  stock     Int?     // 该规格库存
+  image     String   // 当前规格的图片
+  price     Float   @default(0) // 该规格价格
+  stock     Int     @default(0) // 该规格库存
   orderItems OrderItem[] // 自动修复：反向关系，规格下的订单项
   cartItems  CartItem[]  // 自动修复：反向关系，规格下的购物车项
 }
@@ -202,7 +229,6 @@ model Course {
   isPublished  Boolean   @default(false) // 是否上架
   collection   Collection? @relation(fields: [collectionId], references: [id]) // 所属合集
   collectionId String    // 合集ID
-  favoredBy    User[]    @relation("UserFavoriteCourses") // 被哪些用户收藏
   tags         String[]  // 课程标签
   isFree       Boolean   @default(true) // 是否免费
   price        Float?    // 课程价格
@@ -211,6 +237,7 @@ model Course {
   createdAt    DateTime  @default(now()) // 创建时间
   updatedAt    DateTime  @updatedAt @default(now()) // 更新时间
   playRecords  CoursePlayRecord[] // 自动修复：反向关系，课程的播放记录
+  favorites    CourseFavorite[] // 被哪些用户收藏（反向关系）
 }
 
 model Collection {
@@ -252,7 +279,7 @@ model VerificationToken {
 model Banner {
   id          String   @id @default(cuid()) // Banner ID
   image       String   // Banner图片地址
-  link        String?  // 跳转链接
+  link        String  // 跳转链接
   title       String?  // 标题
   description String?  // 描述
   sort        Int      @default(0) // 排序
@@ -278,4 +305,6 @@ model Footprint {
   product   Product  @relation(fields: [productId], references: [id]) // 浏览商品
   productId String   // 商品ID
   viewedAt  DateTime @default(now()) // 浏览时间
+
+  @@unique([userId, productId])
 }

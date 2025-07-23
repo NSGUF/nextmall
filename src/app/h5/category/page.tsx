@@ -1,13 +1,20 @@
 "use client";
 import { useState } from "react";
-import { Box, Flex, Text, VStack, Image, Input } from "@chakra-ui/react";
+import { Box, Flex, Text, VStack, Image, Input, Button } from "@chakra-ui/react";
 import { InputGroup } from "@/app/_components/ui";
-import { FiSearch, FiThumbsUp, FiClock, FiZap, FiGift, FiCheckSquare, FiUsers, FiTrendingUp, FiStar, FiShoppingBag, FiDollarSign } from "react-icons/fi";
+import { FiSearch } from "react-icons/fi";
 import { api } from "@/trpc/react";
+import { useSearchParams } from "next/navigation";
+import ProductItem from '@/app/h5/_components/ProductItem';
 
 export default function CategoryPage() {
     const { data: categories = [] } = api.category.list.useQuery();
-    const [activeIndex, setActiveIndex] = useState(0);
+    const searchParams = useSearchParams();
+    const id = searchParams.get("id");
+    // 计算初始index
+    const initialIndex = categories.findIndex(cat => cat.id === id);
+    const [activeIndex, setActiveIndex] = useState(initialIndex >= 0 ? initialIndex : 0);
+
     const activeCategory = categories[activeIndex];
     const { data: products = [] } = api.product.list.useQuery(activeCategory ? { categoryId: activeCategory.id } : undefined);
 
@@ -68,33 +75,7 @@ export default function CategoryPage() {
                         {activeCategory ? activeCategory.name : ""}分类
                     </Text>
                     <Flex wrap="wrap" gap={3}>
-                        {products.map((item) => (
-                            <Box
-                                key={item.id}
-                                w="90px"
-                                textAlign="center"
-                                bg="white"
-                                borderRadius="xs"
-                                boxShadow="1sx"
-                                p={2}
-                                _hover={{ boxShadow: "md" }}
-                            >
-                                <Image
-                                    src={item.images?.[0] ?? "/logo.svg"}
-                                    alt={item.title}
-                                    w="70px"
-                                    h="70px"
-                                    mx="auto"
-                                    mb={2}
-                                    borderRadius="md"
-                                    objectFit="cover"
-                                    bg="gray.100"
-                                />
-                                <Text fontSize="xs" color="gray.700">
-                                    {item.title}
-                                </Text>
-                            </Box>
-                        ))}
+                        <ProductItem products={products} />
                     </Flex>
                 </Box>
             </Flex>
