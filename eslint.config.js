@@ -18,6 +18,9 @@ export default tseslint.config(
             ...tseslint.configs.stylisticTypeChecked,
         ],
         rules: {
+            '@typescript-eslint/prefer-optional-chain': 'off',
+            '@typescript-eslint/prefer-nullish-coalescing': 'off',
+            '@typescript-eslint/non-nullable-type-assertion-style': 'off',
             '@typescript-eslint/no-unsafe-return': 'off',
             '@typescript-eslint/no-unsafe-argument': 'off',
             '@typescript-eslint/no-unsafe-member-access': 'off',

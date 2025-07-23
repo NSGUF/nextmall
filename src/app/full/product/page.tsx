@@ -27,7 +27,6 @@ export default function ProductPage() {
 
     if (!id) {
         router.push('/h5');
-        return null;
     }
     const { data: product, isLoading } = api.product.get.useQuery({
         id,
@@ -61,6 +60,7 @@ export default function ProductPage() {
         }
     }, [product]);
     const [quantity, setQuantity] = useState<number>(1);
+    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
     const specPrices = product?.specs?.map((spec) => spec.price) ?? [];
     const minPrice = Math.min(...specPrices);
@@ -69,13 +69,43 @@ export default function ProductPage() {
         minPrice !== maxPrice ? `${minPrice}~${maxPrice}` : minPrice;
 
     const title = product?.title ?? '';
+    const [actionType, setActionType] = useState<'cart' | 'buy' | null>(null);
 
-    const handlerToCart = () => {};
-    const handlerToBuy = () => {};
+    const handlerToCart = () => {
+        setActionType('cart');
+        setIsDrawerOpen(true);
+    };
 
+    const handlerToBuy = () => {
+        setActionType('buy');
+        setIsDrawerOpen(true);
+    };
+    const createPost = api.cart.add.useMutation({
+        onSuccess: async (data) => {
+            setIsDrawerOpen(false);
+            showSuccessToast('添加成功');
+        },
+    });
+    const handleConfirmAction = () => {
+        if (actionType === 'cart') {
+            createPost.mutate({
+                productId: id,
+                specId: selectedSpec.id,
+                quantity,
+            });
+        } else if (actionType === 'buy') {
+            // 跳转到订单确认页
+            const params = new URLSearchParams({
+                productId: id,
+                specId: selectedSpec.id,
+                quantity: quantity.toString(),
+            });
+            router.push(`/full/confirm?${params.toString()}`);
+        }
+    };
     return (
         <Box bg="gray.50" minH="100vh" pb="80px">
-            <TopNav title="" />
+            <TopNav title={product?.title} />
             <BannerCarousel
                 banners={
                     product?.images?.map((item: string) => ({ image: item })) ??
@@ -99,7 +129,11 @@ export default function ProductPage() {
                     {title}
                 </Text>
                 <Box h="1px" bg="gray.100" my={2} />
-                <Drawer.Root placement="bottom">
+                <Drawer.Root
+                    placement="bottom"
+                    open={isDrawerOpen}
+                    onOpenChange={(e) => setIsDrawerOpen(e.open)}
+                >
                     <Drawer.Trigger asChild>
                         <Flex
                             align="center"
@@ -253,6 +287,8 @@ export default function ProductPage() {
                                         bg="#fa2222"
                                         color="#fff"
                                         size="xl"
+                                        onClick={handleConfirmAction}
+                                        loading={createPost.isPending}
                                     >
                                         确认
                                     </Button>
@@ -305,7 +341,7 @@ export default function ProductPage() {
                         gap={1}
                         color="red.500"
                         cursor="pointer"
-                        onClick={() => handlerCollect(!collected)}
+                        onClick={() => handlerCollect()}
                     >
                         <FaStar />
                         已收藏
@@ -316,7 +352,7 @@ export default function ProductPage() {
                         align="center"
                         gap={1}
                         cursor="pointer"
-                        onClick={() => handlerCollect(!collected)}
+                        onClick={() => handlerCollect()}
                     >
                         <FiStar />
                         收藏

@@ -9,7 +9,7 @@ export default function TopNav({
     title?: string;
     onBack?: () => void;
 }) {
-    const handleBack = onBack || (() => window.history.back());
+    const handleBack = onBack ?? (() => window.history.back());
     return (
         <Flex
             align="center"
@@ -37,7 +37,10 @@ export default function TopNav({
                 fontSize="md"
                 mx="auto"
                 textAlign="center"
-                w="100%"
+                w="80vw"
+                overflow="hidden"
+                textOverflow="ellipsis"
+                whiteSpace="nowrap"
                 pointerEvents="none"
             >
                 {title}

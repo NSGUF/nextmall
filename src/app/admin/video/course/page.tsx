@@ -207,30 +207,6 @@ export default function AdminPage() {
         openDeleteConfirm();
     };
 
-    // 排序
-    // 已由后端排序...
-
-    // Map 产品s to ensure no nulls for string fields before passing to DataTable
-    const normalizedCourses: Course[] = useMemo(
-        () =>
-            courses.map((c) => ({
-                ...c,
-                title: c.title ?? '',
-                description: c.description ?? '',
-                videoUrl: c.videoUrl ?? '',
-                coverImage: c.coverImage ?? '',
-                duration: c.duration ?? 0,
-                creatorId: c.creatorId ?? '',
-                isPublished: c.isPublished ?? false,
-                collectionId: c.collectionId ?? undefined,
-                tags: c.tags ?? [],
-                isFree: c.isFree ?? true,
-                price: c.price ?? undefined,
-                order: c.order ?? undefined,
-            })),
-        [courses]
-    );
-
     const columns = useMemo(
         () => [
             { accessorKey: 'title', header: '标题', width: 150 },
@@ -364,7 +340,7 @@ export default function AdminPage() {
                         isFree: c.isFree ?? true,
                         price: c.price ?? undefined,
                         order: c.order ?? undefined,
-                    }));
+                    })) as any;
                 }, [courses])}
                 selectable
                 manualSorting

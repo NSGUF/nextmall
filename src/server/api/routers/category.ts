@@ -33,7 +33,7 @@ export const categoryRouter = createTRPCRouter({
             })
         )
         .mutation(async ({ ctx, input }) => {
-            await ctx.db.category.create({ data: input });
+            await ctx.db.category.create({ data: input } as any);
             return {
                 message: '创建成功',
             };

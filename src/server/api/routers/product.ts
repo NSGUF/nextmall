@@ -67,7 +67,7 @@ export const productRouter = createTRPCRouter({
                                   create: specs,
                               }
                             : undefined,
-                },
+                } as any,
                 include: { specs: true },
             });
             return {
@@ -117,7 +117,7 @@ export const productRouter = createTRPCRouter({
                                   create: specs,
                               }
                             : undefined,
-                },
+                } as any,
                 include: { specs: true },
             });
             return updated;

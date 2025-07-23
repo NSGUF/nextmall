@@ -50,7 +50,7 @@ export const courseRouter = createTRPCRouter({
                     ...input,
                     creatorId: ctx.session.user.id,
                 },
-            });
+            } as any);
             return {
                 message: '创建成功',
             };

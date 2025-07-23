@@ -182,7 +182,7 @@ const DataTable = <T extends object>({
                                     表格列
                                 </Menu.ItemGroupLabel>
                                 <Separator />
-                                <Menu.Item>
+                                <Menu.Item value="toggle-all">
                                     <Checkbox.Root
                                         checked={table.getIsAllColumnsVisible()}
                                         onCheckedChange={table.getToggleAllColumnsVisibilityHandler()}
@@ -195,8 +195,11 @@ const DataTable = <T extends object>({
                                 </Menu.Item>
                                 {table
                                     .getAllColumns()
-                                    .map((column, index: number) => (
-                                        <Menu.Item asChild key={index}>
+                                    .map((column: any, index: number) => (
+                                        <Menu.Item
+                                            value={`column-${column.id}`}
+                                            key={index}
+                                        >
                                             <Checkbox.Root
                                                 id={`visibility-${column.id}`}
                                                 checked={column.getIsVisible()}
@@ -306,10 +309,12 @@ const DataTable = <T extends object>({
             <Box display="flex" flexWrap="nowrap" alignItems="center" gap={2}>
                 <Text textWrap="nowrap">每页</Text>
                 <NativeSelect.Root
-                    value={String(table.getState().pagination.pageSize)}
-                    onChange={(e) => table.setPageSize(Number(e.target.value))}
+                    {...({
+                        value: String(table.getState().pagination.pageSize),
+                        onChange: (e) =>
+                            table.setPageSize(Number(e.target?.value)),
+                    } as any)}
                     size="sm"
-                    fontSize={13}
                 >
                     <NativeSelect.Field>
                         <option value={10}>10</option>
@@ -330,7 +335,9 @@ const DataTable = <T extends object>({
                     render={(page) => (
                         <IconButton
                             key={page.value}
-                            variant={page.selected ? 'outline' : 'ghost'}
+                            variant={
+                                (page as any).selected ? 'outline' : 'ghost'
+                            }
                             aria-label={`第${page.value}页`}
                             onClick={() => table.setPageIndex(page.value - 1)}
                         >

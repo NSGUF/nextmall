@@ -139,14 +139,20 @@ const Sidebar = () => {
                         {Icon && <Icon style={{ width: '1.1rem' }} />}
                         <Text fontWeight={500}>{title}</Text>
                         <ChevronDown
-                            style={{ height: '15px', width: '15px' }}
+                            style={{
+                                height: '15px',
+                                width: '15px',
+                                transition: 'transform 0.2s',
+                                position: 'absolute',
+                                right: 2,
+                            }}
                             // transition/rotate 用 Chakra props
-                            transition="transform 0.2s"
+                            // transition="transform 0.2s"
                             transform={
                                 subMenuOpen ? 'rotate(180deg)' : undefined
                             }
-                            position="absolute"
-                            right={2}
+                            // position="absolute"
+                            // ={2}
                         />
                     </Button>
                 )}

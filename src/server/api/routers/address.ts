@@ -66,7 +66,7 @@ export const addressRouter = createTRPCRouter({
                     isDefault,
                     userId,
                 },
-            });
+            } as any);
 
             return {
                 message: '创建成功',

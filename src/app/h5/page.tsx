@@ -10,7 +10,12 @@ import Link from 'next/link';
 export default function H5Home() {
     // 获取 isActive 的 banners
     const { data: banners = [] } = api.banner.list.useQuery({ isActive: true });
-    const { data: category = [] } = api.category.list.useQuery();
+    const { data: category = [] } = api.category.list.useQuery(undefined, {
+        refetchOnMount: 'always',
+        refetchOnWindowFocus: true,
+        staleTime: 0,
+        gcTime: 0,
+    });
     const { data: products = [] } = api.product.list.useQuery({
         orderBy: 'sales',
     });

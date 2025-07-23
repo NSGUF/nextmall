@@ -64,6 +64,7 @@ export default function AdminPage() {
         description: '',
         isActive: true,
         categoryId: undefined,
+        vendorId: '',
         specs: [
             {
                 name: '',
@@ -342,7 +343,7 @@ export default function AdminPage() {
                                             </Text>
                                         )}
                                     </Field.Root>
-                                    <Field.Root invalid={!!errors.vendorId}>
+                                    <Field.Root invalid={!!errors?.vendorId}>
                                         <Field.Label>供应商</Field.Label>
                                         <NativeSelect.Root size="md">
                                             <NativeSelect.Field

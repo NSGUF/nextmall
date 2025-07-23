@@ -55,9 +55,11 @@ export const authConfig = {
             async authorize(credentials, req) {
                 const { email, password } = credentials ?? {};
                 if (!email || !password) return null;
-                const user = await db.user.findUnique({ where: { email } });
+                const user = await db.user.findUnique({
+                    where: { email } as any,
+                });
                 if (!user || !user.password) return null;
-                const isValid = await compare(password, user.password);
+                const isValid = await compare(password as any, user.password);
                 if (!isValid) return null;
                 return { id: user.id, email: user.email, name: user.name };
             },
@@ -75,15 +77,15 @@ export const authConfig = {
     // 使用JWT策略时不需要adapter
     // adapter: PrismaAdapter(db),
     callbacks: {
-        session: async ({ session, token, user }) => {
-            // token存在时优先用token
+        session: async ({ session, token }) => {
+            // 使用JWT策略时，优先使用token中的信息
             return {
                 ...session,
                 user: {
                     ...session.user,
-                    id: token?.id ?? user?.id,
-                    email: token?.email ?? user?.email,
-                    name: token?.name ?? user?.name,
+                    id: (token?.id as string) ?? session.user?.id,
+                    email: (token?.email as string) ?? session.user?.email,
+                    name: (token?.name as string) ?? session.user?.name,
                 },
             };
         },

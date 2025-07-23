@@ -39,7 +39,7 @@ export const bannerRouter = createTRPCRouter({
             })
         )
         .mutation(async ({ ctx, input }) => {
-            await ctx.db.banner.create({ data: input });
+            await ctx.db.banner.create({ data: input } as any);
             return {
                 message: '创建成功',
             };

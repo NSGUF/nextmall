@@ -12,7 +12,7 @@ import {
     Stack,
     Field,
 } from '@chakra-ui/react';
-import DataTable from '../../_components/DataTable';
+import DataTable from '../_components/DataTable';
 import { api } from '@/trpc/react';
 import { useForm } from 'react-hook-form';
 import { Controller } from 'react-hook-form';
@@ -130,20 +130,6 @@ export default function AdminPage() {
         openDeleteConfirm();
     };
 
-    // 排序
-    // 已由后端排序...
-
-    // Map collections to ensure no nulls for string fields before passing to DataTable
-    const normalizedCollections: Collection[] = useMemo(
-        () =>
-            collections.map((c) => ({
-                ...c,
-                title: c.title ?? '',
-                description: c.description ?? '',
-            })),
-        [collections]
-    );
-
     const columns = useMemo(
         () => [
             { accessorKey: 'title', header: '标题', width: 150 },
@@ -236,11 +222,7 @@ export default function AdminPage() {
                         : col
                 )}
                 data={useMemo(() => {
-                    return collections.map((c) => ({
-                        ...c,
-                        title: c.title ?? '',
-                        description: c.description ?? '',
-                    }));
+                    return collections as any;
                 }, [collections])}
                 selectable
                 manualSorting

@@ -7,11 +7,14 @@ import { api } from '@/trpc/react';
 
 export default function VideoPage() {
     // 获取所有合集
-    const { data: collections = [] } = api.collection.list.useQuery();
+    const { data: collections = [] } = api.collection.list.useQuery(undefined, {
+        refetchOnMount: 'always',
+        refetchOnWindowFocus: true,
+        staleTime: 0,
+        gcTime: 0,
+    });
     // 当前选中的合集ID，"all" 表示全部
-    const [activeCollectionId, setActiveCollectionId] = useState<
-        string | 'all'
-    >('all');
+    const [activeCollectionId, setActiveCollectionId] = useState<string>('all');
     // 获取课程，按合集过滤
     const { data: courses = [] } = api.course.list.useQuery(
         activeCollectionId !== 'all'

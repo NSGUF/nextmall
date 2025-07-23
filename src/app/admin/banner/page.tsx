@@ -155,21 +155,6 @@ export default function AdminPage() {
         openDeleteConfirm();
     };
 
-    // 排序
-    // 已由后端排序...
-
-    // Map banners to ensure no nulls for string fields before passing to DataTable
-    const normalizedBanners: Banner[] = useMemo(
-        () =>
-            banners.map((b) => ({
-                ...b,
-                title: b.title ?? '',
-                description: b.description ?? '',
-                link: b.link ?? '',
-            })),
-        [banners]
-    );
-
     const columns = useMemo(
         () => [
             { accessorKey: 'title', header: '标题', width: 150 },
@@ -273,7 +258,7 @@ export default function AdminPage() {
                         title: b.title ?? '',
                         description: b.description ?? '',
                         link: b.link ?? '',
-                    }));
+                    })) as any;
                 }, [banners])}
                 selectable
                 manualSorting

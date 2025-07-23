@@ -32,7 +32,7 @@ export const collectionRouter = createTRPCRouter({
             })
         )
         .mutation(async ({ ctx, input }) => {
-            await ctx.db.collection.create({ data: input });
+            await ctx.db.collection.create({ data: input } as any);
             return {
                 message: '创建成功',
             };

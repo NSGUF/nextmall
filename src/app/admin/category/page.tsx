@@ -134,21 +134,6 @@ export default function AdminPage() {
         openDeleteConfirm();
     };
 
-    // 排序
-    // 已由后端排序...
-
-    // Map 分类s to ensure no nulls for string fields before passing to DataTable
-    const normalizedCategories: Category[] = useMemo(
-        () =>
-            categories.map((c) => ({
-                ...c,
-                name: c.name ?? '',
-                description: c.description ?? '',
-                icon: c.icon ?? '',
-            })),
-        [categories]
-    );
-
     const columns = useMemo(
         () => [
             { accessorKey: 'name', header: '名称', width: 150 },
@@ -263,7 +248,7 @@ export default function AdminPage() {
                         name: c.name ?? '',
                         description: c.description ?? '',
                         icon: c.icon ?? '',
-                    }));
+                    })) as any;
                 }, [categories])}
                 selectable
                 manualSorting

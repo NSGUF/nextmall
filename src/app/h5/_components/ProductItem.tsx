@@ -3,7 +3,9 @@ import Link from 'next/link';
 export default function ProductItem({
     products,
     isShowDelete = false,
-    onDelete = (id) => {},
+    onDelete = (id) => {
+        console.log(id);
+    },
 }) {
     return (
         <>

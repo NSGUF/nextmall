@@ -17,7 +17,7 @@ import { FiAlertCircle } from 'react-icons/fi';
 import Link from 'next/link';
 import { api } from '@/trpc/react';
 import { useConfirmDialog } from '@/app/hooks/useConfirmDialog';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function AddressPage() {
     // 获取地址列表
@@ -26,7 +26,10 @@ export default function AddressPage() {
         isLoading,
         refetch,
     } = api.address.list.useQuery(undefined, {
+        refetchOnMount: 'always',
         refetchOnWindowFocus: true,
+        staleTime: 0,
+        gcTime: 0,
     });
     const deleteAddress = api.address.delete.useMutation({
         onSuccess: () => refetch(),
@@ -41,6 +44,7 @@ export default function AddressPage() {
         content: '确定要删除该地址吗？',
         confirmText: '删除',
         cancelText: '取消',
+        buttonProps: { style: { display: 'none' } },
         onConfirm: async () => {
             if (deleteId) {
                 await deleteAddress.mutateAsync({ id: deleteId });
@@ -51,6 +55,7 @@ export default function AddressPage() {
     });
 
     const router = useRouter();
+    const searchParams = useSearchParams();
 
     // 空状态
     if (isLoading) {
@@ -62,12 +67,22 @@ export default function AddressPage() {
     }
 
     const onBackMe = () => {
+        if (searchParams.get('is_choose')) {
+            router.back();
+            return;
+        }
+
         router.push('/h5/me');
+    };
+    const handlerChoose = (id) => {
+        if (!searchParams.get('is_choose')) return;
+        localStorage.setItem('addressId', id);
+        router.back();
     };
     return (
         <>
-            <TopNav onBack={onBackMe} />
-            <Box minH="100vh" bg="#f4f4f4" pb={20}>
+            <TopNav title="地址管理" onBack={onBackMe} />
+            <Box minH="calc(100vh - 64px)" bg="#f4f4f4" pb={20}>
                 {!addresses || addresses.length === 0 ? (
                     <EmptyState.Root pt={64}>
                         <EmptyState.Content>
@@ -82,13 +97,14 @@ export default function AddressPage() {
                         </EmptyState.Content>
                     </EmptyState.Root>
                 ) : (
-                    <Box p={4}>
+                    <Box p={4} h="100%">
                         {addresses.map((addr) => (
                             <Box
                                 key={addr.id}
                                 bg="#fff"
                                 borderRadius={16}
                                 mb={2}
+                                onClick={() => handlerChoose(addr.id)}
                                 p={4}
                                 boxShadow="0 2px 8px #eee"
                             >

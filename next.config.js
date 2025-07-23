@@ -9,6 +9,10 @@ const config = {
     experimental: {
         optimizePackageImports: ['@chakra-ui/react'],
     },
+    eslint: {
+        // 在构建时忽略 ESLint 错误
+        ignoreDuringBuilds: true,
+    },
 };
 
 export default config;

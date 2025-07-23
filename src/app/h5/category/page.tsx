@@ -16,7 +16,12 @@ import { useSearchParams } from 'next/navigation';
 import ProductItem from '@/app/h5/_components/ProductItem';
 
 export default function CategoryPage() {
-    const { data: categories = [] } = api.category.list.useQuery();
+    const { data: categories = [] } = api.category.list.useQuery(undefined, {
+        refetchOnMount: 'always',
+        refetchOnWindowFocus: true,
+        staleTime: 0,
+        gcTime: 0,
+    });
     const searchParams = useSearchParams();
     const id = searchParams.get('id');
     // 计算初始index
