@@ -1,20 +1,26 @@
-import { z } from "zod";
-import { createTRPCRouter, publicProcedure, superAdminProcedure } from "@/server/api/trpc";
+import { z } from 'zod';
+import {
+    createTRPCRouter,
+    publicProcedure,
+    superAdminProcedure,
+} from '@/server/api/trpc';
 
 export const categoryRouter = createTRPCRouter({
     // 获取所有分类，支持排序
     list: publicProcedure
         .input(
-            z.object({
-                orderBy: z.string().optional(),
-                order: z.enum(["asc", "desc"]).optional(),
-            }).optional()
+            z
+                .object({
+                    orderBy: z.string().optional(),
+                    order: z.enum(['asc', 'desc']).optional(),
+                })
+                .optional()
         )
         .query(async ({ ctx, input }) => {
             return ctx.db.category.findMany({
                 orderBy: input?.orderBy
-                    ? { [input.orderBy]: input.order ?? "asc" }
-                    : { createdAt: "desc" },
+                    ? { [input.orderBy]: input.order ?? 'asc' }
+                    : { createdAt: 'desc' },
             });
         }),
 
@@ -29,7 +35,7 @@ export const categoryRouter = createTRPCRouter({
         .mutation(async ({ ctx, input }) => {
             await ctx.db.category.create({ data: input });
             return {
-                message: '创建成功'
+                message: '创建成功',
             };
         }),
 
@@ -56,6 +62,8 @@ export const categoryRouter = createTRPCRouter({
     deleteMany: superAdminProcedure
         .input(z.object({ ids: z.array(z.string()) }))
         .mutation(async ({ ctx, input }) => {
-            return ctx.db.category.deleteMany({ where: { id: { in: input.ids } } });
+            return ctx.db.category.deleteMany({
+                where: { id: { in: input.ids } },
+            });
         }),
-}); 
+});

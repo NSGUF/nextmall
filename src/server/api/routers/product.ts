@@ -1,22 +1,31 @@
-import { z } from "zod";
-import { createTRPCRouter, publicProcedure, superAdminProcedure, protectedProcedure } from "@/server/api/trpc";
+import { z } from 'zod';
+import {
+    createTRPCRouter,
+    publicProcedure,
+    superAdminProcedure,
+    protectedProcedure,
+} from '@/server/api/trpc';
 
 export const productRouter = createTRPCRouter({
     // 获取所有商品，支持排序
     list: publicProcedure
         .input(
-            z.object({
-                orderBy: z.string().optional(),
-                order: z.enum(["asc", "desc"]).optional(),
-                categoryId: z.string().optional(),
-            }).optional()
+            z
+                .object({
+                    orderBy: z.string().optional(),
+                    order: z.enum(['asc', 'desc']).optional(),
+                    categoryId: z.string().optional(),
+                })
+                .optional()
         )
         .query(async ({ ctx, input }) => {
             return ctx.db.product.findMany({
                 orderBy: input?.orderBy
-                    ? { [input.orderBy]: input.order ?? "asc" }
-                    : { createdAt: "desc" },
-                where: input?.categoryId ? { categoryId: input.categoryId } : undefined,
+                    ? { [input.orderBy]: input.order ?? 'asc' }
+                    : { createdAt: 'desc' },
+                where: input?.categoryId
+                    ? { categoryId: input.categoryId }
+                    : undefined,
                 include: { specs: true },
             });
         }),
@@ -33,13 +42,17 @@ export const productRouter = createTRPCRouter({
                 categoryId: z.string().optional(),
                 vendorId: z.string().optional(),
                 minAmount: z.number(),
-                specs: z.array(z.object({
-                    name: z.string(),
-                    value: z.string(),
-                    price: z.number(),
-                    stock: z.number(),
-                    image: z.string(),
-                })).optional(),
+                specs: z
+                    .array(
+                        z.object({
+                            name: z.string(),
+                            value: z.string(),
+                            price: z.number(),
+                            stock: z.number(),
+                            image: z.string(),
+                        })
+                    )
+                    .optional(),
             })
         )
         .mutation(async ({ ctx, input }) => {
@@ -48,9 +61,12 @@ export const productRouter = createTRPCRouter({
                 data: {
                     ...productData,
                     ownerId: ctx.session.user.id,
-                    specs: specs && specs.length > 0 ? {
-                        create: specs
-                    } : undefined,
+                    specs:
+                        specs && specs.length > 0
+                            ? {
+                                  create: specs,
+                              }
+                            : undefined,
                 },
                 include: { specs: true },
             });
@@ -74,13 +90,17 @@ export const productRouter = createTRPCRouter({
                 isActive: z.boolean(),
                 categoryId: z.string().optional(),
                 vendorId: z.string().optional(),
-                specs: z.array(z.object({
-                    id: z.string().optional(),
-                    name: z.string(),
-                    value: z.string(),
-                    price: z.number(),
-                    stock: z.number(),
-                })).optional(),
+                specs: z
+                    .array(
+                        z.object({
+                            id: z.string().optional(),
+                            name: z.string(),
+                            value: z.string(),
+                            price: z.number(),
+                            stock: z.number(),
+                        })
+                    )
+                    .optional(),
             })
         )
         .mutation(async ({ ctx, input }) => {
@@ -91,9 +111,12 @@ export const productRouter = createTRPCRouter({
                 where: { id },
                 data: {
                     ...productData,
-                    specs: specs && specs.length > 0 ? {
-                        create: specs
-                    } : undefined,
+                    specs:
+                        specs && specs.length > 0
+                            ? {
+                                  create: specs,
+                              }
+                            : undefined,
                 },
                 include: { specs: true },
             });
@@ -109,7 +132,9 @@ export const productRouter = createTRPCRouter({
     deleteMany: superAdminProcedure
         .input(z.object({ ids: z.array(z.string()) }))
         .mutation(async ({ ctx, input }) => {
-            return ctx.db.product.deleteMany({ where: { id: { in: input.ids } } });
+            return ctx.db.product.deleteMany({
+                where: { id: { in: input.ids } },
+            });
         }),
     // 商品详情，带是否已收藏
     get: protectedProcedure
@@ -131,8 +156,8 @@ export const productRouter = createTRPCRouter({
                         userId_productId: {
                             userId,
                             productId,
-                        }
-                    }
+                        },
+                    },
                 });
                 if (existingFootprint) {
                     // 更新浏览时间为当前时间
@@ -141,11 +166,11 @@ export const productRouter = createTRPCRouter({
                             userId_productId: {
                                 userId,
                                 productId,
-                            }
+                            },
                         },
                         data: {
                             viewedAt: new Date(),
-                        }
+                        },
                     });
                 } else {
                     // 创建新的足迹
@@ -153,7 +178,7 @@ export const productRouter = createTRPCRouter({
                         data: {
                             userId,
                             productId,
-                        }
+                        },
                     });
                 }
             }
@@ -164,13 +189,13 @@ export const productRouter = createTRPCRouter({
                     userId_productId: {
                         userId: ctx.session.user.id,
                         productId: input.id,
-                    }
-                }
+                    },
+                },
             });
 
             return {
                 ...product,
-                isFavorited: !!favorite
+                isFavorited: !!favorite,
             };
         }),
 
@@ -187,8 +212,8 @@ export const productRouter = createTRPCRouter({
                     userId_productId: {
                         userId,
                         productId,
-                    }
-                }
+                    },
+                },
             });
 
             if (existingFavorite) {
@@ -198,8 +223,8 @@ export const productRouter = createTRPCRouter({
                         userId_productId: {
                             userId,
                             productId,
-                        }
-                    }
+                        },
+                    },
                 });
                 return { isFavorited: false, message: '取消收藏' };
             } else {
@@ -208,29 +233,28 @@ export const productRouter = createTRPCRouter({
                     data: {
                         userId,
                         productId,
-                    }
+                    },
                 });
                 return { isFavorited: true, message: '收藏成功' };
             }
         }),
 
     // 获取用户收藏列表
-    getFavorites: protectedProcedure
-        .query(async ({ ctx }) => {
-            const favorites = await ctx.db.productFavorite.findMany({
-                where: { userId: ctx.session.user.id },
-                include: {
-                    product: {
-                        include: { specs: true }
-                    }
+    getFavorites: protectedProcedure.query(async ({ ctx }) => {
+        const favorites = await ctx.db.productFavorite.findMany({
+            where: { userId: ctx.session.user.id },
+            include: {
+                product: {
+                    include: { specs: true },
                 },
-                orderBy: { createdAt: 'desc' }
-            });
-            // 返回商品信息列表
-            return favorites.map(fav => ({
-                ...fav.product,
-                favoriteId: fav.id,
-                favoritedAt: fav.createdAt,
-            }));
-        }),
-}); 
+            },
+            orderBy: { createdAt: 'desc' },
+        });
+        // 返回商品信息列表
+        return favorites.map((fav) => ({
+            ...fav.product,
+            favoriteId: fav.id,
+            favoritedAt: fav.createdAt,
+        }));
+    }),
+});

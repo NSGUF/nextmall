@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 import {
     Box,
     Button,
@@ -9,9 +9,13 @@ import {
     Text,
     Portal,
     Table,
-    Menu, Checkbox, NativeSelect, Pagination, ButtonGroup,
+    Menu,
+    Checkbox,
+    NativeSelect,
+    Pagination,
+    ButtonGroup,
     Separator,
-} from "@chakra-ui/react";
+} from '@chakra-ui/react';
 import {
     useReactTable,
     getCoreRowModel,
@@ -22,7 +26,7 @@ import {
     type SortingState,
     type VisibilityState,
     type ColumnPinningState,
-} from "@tanstack/react-table";
+} from '@tanstack/react-table';
 import {
     FiChevronLeft,
     FiChevronRight,
@@ -32,7 +36,7 @@ import {
     FiCornerUpLeft,
     FiCornerUpRight,
     FiMoreVertical,
-} from "react-icons/fi";
+} from 'react-icons/fi';
 
 interface DataTableProps<T extends object> {
     columns: ColumnDef<T, any>[];
@@ -42,12 +46,14 @@ interface DataTableProps<T extends object> {
     manualPagination?: boolean;
     manualSorting?: boolean;
     manualFiltering?: boolean;
-    onPaginationChange?: (pagination: { pageIndex: number; pageSize: number }) => void;
+    onPaginationChange?: (pagination: {
+        pageIndex: number;
+        pageSize: number;
+    }) => void;
     onSortingChange?: (sorting: SortingState) => void;
     onFilterChange?: (filter: string) => void;
     renderBulkActions?: (selectedRows: T[]) => React.ReactNode;
 }
-
 
 // 在 DataTableProps 和 DataTable 组件实现中，不再包含任何 action 列或业务 cell 渲染
 const DataTable = <T extends object>({
@@ -64,11 +70,19 @@ const DataTable = <T extends object>({
     renderBulkActions,
 }: DataTableProps<T>) => {
     const [rowSelection, setRowSelection] = useState({});
-    const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
-    const [columnPinning, setColumnPinning] = useState<ColumnPinningState>({ left: [], right: [] });
-    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+    const [pagination, setPagination] = useState({
+        pageIndex: 0,
+        pageSize: 10,
+    });
+    const [columnPinning, setColumnPinning] = useState<ColumnPinningState>({
+        left: [],
+        right: [],
+    });
+    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
+        {}
+    );
     const [sorting, setSorting] = useState<SortingState>([]);
-    const [globalFilter, setGlobalFilter] = useState("");
+    const [globalFilter, setGlobalFilter] = useState('');
 
     // 触发父组件回调
     useEffect(() => {
@@ -112,16 +126,21 @@ const DataTable = <T extends object>({
         globalFilterFn: (row, columnId, filterValue) => {
             // 简单全局搜索
             return Object.values(row.original).some((v) =>
-                String(v).toLowerCase().includes(String(filterValue).toLowerCase())
+                String(v)
+                    .toLowerCase()
+                    .includes(String(filterValue).toLowerCase())
             );
         },
         manualPagination,
         manualSorting,
         manualFiltering,
-        pageCount: manualPagination && pageCount !== undefined ? pageCount : undefined,
+        pageCount:
+            manualPagination && pageCount !== undefined ? pageCount : undefined,
     });
 
-    const selectedRows: T[] = table.getSelectedRowModel().rows.map((r: any) => r.original);
+    const selectedRows: T[] = table
+        .getSelectedRowModel()
+        .rows.map((r: any) => r.original);
 
     // 工具栏
     const Toolbar = () => (
@@ -139,7 +158,6 @@ const DataTable = <T extends object>({
         </Box>
     );
 
-
     // 列显示/隐藏菜单
     const ColumnVisibilityMenu: React.FC<{ table: any }> = ({ table }) => {
         const allColumns = table.getAllLeafColumns();
@@ -153,14 +171,16 @@ const DataTable = <T extends object>({
                         size="sm"
                         aspectRatio="square"
                     >
-                        <FiEye style={{ height: "16px", width: "16px" }} />
+                        <FiEye style={{ height: '16px', width: '16px' }} />
                     </Button>
                 </Menu.Trigger>
                 <Portal>
                     <Menu.Positioner width={200}>
                         <Menu.Content>
                             <Menu.ItemGroup>
-                                <Menu.ItemGroupLabel>表格列</Menu.ItemGroupLabel>
+                                <Menu.ItemGroupLabel>
+                                    表格列
+                                </Menu.ItemGroupLabel>
                                 <Separator />
                                 <Menu.Item>
                                     <Checkbox.Root
@@ -173,28 +193,31 @@ const DataTable = <T extends object>({
                                         <Checkbox.Label>所有列</Checkbox.Label>
                                     </Checkbox.Root>
                                 </Menu.Item>
-                                {table.getAllColumns().map((column, index: number) => (
-                                    <Menu.Item asChild key={index}>
-                                        <Checkbox.Root
-                                            id={`visibility-${column.id}`}
-                                            checked={column.getIsVisible()}
-                                            onCheckedChange={() => column.toggleVisibility()}
-                                            size="sm"
-                                        >
-                                            <Checkbox.HiddenInput />
-                                            <Checkbox.Control />
-                                            <Checkbox.Label>
-                                                {column?.columnDef?.header}
-                                            </Checkbox.Label>
-                                        </Checkbox.Root>
-                                    </Menu.Item>
-                                ))}
+                                {table
+                                    .getAllColumns()
+                                    .map((column, index: number) => (
+                                        <Menu.Item asChild key={index}>
+                                            <Checkbox.Root
+                                                id={`visibility-${column.id}`}
+                                                checked={column.getIsVisible()}
+                                                onCheckedChange={() =>
+                                                    column.toggleVisibility()
+                                                }
+                                                size="sm"
+                                            >
+                                                <Checkbox.HiddenInput />
+                                                <Checkbox.Control />
+                                                <Checkbox.Label>
+                                                    {column?.columnDef?.header}
+                                                </Checkbox.Label>
+                                            </Checkbox.Root>
+                                        </Menu.Item>
+                                    ))}
                             </Menu.ItemGroup>
                         </Menu.Content>
                     </Menu.Positioner>
                 </Portal>
             </Menu.Root>
-
         );
     };
 
@@ -203,27 +226,61 @@ const DataTable = <T extends object>({
         return (
             <Menu.Root>
                 <Menu.Trigger asChild>
-                    <IconButton
-                        aria-label="更多"
-                        size="xs"
-                        variant="ghost"
-                    >
+                    <IconButton aria-label="更多" size="xs" variant="ghost">
                         <FiMoreVertical />
                     </IconButton>
                 </Menu.Trigger>
                 <Menu.Positioner width={140}>
                     <Menu.Content>
-                        <Menu.Item value="asc" onClick={() => table.setSorting([{ id: header.column.id, desc: false }])}>
-                            <FiArrowUp style={{ marginRight: 4 }} />升序
+                        <Menu.Item
+                            value="asc"
+                            onClick={() =>
+                                table.setSorting([
+                                    { id: header.column.id, desc: false },
+                                ])
+                            }
+                        >
+                            <FiArrowUp style={{ marginRight: 4 }} />
+                            升序
                         </Menu.Item>
-                        <Menu.Item value="desc" onClick={() => table.setSorting([{ id: header.column.id, desc: true }])}>
-                            <FiArrowDown style={{ marginRight: 4 }} />降序
+                        <Menu.Item
+                            value="desc"
+                            onClick={() =>
+                                table.setSorting([
+                                    { id: header.column.id, desc: true },
+                                ])
+                            }
+                        >
+                            <FiArrowDown style={{ marginRight: 4 }} />
+                            降序
                         </Menu.Item>
-                        <Menu.Item value="pinLeft" onClick={() => header.column.pin(header.column.getIsPinned() ? false : "left")}>
-                            <FiCornerUpLeft style={{ marginRight: 4 }} />{header.column.getIsPinned() === "left" ? "取消固定" : "固定左侧"}
+                        <Menu.Item
+                            value="pinLeft"
+                            onClick={() =>
+                                header.column.pin(
+                                    header.column.getIsPinned() ? false : 'left'
+                                )
+                            }
+                        >
+                            <FiCornerUpLeft style={{ marginRight: 4 }} />
+                            {header.column.getIsPinned() === 'left'
+                                ? '取消固定'
+                                : '固定左侧'}
                         </Menu.Item>
-                        <Menu.Item value="pinRight" onClick={() => header.column.pin(header.column.getIsPinned() === "right" ? false : "right")}>
-                            <FiCornerUpRight style={{ marginRight: 4 }} />{header.column.getIsPinned() === "right" ? "取消固定" : "固定右侧"}
+                        <Menu.Item
+                            value="pinRight"
+                            onClick={() =>
+                                header.column.pin(
+                                    header.column.getIsPinned() === 'right'
+                                        ? false
+                                        : 'right'
+                                )
+                            }
+                        >
+                            <FiCornerUpRight style={{ marginRight: 4 }} />
+                            {header.column.getIsPinned() === 'right'
+                                ? '取消固定'
+                                : '固定右侧'}
                         </Menu.Item>
                     </Menu.Content>
                 </Menu.Positioner>
@@ -234,7 +291,11 @@ const DataTable = <T extends object>({
     // Ark UI Pagination
     const PaginationBar = () => (
         <Pagination.Root
-            count={manualPagination && pageCount !== undefined ? pageCount * table.getState().pagination.pageSize : data.length}
+            count={
+                manualPagination && pageCount !== undefined
+                    ? pageCount * table.getState().pagination.pageSize
+                    : data.length
+            }
             pageSize={table.getState().pagination.pageSize}
             defaultPage={table.getState().pagination.pageIndex + 1}
             mt={3}
@@ -246,7 +307,7 @@ const DataTable = <T extends object>({
                 <Text textWrap="nowrap">每页</Text>
                 <NativeSelect.Root
                     value={String(table.getState().pagination.pageSize)}
-                    onChange={e => table.setPageSize(Number(e.target.value))}
+                    onChange={(e) => table.setPageSize(Number(e.target.value))}
                     size="sm"
                     fontSize={13}
                 >
@@ -266,10 +327,10 @@ const DataTable = <T extends object>({
                     </IconButton>
                 </Pagination.PrevTrigger>
                 <Pagination.Items
-                    render={page => (
+                    render={(page) => (
                         <IconButton
                             key={page.value}
-                            variant={page.selected ? "outline" : "ghost"}
+                            variant={page.selected ? 'outline' : 'ghost'}
                             aria-label={`第${page.value}页`}
                             onClick={() => table.setPageIndex(page.value - 1)}
                         >
@@ -290,13 +351,9 @@ const DataTable = <T extends object>({
         <Box>
             <Toolbar />
             <Box overflowX="auto">
-                <Table.Root
-                    variant="outline"
-                    size="sm"
-                    borderWidth={1}
-                >
+                <Table.Root variant="outline" size="sm" borderWidth={1}>
                     <Table.Header>
-                        {table.getHeaderGroups().map(headerGroup => (
+                        {table.getHeaderGroups().map((headerGroup) => (
                             <Table.Row key={headerGroup.id}>
                                 {selectable && (
                                     <Table.ColumnHeader>
@@ -307,26 +364,63 @@ const DataTable = <T extends object>({
                                         />
                                     </Table.ColumnHeader>
                                 )}
-                                {headerGroup.headers.map(header => (
+                                {headerGroup.headers.map((header) => (
                                     <Table.ColumnHeader
                                         key={header.id}
-                                        position={header.column.getIsPinned() ? "sticky" : undefined}
-                                        left={header.column.getIsPinned() === "left" ? 0 : undefined}
-                                        zIndex={header.column.getIsPinned() ? 2 : 1}
+                                        position={
+                                            header.column.getIsPinned()
+                                                ? 'sticky'
+                                                : undefined
+                                        }
+                                        left={
+                                            header.column.getIsPinned() ===
+                                            'left'
+                                                ? 0
+                                                : undefined
+                                        }
+                                        zIndex={
+                                            header.column.getIsPinned() ? 2 : 1
+                                        }
                                     >
-                                        <Box display="flex" alignItems="center" gap={1}>
-                                            {flexRender(header.column.columnDef.header, header.getContext())}
-                                            {header.column.getCanSort() && header.column.id !== 'action' && (
-                                                <IconButton
-                                                    aria-label="排序"
-                                                    size="xs"
-                                                    variant="ghost"
-                                                    onClick={header.column.getToggleSortingHandler()}
-                                                >
-                                                    {header.column.getIsSorted() === "asc" ? <FiArrowUp /> : header.column.getIsSorted() === "desc" ? <FiArrowDown /> : <FiArrowUp style={{ opacity: 0.3 }} />}
-                                                </IconButton>
+                                        <Box
+                                            display="flex"
+                                            alignItems="center"
+                                            gap={1}
+                                        >
+                                            {flexRender(
+                                                header.column.columnDef.header,
+                                                header.getContext()
                                             )}
-                                            {header.column.id !== 'action' && < HeaderMenu header={header} table={table} />}
+                                            {header.column.getCanSort() &&
+                                                header.column.id !==
+                                                    'action' && (
+                                                    <IconButton
+                                                        aria-label="排序"
+                                                        size="xs"
+                                                        variant="ghost"
+                                                        onClick={header.column.getToggleSortingHandler()}
+                                                    >
+                                                        {header.column.getIsSorted() ===
+                                                        'asc' ? (
+                                                            <FiArrowUp />
+                                                        ) : header.column.getIsSorted() ===
+                                                          'desc' ? (
+                                                            <FiArrowDown />
+                                                        ) : (
+                                                            <FiArrowUp
+                                                                style={{
+                                                                    opacity: 0.3,
+                                                                }}
+                                                            />
+                                                        )}
+                                                    </IconButton>
+                                                )}
+                                            {header.column.id !== 'action' && (
+                                                <HeaderMenu
+                                                    header={header}
+                                                    table={table}
+                                                />
+                                            )}
                                         </Box>
                                     </Table.ColumnHeader>
                                 ))}
@@ -334,7 +428,7 @@ const DataTable = <T extends object>({
                         ))}
                     </Table.Header>
                     <Table.Body>
-                        {table.getRowModel().rows.map(row => (
+                        {table.getRowModel().rows.map((row) => (
                             <Table.Row key={row.id}>
                                 {selectable && (
                                     <Table.Cell>
@@ -345,9 +439,12 @@ const DataTable = <T extends object>({
                                         />
                                     </Table.Cell>
                                 )}
-                                {row.getVisibleCells().map(cell => (
+                                {row.getVisibleCells().map((cell) => (
                                     <Table.Cell key={cell.id}>
-                                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                        {flexRender(
+                                            cell.column.columnDef.cell,
+                                            cell.getContext()
+                                        )}
                                     </Table.Cell>
                                 ))}
                             </Table.Row>
@@ -360,4 +457,4 @@ const DataTable = <T extends object>({
     );
 };
 
-export default DataTable; 
+export default DataTable;

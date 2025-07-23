@@ -6,13 +6,17 @@ const prisma = new PrismaClient();
 async function main() {
     const email = process.env.FIRST_SUPERUSER;
     const password = process.env.FIRST_SUPERUSER_PASSWORD;
-    console.log(email, password)
+    console.log(email, password);
     if (!email || !password) {
-        throw new Error('请在 .env 文件中设置 FIRST_SUPERUSER 和 FIRST_SUPERUSER_PASSWORD');
+        throw new Error(
+            '请在 .env 文件中设置 FIRST_SUPERUSER 和 FIRST_SUPERUSER_PASSWORD'
+        );
     }
     const hashed = await bcrypt.hash(password, 10);
 
-    const exists = await prisma.user.findFirst({ where: { role: 'SUPERADMIN' } });
+    const exists = await prisma.user.findFirst({
+        where: { role: 'SUPERADMIN' },
+    });
     if (!exists) {
         await prisma.user.create({
             data: {
@@ -29,7 +33,9 @@ async function main() {
     }
 }
 
-main().catch((e) => {
-    console.error(e);
-    process.exit(1);
-}).finally(() => prisma.$disconnect());
+main()
+    .catch((e) => {
+        console.error(e);
+        process.exit(1);
+    })
+    .finally(() => prisma.$disconnect());

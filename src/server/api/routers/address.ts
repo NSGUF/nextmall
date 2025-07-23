@@ -1,20 +1,26 @@
-import { z } from "zod";
-import { createTRPCRouter, protectedProcedure, superAdminProcedure } from "@/server/api/trpc";
+import { z } from 'zod';
+import {
+    createTRPCRouter,
+    protectedProcedure,
+    superAdminProcedure,
+} from '@/server/api/trpc';
 
 export const addressRouter = createTRPCRouter({
     // 获取所有地址，支持排序
     list: protectedProcedure
         .input(
-            z.object({
-                orderBy: z.string().optional(),
-                order: z.enum(["asc", "desc"]).optional(),
-            }).optional()
+            z
+                .object({
+                    orderBy: z.string().optional(),
+                    order: z.enum(['asc', 'desc']).optional(),
+                })
+                .optional()
         )
         .query(async ({ ctx, input }) => {
             return ctx.db.address.findMany({
                 orderBy: input?.orderBy
-                    ? { [input.orderBy]: input.order ?? "asc" }
-                    : { createdAt: "desc" },
+                    ? { [input.orderBy]: input.order ?? 'asc' }
+                    : { createdAt: 'desc' },
                 where: { userId: ctx.session.user.id },
             });
         }),
@@ -36,7 +42,7 @@ export const addressRouter = createTRPCRouter({
 
             // 查询当前用户的地址数量
             const addressCount = await ctx.db.address.count({
-                where: { userId }
+                where: { userId },
             });
 
             let isDefault = input.isDefault ?? false;
@@ -50,7 +56,7 @@ export const addressRouter = createTRPCRouter({
             if (isDefault) {
                 await ctx.db.address.updateMany({
                     where: { userId },
-                    data: { isDefault: false }
+                    data: { isDefault: false },
                 });
             }
 
@@ -59,11 +65,11 @@ export const addressRouter = createTRPCRouter({
                     ...input,
                     isDefault,
                     userId,
-                }
+                },
             });
 
             return {
-                message: '创建成功'
+                message: '创建成功',
             };
         }),
 
@@ -90,7 +96,7 @@ export const addressRouter = createTRPCRouter({
         .mutation(async ({ ctx, input }) => {
             // 先查要删除的地址
             const addr = await ctx.db.address.findUnique({
-                where: { id: input.id }
+                where: { id: input.id },
             });
             // 删除
             await ctx.db.address.delete({ where: { id: input.id } });
@@ -100,30 +106,32 @@ export const addressRouter = createTRPCRouter({
                 // 查找该用户剩下的第一个地址
                 const first = await ctx.db.address.findFirst({
                     where: { userId: addr.userId },
-                    orderBy: { createdAt: "asc" }
+                    orderBy: { createdAt: 'asc' },
                 });
                 if (first) {
                     await ctx.db.address.update({
                         where: { id: first.id },
-                        data: { isDefault: true }
+                        data: { isDefault: true },
                     });
                 }
             }
 
-            return { message: "删除成功" };
+            return { message: '删除成功' };
         }),
 
     deleteMany: superAdminProcedure
         .input(z.object({ ids: z.array(z.string()) }))
         .mutation(async ({ ctx, input }) => {
-            return ctx.db.address.deleteMany({ where: { id: { in: input.ids } } });
+            return ctx.db.address.deleteMany({
+                where: { id: { in: input.ids } },
+            });
         }),
 
     get: protectedProcedure
         .input(z.object({ id: z.string() }))
         .query(async ({ ctx, input }) => {
             return ctx.db.address.findUnique({
-                where: { id: input.id, userId: ctx.session.user.id }
+                where: { id: input.id, userId: ctx.session.user.id },
             });
         }),
-}); 
+});

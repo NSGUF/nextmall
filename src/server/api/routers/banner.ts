@@ -1,22 +1,29 @@
-import { z } from "zod";
-import { createTRPCRouter, publicProcedure, superAdminProcedure } from "@/server/api/trpc";
+import { z } from 'zod';
+import {
+    createTRPCRouter,
+    publicProcedure,
+    superAdminProcedure,
+} from '@/server/api/trpc';
 
 export const bannerRouter = createTRPCRouter({
     // 获取所有banner，支持排序
     list: publicProcedure
         .input(
-            z.object({
-                orderBy: z.string().optional(),
-                order: z.enum(["asc", "desc"]).optional(),
-                isActive: z.boolean().optional(), // 新增 isActive 参数
-            }).optional()
+            z
+                .object({
+                    orderBy: z.string().optional(),
+                    order: z.enum(['asc', 'desc']).optional(),
+                    isActive: z.boolean().optional(), // 新增 isActive 参数
+                })
+                .optional()
         )
         .query(async ({ ctx, input }) => {
             return ctx.db.banner.findMany({
                 orderBy: input?.orderBy
-                    ? { [input.orderBy]: input.order ?? "asc" }
-                    : { sort: "asc" },
-                where: input?.isActive === true ? { isActive: true } : undefined, // 新增 where 条件
+                    ? { [input.orderBy]: input.order ?? 'asc' }
+                    : { sort: 'asc' },
+                where:
+                    input?.isActive === true ? { isActive: true } : undefined, // 新增 where 条件
             });
         }),
 
@@ -34,7 +41,7 @@ export const bannerRouter = createTRPCRouter({
         .mutation(async ({ ctx, input }) => {
             await ctx.db.banner.create({ data: input });
             return {
-                message: '创建成功'
+                message: '创建成功',
             };
         }),
 
@@ -64,6 +71,8 @@ export const bannerRouter = createTRPCRouter({
     deleteMany: superAdminProcedure
         .input(z.object({ ids: z.array(z.string()) }))
         .mutation(async ({ ctx, input }) => {
-            return ctx.db.banner.deleteMany({ where: { id: { in: input.ids } } });
+            return ctx.db.banner.deleteMany({
+                where: { id: { in: input.ids } },
+            });
         }),
-}); 
+});

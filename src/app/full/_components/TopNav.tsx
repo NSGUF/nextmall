@@ -1,11 +1,23 @@
-import React from "react";
-import { FiChevronLeft } from "react-icons/fi";
-import { Text, IconButton, Flex } from "@chakra-ui/react";
+import React from 'react';
+import { FiChevronLeft } from 'react-icons/fi';
+import { Text, IconButton, Flex } from '@chakra-ui/react';
 
-export default function TopNav({ title = "收货地址", onBack }: { title?: string; onBack?: () => void }) {
+export default function TopNav({
+    title = '收货地址',
+    onBack,
+}: {
+    title?: string;
+    onBack?: () => void;
+}) {
     const handleBack = onBack || (() => window.history.back());
     return (
-        <Flex align="center" position="relative" w="100%" h="48px" bgColor="#f8f8f8">
+        <Flex
+            align="center"
+            position="relative"
+            w="100%"
+            h="48px"
+            bgColor="#f8f8f8"
+        >
             <IconButton
                 aria-label="Call support"
                 onClick={handleBack}
@@ -16,7 +28,10 @@ export default function TopNav({ title = "收货地址", onBack }: { title?: str
                 top="50%"
                 transform="translateY(-50%)"
             >
-                <FiChevronLeft strokeWidth={1.2} style={{ width: 30, height: 30 }} />
+                <FiChevronLeft
+                    strokeWidth={1.2}
+                    style={{ width: 30, height: 30 }}
+                />
             </IconButton>
             <Text
                 fontSize="md"

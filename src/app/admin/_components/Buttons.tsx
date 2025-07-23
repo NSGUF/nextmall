@@ -1,5 +1,5 @@
-import { IconButton, type ButtonProps } from "@chakra-ui/react";
-import { FiEdit, FiEye, FiMoreVertical } from "react-icons/fi";
+import { IconButton, type ButtonProps } from '@chakra-ui/react';
+import { FiEdit, FiEye, FiMoreVertical } from 'react-icons/fi';
 
 export const EditBtn = (props: ButtonProps) => (
     <IconButton
@@ -41,4 +41,4 @@ export const MenuBtn = (props: ButtonProps) => (
     >
         <FiMoreVertical style={{ width: 14 }} />
     </IconButton>
-); 
+);

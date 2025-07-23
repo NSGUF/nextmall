@@ -1,12 +1,12 @@
-import { signIn, signOut, useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { signIn, signOut, useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 export function useAuth() {
     const { data: session, status, update } = useSession();
     const router = useRouter();
 
     const login = async (email: string, password: string) => {
-        const res = await signIn("credentials", {
+        const res = await signIn('credentials', {
             email,
             password,
             redirect: false,
@@ -15,7 +15,7 @@ export function useAuth() {
 
         // 强制更新session
         await update();
-        router.replace("/");
+        router.replace('/');
     };
 
     const logout = () => signOut();
@@ -25,7 +25,7 @@ export function useAuth() {
         status,
         login,
         logout,
-        isLoading: status === "loading",
+        isLoading: status === 'loading',
         isAuthenticated: !!session,
     };
 }

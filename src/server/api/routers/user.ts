@@ -1,22 +1,28 @@
-import { z } from "zod";
-import { createTRPCRouter, publicProcedure, superAdminProcedure } from "@/server/api/trpc";
-import { hash } from "bcryptjs";
-import jwt from "jsonwebtoken";
-import nodemailer from "nodemailer";
+import { z } from 'zod';
+import {
+    createTRPCRouter,
+    publicProcedure,
+    superAdminProcedure,
+} from '@/server/api/trpc';
+import { hash } from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import nodemailer from 'nodemailer';
 
 export const userRouter = createTRPCRouter({
     register: publicProcedure
         .input(
             z.object({
                 email: z.string().email(),
-                password: z.string().min(6, "密码至少6位"),
-                name: z.string().min(3, "用户名至少3位"),
+                password: z.string().min(6, '密码至少6位'),
+                name: z.string().min(3, '用户名至少3位'),
             })
         )
         .mutation(async ({ ctx, input }) => {
-            const existing = await ctx.db.user.findUnique({ where: { email: input.email } });
+            const existing = await ctx.db.user.findUnique({
+                where: { email: input.email },
+            });
             if (existing) {
-                throw new Error("邮箱已被注册");
+                throw new Error('邮箱已被注册');
             }
             const hashed = await hash(input.password, 10);
             const user = await ctx.db.user.create({
@@ -31,23 +37,23 @@ export const userRouter = createTRPCRouter({
     registerFormConfig: publicProcedure.query(() => {
         return [
             {
-                name: "name",
-                label: "用户名",
-                type: "text",
+                name: 'name',
+                label: '用户名',
+                type: 'text',
                 required: true,
                 minLength: 3,
             },
             {
-                name: "email",
-                label: "邮箱",
-                type: "email",
+                name: 'email',
+                label: '邮箱',
+                type: 'email',
                 required: true,
                 pattern: /^[^@\s]+@[^@\s]+\.[^@\s]+$/,
             },
             {
-                name: "password",
-                label: "密码",
-                type: "password",
+                name: 'password',
+                label: '密码',
+                type: 'password',
                 required: true,
                 minLength: 6,
             },
@@ -56,14 +62,16 @@ export const userRouter = createTRPCRouter({
     recoverPassword: publicProcedure
         .input(z.object({ email: z.string().email() }))
         .mutation(async ({ ctx, input }) => {
-            const user = await ctx.db.user.findUnique({ where: { email: input.email } });
-            if (!user) throw new Error("该邮箱未注册");
+            const user = await ctx.db.user.findUnique({
+                where: { email: input.email },
+            });
+            if (!user) throw new Error('该邮箱未注册');
 
             // 生成 JWT token
             const token = jwt.sign(
                 { userId: user.id, email: user.email },
                 process.env.AUTH_SECRET!,
-                { expiresIn: "30m" }
+                { expiresIn: '30m' }
             );
 
             // 发送邮件
@@ -77,24 +85,24 @@ export const userRouter = createTRPCRouter({
                     pass: process.env.SMTP_PASS, // 发件邮箱授权码/密码
                 },
             };
-            console.log(options)
+            console.log(options);
             const transporter = nodemailer.createTransport(options);
             await transporter.sendMail({
                 from: `"NextMall" <${process.env.SMTP_USER}>`, // 必须和 SMTP_USER 一致
                 to: user.email ?? undefined,
-                subject: "密码重置",
+                subject: '密码重置',
                 html: `<p>点击 <a href="${resetUrl}">这里</a> 重置你的密码。30分钟内有效。</p>`,
             });
 
-            return { message: "已发送密码找回邮件" };
+            return { message: '已发送密码找回邮件' };
         }),
     // 获取所有供应商接口
     getAllVendors: superAdminProcedure.query(async ({ ctx }) => {
         // UserRole.VENDOR
         const vendors = await ctx.db.user.findMany({
-            where: { role: "VENDOR" },
-            orderBy: { createdAt: "desc" },
+            where: { role: 'VENDOR' },
+            orderBy: { createdAt: 'desc' },
         });
         return vendors;
     }),
-}); 
+});

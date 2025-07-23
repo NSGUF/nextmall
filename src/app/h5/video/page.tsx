@@ -1,23 +1,27 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Box, Flex, Text, Image, Badge, SimpleGrid } from "@chakra-ui/react";
-import { useRouter } from "next/navigation";
-import { api } from "@/trpc/react";
+import { useState } from 'react';
+import { Box, Flex, Text, Image, Badge, SimpleGrid } from '@chakra-ui/react';
+import { useRouter } from 'next/navigation';
+import { api } from '@/trpc/react';
 
 export default function VideoPage() {
     // 获取所有合集
     const { data: collections = [] } = api.collection.list.useQuery();
     // 当前选中的合集ID，"all" 表示全部
-    const [activeCollectionId, setActiveCollectionId] = useState<string | "all">("all");
+    const [activeCollectionId, setActiveCollectionId] = useState<
+        string | 'all'
+    >('all');
     // 获取课程，按合集过滤
     const { data: courses = [] } = api.course.list.useQuery(
-        activeCollectionId !== "all" ? { collectionId: activeCollectionId } : undefined
+        activeCollectionId !== 'all'
+            ? { collectionId: activeCollectionId }
+            : undefined
     );
     const router = useRouter();
 
     // 合集tab数据，最前面加一个“全部”
-    const tabs = [{ id: "all", title: "全部" }, ...collections];
+    const tabs = [{ id: 'all', title: '全部' }, ...collections];
 
     return (
         <Box minH="100vh" bg="gray.50">
@@ -32,7 +36,7 @@ export default function VideoPage() {
                 zIndex={10}
                 overflowX="auto"
                 whiteSpace="nowrap"
-                style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                 className="hide-scrollbar"
             >
                 <style jsx global>{`
@@ -50,10 +54,22 @@ export default function VideoPage() {
                             key={tab.id}
                             px={2}
                             py={0}
-                            fontWeight={activeCollectionId === tab.id ? "bold" : "normal"}
-                            color={activeCollectionId === tab.id ? "red.500" : "gray.600"}
+                            fontWeight={
+                                activeCollectionId === tab.id
+                                    ? 'bold'
+                                    : 'normal'
+                            }
+                            color={
+                                activeCollectionId === tab.id
+                                    ? 'red.500'
+                                    : 'gray.600'
+                            }
                             fontSize="md"
-                            borderBottom={activeCollectionId === tab.id ? "2px solid #ef4444" : "2px solid transparent"}
+                            borderBottom={
+                                activeCollectionId === tab.id
+                                    ? '2px solid #ef4444'
+                                    : '2px solid transparent'
+                            }
                             cursor="pointer"
                             onClick={() => setActiveCollectionId(tab.id)}
                             display="inline-block"
@@ -76,14 +92,19 @@ export default function VideoPage() {
                             overflow="hidden"
                             cursor="pointer"
                             position="relative"
-                            onClick={() => router.push(`/h5/video/${course.id}`)}
-                            _hover={{ boxShadow: "md", transform: "translateY(-2px)" }}
+                            onClick={() =>
+                                router.push(`/h5/video/${course.id}`)
+                            }
+                            _hover={{
+                                boxShadow: 'md',
+                                transform: 'translateY(-2px)',
+                            }}
                             transition="all 0.2s"
                         >
                             {/* 封面图和角标 */}
                             <Box position="relative">
                                 <Image
-                                    src={course.coverImage ?? "/image.png"}
+                                    src={course.coverImage ?? '/image.png'}
                                     alt={course.title}
                                     w="100%"
                                     h="120px"
@@ -107,18 +128,28 @@ export default function VideoPage() {
                             </Box>
                             {/* 标题和副标题 */}
                             <Box px={2} pb={2} mt={1}>
-                                <Text fontWeight="bold" fontSize="sm" truncate>{course.title}</Text>
-                                <Text fontSize="xs" color="gray.500">{course.views}次播放 | {course.duration}秒</Text>
+                                <Text fontWeight="bold" fontSize="sm" truncate>
+                                    {course.title}
+                                </Text>
+                                <Text fontSize="xs" color="gray.500">
+                                    {course.views}次播放 | {course.duration}秒
+                                </Text>
                             </Box>
                         </Box>
                     ))}
                 </SimpleGrid>
                 {courses.length === 0 && (
-                    <Flex justify="center" align="center" h="200px" color="gray.400" fontSize="lg">
+                    <Flex
+                        justify="center"
+                        align="center"
+                        h="200px"
+                        color="gray.400"
+                        fontSize="lg"
+                    >
                         暂无内容
                     </Flex>
                 )}
             </Box>
         </Box>
     );
-} 
+}

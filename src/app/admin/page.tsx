@@ -1,3 +1,3 @@
 export default function AdminPage() {
-    return '首页'
+    return '首页';
 }

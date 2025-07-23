@@ -1,22 +1,30 @@
-import { z } from "zod";
-import { createTRPCRouter, publicProcedure, superAdminProcedure } from "@/server/api/trpc";
+import { z } from 'zod';
+import {
+    createTRPCRouter,
+    publicProcedure,
+    superAdminProcedure,
+} from '@/server/api/trpc';
 
 export const courseRouter = createTRPCRouter({
     // 获取所有课程，支持排序
     list: publicProcedure
         .input(
-            z.object({
-                orderBy: z.string().optional(),
-                order: z.enum(["asc", "desc"]).optional(),
-                collectionId: z.string().optional(),
-            }).optional()
+            z
+                .object({
+                    orderBy: z.string().optional(),
+                    order: z.enum(['asc', 'desc']).optional(),
+                    collectionId: z.string().optional(),
+                })
+                .optional()
         )
         .query(async ({ ctx, input }) => {
             return ctx.db.course.findMany({
                 orderBy: input?.orderBy
-                    ? { [input.orderBy]: input.order ?? "asc" }
-                    : { createdAt: "desc" },
-                where: input?.collectionId ? { collectionId: input.collectionId } : undefined,
+                    ? { [input.orderBy]: input.order ?? 'asc' }
+                    : { createdAt: 'desc' },
+                where: input?.collectionId
+                    ? { collectionId: input.collectionId }
+                    : undefined,
             });
         }),
 
@@ -41,10 +49,10 @@ export const courseRouter = createTRPCRouter({
                 data: {
                     ...input,
                     creatorId: ctx.session.user.id,
-                }
+                },
             });
             return {
-                message: '创建成功'
+                message: '创建成功',
             };
         }),
 
@@ -79,6 +87,8 @@ export const courseRouter = createTRPCRouter({
     deleteMany: superAdminProcedure
         .input(z.object({ ids: z.array(z.string()) }))
         .mutation(async ({ ctx, input }) => {
-            return ctx.db.course.deleteMany({ where: { id: { in: input.ids } } });
+            return ctx.db.course.deleteMany({
+                where: { id: { in: input.ids } },
+            });
         }),
-}); 
+});

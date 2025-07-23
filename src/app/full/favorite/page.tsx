@@ -1,9 +1,10 @@
-"use client";
-import TopNav from "../_components/TopNav";
+'use client';
+import TopNav from '../_components/TopNav';
 
 export default function FavoritePage() {
-
-    return <>
-        <TopNav />
-    </>
+    return (
+        <>
+            <TopNav />
+        </>
+    );
 }

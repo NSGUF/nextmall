@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Button, Text } from "@chakra-ui/react";
+import { useState } from 'react';
+import { Button, Text } from '@chakra-ui/react';
 import {
     DialogRoot,
     DialogTrigger,
@@ -10,8 +10,8 @@ import {
     DialogFooter,
     DialogActionTrigger,
     DialogCloseTrigger,
-} from "@/app/_components/ui/dialog";
-import { useForm } from "react-hook-form";
+} from '@/app/_components/ui/dialog';
+import { useForm } from 'react-hook-form';
 
 interface UseConfirmDialogProps {
     buttonProps?: React.ComponentProps<typeof Button>;
@@ -27,10 +27,10 @@ interface UseConfirmDialogProps {
 
 export function useConfirmDialog({
     buttonProps,
-    title = "确认操作",
-    content = "确定要执行此操作吗？",
-    confirmText = "确认",
-    cancelText = "取消",
+    title = '确认操作',
+    content = '确定要执行此操作吗？',
+    confirmText = '确认',
+    cancelText = '取消',
     onConfirm,
     onSuccess,
     onError,
@@ -59,14 +59,15 @@ export function useConfirmDialog({
 
     const ConfirmDialog = (
         <DialogRoot
-            size={{ base: "xs", md: "md" }}
+            size={{ base: 'xs', md: 'md' }}
             placement="center"
             role="alertdialog"
             open={isOpen}
             onOpenChange={({ open }) => setIsOpen(open)}
-        ><DialogTrigger asChild>
+        >
+            <DialogTrigger asChild>
                 <Button {...buttonProps} onClick={() => setIsOpen(true)}>
-                    {buttonProps?.children ?? "操作"}
+                    {buttonProps?.children ?? '操作'}
                 </Button>
             </DialogTrigger>
             <DialogContent>
@@ -75,7 +76,11 @@ export function useConfirmDialog({
                         <DialogTitle>{title}</DialogTitle>
                     </DialogHeader>
                     <DialogBody>
-                        {typeof content === "string" ? <Text mb={4}>{content}</Text> : content}
+                        {typeof content === 'string' ? (
+                            <Text mb={4}>{content}</Text>
+                        ) : (
+                            content
+                        )}
                     </DialogBody>
                     <DialogFooter gap={2}>
                         <DialogActionTrigger asChild>
@@ -91,7 +96,7 @@ export function useConfirmDialog({
                         </DialogActionTrigger>
                         <Button
                             variant="solid"
-                            colorScheme={buttonProps?.colorScheme ?? "blue"}
+                            colorScheme={buttonProps?.colorScheme ?? 'blue'}
                             type="submit"
                             loading={isSubmitting}
                         >
@@ -104,5 +109,9 @@ export function useConfirmDialog({
         </DialogRoot>
     );
 
-    return { ConfirmDialog, open: () => setIsOpen(true), close: () => setIsOpen(false) };
-} 
+    return {
+        ConfirmDialog,
+        open: () => setIsOpen(true),
+        close: () => setIsOpen(false),
+    };
+}

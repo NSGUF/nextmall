@@ -10,4 +10,4 @@ const FilterButton = (props: ButtonProps) => {
     );
 };
 
-export default FilterButton; 
+export default FilterButton;

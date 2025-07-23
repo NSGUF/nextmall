@@ -1,23 +1,23 @@
-"use client"
+'use client';
 
-import { toaster } from "@/app/_components/ui/toaster"
+import { toaster } from '@/app/_components/ui/toaster';
 
 const useCustomToast = () => {
-  const showSuccessToast = (description: string) => {
-    toaster.create({
-      description,
-      type: "success",
-    })
-  }
+    const showSuccessToast = (description: string) => {
+        toaster.create({
+            description,
+            type: 'success',
+        });
+    };
 
-  const showErrorToast = (description: string) => {
-    toaster.create({
-      description,
-      type: "error",
-    })
-  }
+    const showErrorToast = (description: string) => {
+        toaster.create({
+            description,
+            type: 'error',
+        });
+    };
 
-  return { showSuccessToast, showErrorToast }
-}
+    return { showSuccessToast, showErrorToast };
+};
 
-export default useCustomToast
+export default useCustomToast;

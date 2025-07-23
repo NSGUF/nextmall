@@ -1,8 +1,8 @@
-"use client";
-import { useState, useRef, useEffect } from "react";
-import { Box, Image, Flex } from "@chakra-ui/react";
+'use client';
+import { useState, useRef, useEffect } from 'react';
+import { Box, Image, Flex } from '@chakra-ui/react';
 
-export default function BannerCarousel({ banners = [], height = "140px" }) {
+export default function BannerCarousel({ banners = [], height = '140px' }) {
     const [index, setIndex] = useState(0);
     const [fade, setFade] = useState(true);
     const touchStartX = useRef(0);
@@ -70,19 +70,26 @@ export default function BannerCarousel({ banners = [], height = "140px" }) {
     };
 
     return (
-        <Box position="relative" w="100%"
+        <Box
+            position="relative"
+            w="100%"
             onTouchStart={onTouchStart}
             onTouchMove={onTouchMove}
             onTouchEnd={onTouchEnd}
         >
-            {(!banners || banners.length === 0) ? (
+            {!banners || banners.length === 0 ? (
                 <></>
-            ) : banners[index]?.image && (
-                banners[index]?.link ? (
-                    <a href={banners[index]?.link} target="_blank" rel="noopener noreferrer">
+            ) : (
+                banners[index]?.image &&
+                (banners[index]?.link ? (
+                    <a
+                        href={banners[index]?.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
                         <Image
                             src={banners[index].image}
-                            alt={banners[index]?.description ?? "banner"}
+                            alt={banners[index]?.description ?? 'banner'}
                             borderRadius="xl"
                             w="100%"
                             h={height}
@@ -95,7 +102,7 @@ export default function BannerCarousel({ banners = [], height = "140px" }) {
                 ) : (
                     <Image
                         src={banners[index].image}
-                        alt={banners[index]?.description ?? "banner"}
+                        alt={banners[index]?.description ?? 'banner'}
                         w="100%"
                         h={height}
                         objectFit="cover"
@@ -103,17 +110,23 @@ export default function BannerCarousel({ banners = [], height = "140px" }) {
                         transition="opacity 0.4s"
                         opacity={fade ? 1 : 0}
                     />
-                )
+                ))
             )}
             {/* 指示点 */}
-            <Flex position="absolute" bottom="2" left="50%" transform="translateX(-50%)" gap={2}>
+            <Flex
+                position="absolute"
+                bottom="2"
+                left="50%"
+                transform="translateX(-50%)"
+                gap={2}
+            >
                 {banners.map((_, i) => (
                     <Box
                         key={i}
                         w="8px"
                         h="8px"
                         borderRadius="full"
-                        bg={i === index ? "red.400" : "gray.300"}
+                        bg={i === index ? 'red.400' : 'gray.300'}
                         cursor="pointer"
                         onClick={() => setIndex(i)}
                     />
@@ -121,4 +134,4 @@ export default function BannerCarousel({ banners = [], height = "140px" }) {
             </Flex>
         </Box>
     );
-} 
+}
