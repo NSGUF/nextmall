@@ -111,7 +111,7 @@ export default function ProductPage() {
                                     选择
                                 </Text>
                                 <Text color="gray.800">
-                                    {selectedSpec.name} * {selectedSpec.value}{' '}
+                                    {selectedSpec.value} * {selectedSpec.name}{' '}
                                     {quantity}件
                                 </Text>
                             </Flex>

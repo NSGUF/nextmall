@@ -1,8 +1,9 @@
 import { Box, Flex, Image, Text, Button } from '@chakra-ui/react';
-export default function ProductPage({
+import Link from 'next/link';
+export default function ProductItem({
     products,
     isShowDelete = false,
-    onDelete,
+    onDelete = (id) => {},
 }) {
     return (
         <>
@@ -18,65 +19,76 @@ export default function ProductPage({
                     py={3}
                     _hover={{ boxShadow: 'md' }}
                 >
-                    <Flex align="center" justify="flex-start" w="100%" h="100%">
-                        <Image
-                            src={item.images?.[0] ?? '/logo.svg'}
-                            alt={item.title}
-                            w="80px"
-                            h="80px"
-                            borderRadius="md"
-                            objectFit="cover"
-                            bg="gray.100"
-                            mr={2}
-                        />
+                    <Link href={'/full/product?id=' + item.id}>
                         <Flex
-                            direction="column"
+                            align="center"
+                            justify="flex-start"
+                            w="100%"
                             h="100%"
-                            flex="1"
-                            justify="space-between"
-                            minW={0}
                         >
-                            <Text
-                                fontSize="md"
-                                textAlign="left"
-                                whiteSpace="nowrap"
-                                w="100%"
-                                fontWeight="medium"
-                                overflow="hidden"
-                                color="gray.700"
-                                textOverflow="ellipsis"
+                            <Image
+                                src={item.images?.[0] ?? '/logo.svg'}
+                                alt={item.title}
+                                w="80px"
+                                h="80px"
+                                borderRadius="md"
+                                objectFit="cover"
+                                bg="gray.100"
+                                mr={2}
+                            />
+                            <Flex
+                                direction="column"
+                                h="100%"
+                                flex="1"
+                                justify="space-between"
                                 minW={0}
                             >
-                                {item.title}法大师傅士大夫十分士大夫十分
-                            </Text>
-                            <Text
-                                fontSize="sm"
-                                color="red.500"
-                                textAlign="left"
-                                fontWeight="medium"
-                            >
-                                ￥{item.specs[0]?.price.toFixed(2)}
-                            </Text>
-                            <Flex align="center" justify="space-between">
                                 <Text
-                                    color="gray.400"
-                                    fontSize="xs"
+                                    fontSize="md"
                                     textAlign="left"
+                                    whiteSpace="nowrap"
+                                    w="100%"
+                                    fontWeight="medium"
+                                    overflow="hidden"
+                                    color="gray.700"
+                                    textOverflow="ellipsis"
+                                    minW={0}
                                 >
-                                    已售{item.sales}件
+                                    {item.title}
                                 </Text>
-                                {isShowDelete && (
-                                    <Button
-                                        size="2xs"
-                                        variant="ghost"
-                                        onClick={onDelete(item.id)}
+                                <Text
+                                    fontSize="sm"
+                                    color="red.500"
+                                    textAlign="left"
+                                    fontWeight="medium"
+                                >
+                                    ￥{item.specs[0]?.price.toFixed(2)}
+                                </Text>
+                                <Flex align="center" justify="space-between">
+                                    <Text
+                                        color="gray.400"
+                                        fontSize="xs"
+                                        textAlign="left"
                                     >
-                                        删除
-                                    </Button>
-                                )}
+                                        已售{item.sales}件
+                                    </Text>
+                                    {isShowDelete && (
+                                        <Button
+                                            size="2xs"
+                                            variant="ghost"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                onDelete(item.id);
+                                            }}
+                                        >
+                                            删除
+                                        </Button>
+                                    )}
+                                </Flex>
                             </Flex>
                         </Flex>
-                    </Flex>
+                    </Link>
                 </Box>
             ))}
         </>

@@ -257,4 +257,51 @@ export const productRouter = createTRPCRouter({
             favoritedAt: fav.createdAt,
         }));
     }),
+
+    // 获取用户收藏列表
+    getFootprints: protectedProcedure.query(async ({ ctx }) => {
+        const footprints = await ctx.db.footprint.findMany({
+            where: { userId: ctx.session.user.id },
+            include: {
+                product: {
+                    include: { specs: true },
+                },
+            },
+            orderBy: { viewedAt: 'desc' },
+        });
+        // 返回商品信息列表
+        return footprints.map((fav) => ({
+            ...fav.product,
+            favoriteId: fav.id,
+            favoritedAt: fav.viewedAt,
+        }));
+    }),
+
+    deleteFavorite: protectedProcedure
+        .input(z.object({ id: z.string() }))
+        .mutation(async ({ ctx, input }) => {
+            await ctx.db.productFavorite.delete({
+                where: {
+                    userId_productId: {
+                        userId: ctx.session.user.id,
+                        productId: input.id,
+                    },
+                },
+            });
+            return { message: '删除成功' };
+        }),
+
+    deleteFootprint: protectedProcedure
+        .input(z.object({ id: z.string() }))
+        .mutation(async ({ ctx, input }) => {
+            await ctx.db.footprint.delete({
+                where: {
+                    userId_productId: {
+                        userId: ctx.session.user.id,
+                        productId: input.id,
+                    },
+                },
+            });
+            return { message: '删除成功' };
+        }),
 });

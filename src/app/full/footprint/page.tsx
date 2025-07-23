@@ -5,20 +5,19 @@ import { api } from '@/trpc/react';
 import { Box, Center, Spinner, VStack, EmptyState } from '@chakra-ui/react';
 import { useConfirmDialog } from '@/app/hooks/useConfirmDialog';
 import { useState } from 'react';
-import { FiHeart } from 'react-icons/fi';
 
-export default function FavoritePage() {
+export default function FootprintPage() {
     const {
-        data: favorites = [],
+        data: footprints = [],
         refetch,
         isLoading,
-    } = api.product.getFavorites.useQuery(undefined, {
+    } = api.product.getFootprints.useQuery(undefined, {
         refetchOnMount: 'always',
         refetchOnWindowFocus: true,
         staleTime: 0,
         gcTime: 0,
     });
-    const deleteFavorite = api.product.deleteFavorite.useMutation({
+    const deleteFootprint = api.product.deleteFootprint.useMutation({
         onSuccess: () => refetch(),
     });
 
@@ -26,13 +25,13 @@ export default function FavoritePage() {
     const { ConfirmDialog: DeleteConfirmDialog, open: openDeleteConfirm } =
         useConfirmDialog({
             title: '确认删除',
-            content: '确定要删除该收藏吗？',
+            content: '确定要删除该足迹吗？',
             confirmText: '删除',
             cancelText: '取消',
             buttonProps: { style: { display: 'none' } },
             onConfirm: async () => {
                 if (deleteId) {
-                    await deleteFavorite.mutateAsync({ id: deleteId });
+                    await deleteFootprint.mutateAsync({ id: deleteId });
                     setDeleteId(null);
                 }
             },
@@ -47,7 +46,7 @@ export default function FavoritePage() {
     if (isLoading) {
         return (
             <>
-                <TopNav title="我的收藏" />
+                <TopNav title="我的足迹" />
                 <Center h="50vh">
                     <Spinner size="lg" color="red.500" />
                 </Center>
@@ -59,9 +58,9 @@ export default function FavoritePage() {
         <>
             <TopNav />
             <Box p={2}>
-                {favorites.length > 0 ? (
+                {footprints.length > 0 ? (
                     <ProductItem
-                        products={favorites}
+                        products={footprints}
                         isShowDelete
                         onDelete={handleDeleteWithConfirm}
                     />
@@ -71,10 +70,10 @@ export default function FavoritePage() {
                             <EmptyState.Content>
                                 <VStack textAlign="center">
                                     <EmptyState.Title>
-                                        暂无收藏
+                                        暂无足迹
                                     </EmptyState.Title>
                                     <EmptyState.Description>
-                                        快去收藏你喜欢的商品吧
+                                        快去浏览你喜欢的商品吧
                                     </EmptyState.Description>
                                 </VStack>
                             </EmptyState.Content>
