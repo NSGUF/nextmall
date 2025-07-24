@@ -11,6 +11,7 @@ import {
     Switch,
     Stack,
     Field,
+    Text,
 } from '@chakra-ui/react';
 import DataTable from '../../_components/DataTable';
 import { api } from '@/trpc/react';
@@ -18,6 +19,10 @@ import { useForm } from 'react-hook-form';
 import { Controller } from 'react-hook-form';
 import { useConfirmDialog } from '@/app/hooks/useConfirmDialog';
 import ImageUpload from '../../_components/ImageUpload';
+import VideoUpload from '../../_components/VideoUpload';
+import DurationInput from '../../_components/DurationInput';
+import { useSession } from 'next-auth/react';
+import { formatDuration } from '@/app/utils/formatDuration';
 
 // react-hook-form
 type Category = {
@@ -59,6 +64,10 @@ type CourseForm = Omit<
 > & { id?: string };
 
 export default function AdminPage() {
+    // 获取当前用户会话
+    const { data: session } = useSession();
+    const currentUserId = session?.user?.id;
+
     // tRPC hooks
     // 排序 state
     const [sorting, setSorting] = useState<any[]>([]);
@@ -82,6 +91,9 @@ export default function AdminPage() {
         onSuccess: () => refetch(),
     });
 
+    // 图片上传 mutation
+    const uploadImage = api.util.uploadImage.useMutation();
+
     // 获取分类列表用于下拉
     const { data: collections = [] } = api.collection.list.useQuery();
 
@@ -103,13 +115,8 @@ export default function AdminPage() {
             videoUrl: '',
             coverImage: '',
             duration: 0,
-            creatorId: '',
             isPublished: false,
             collectionId: undefined,
-            tags: [],
-            isFree: true,
-            price: undefined,
-            order: undefined,
         },
     });
 
@@ -122,13 +129,8 @@ export default function AdminPage() {
                 videoUrl: course.videoUrl ?? '',
                 coverImage: course.coverImage ?? '',
                 duration: course.duration ?? 0,
-                creatorId: course.creatorId ?? '',
                 isPublished: course.isPublished ?? false,
                 collectionId: course.collectionId ?? undefined,
-                tags: course.tags ?? [],
-                isFree: course.isFree ?? true,
-                price: course.price ?? undefined,
-                order: course.order ?? undefined,
             });
         } else {
             reset({
@@ -137,13 +139,8 @@ export default function AdminPage() {
                 videoUrl: '',
                 coverImage: '',
                 duration: 0,
-                creatorId: '',
                 isPublished: false,
                 collectionId: undefined,
-                tags: [],
-                isFree: true,
-                price: undefined,
-                order: undefined,
             });
         }
         onOpen();
@@ -157,13 +154,8 @@ export default function AdminPage() {
             videoUrl: data.videoUrl ?? '',
             coverImage: data.coverImage ?? '',
             duration: data.duration ?? 0,
-            creatorId: data.creatorId ?? '',
             isPublished: data.isPublished ?? false,
             collectionId: data.collectionId ?? undefined,
-            tags: data.tags ?? [],
-            isFree: data.isFree ?? true,
-            price: data.price ?? undefined,
-            order: data.order ?? undefined,
         };
         if (editing) {
             await updateCourse.mutateAsync({ ...payload, id: editing.id });
@@ -238,25 +230,37 @@ export default function AdminPage() {
         () => [
             { accessorKey: 'title', header: '标题', width: 150 },
             { accessorKey: 'description', header: '描述', width: 200 },
-            { accessorKey: 'videoUrl', header: '视频地址', width: 200 },
             {
-                accessorKey: 'coverImage',
-                header: '封面图',
-                width: 120,
+                accessorKey: 'videoUrl',
+                header: '视频预览',
+                width: 200,
                 cell: ({ row }: { row: any }) =>
-                    row.original.coverImage ? (
-                        <img
-                            src={row.original.coverImage}
-                            alt="cover"
+                    row.original.videoUrl ? (
+                        <video
+                            src={row.original.videoUrl}
                             style={{
-                                width: 32,
-                                height: 32,
+                                width: '80px',
+                                height: '45px',
                                 objectFit: 'cover',
+                                borderRadius: '4px',
                             }}
+                            controls={false}
+                            muted
                         />
-                    ) : null,
+                    ) : (
+                        <Text fontSize="sm" color="gray.500">
+                            无视频
+                        </Text>
+                    ),
             },
-            { accessorKey: 'duration', header: '时长(秒)', width: 100 },
+            {
+                accessorKey: 'duration',
+                header: '时长',
+                width: 100,
+                cell: ({ row }: { row: any }) =>
+                    formatDuration(row.original.duration || 0),
+            },
+
             { accessorKey: 'views', header: '播放次数', width: 100 },
             {
                 accessorKey: 'isPublished',
@@ -264,20 +268,6 @@ export default function AdminPage() {
                 width: 80,
                 cell: ({ row }: { row: any }) =>
                     row.original.isPublished ? '是' : '否',
-            },
-            {
-                accessorKey: 'isFree',
-                header: '免费',
-                width: 80,
-                cell: ({ row }: { row: any }) =>
-                    row.original.isFree ? '是' : '否',
-            },
-            { accessorKey: 'collectionId', header: '合集ID', width: 120 },
-            {
-                accessorKey: 'tags',
-                header: '标签',
-                width: 120,
-                cell: ({ row }: { row: any }) => row.original.tags?.join(', '),
             },
             {
                 id: 'action',
@@ -421,6 +411,33 @@ export default function AdminPage() {
                         </Heading>
                         <form onSubmit={handleSubmit(onSubmit)}>
                             <Stack gap={2}>
+                                <Field.Root>
+                                    <Field.Label>合集</Field.Label>
+                                    <NativeSelect.Root size="sm">
+                                        <NativeSelect.Field
+                                            placeholder="选择合集"
+                                            {...register('collectionId', {
+                                                required: '请选择合集',
+                                            })}
+                                        >
+                                            {collections.map((cat: any) => (
+                                                <option
+                                                    key={cat.id}
+                                                    value={cat.id}
+                                                >
+                                                    {cat.title}
+                                                </option>
+                                            ))}
+                                        </NativeSelect.Field>
+                                        <NativeSelect.Indicator />
+                                    </NativeSelect.Root>
+
+                                    {errors.collectionId && (
+                                        <Text color="red.500" fontSize="sm">
+                                            {errors.collectionId.message}
+                                        </Text>
+                                    )}
+                                </Field.Root>
                                 <Field.Root invalid={!!errors.title}>
                                     <Field.Label>标题</Field.Label>
                                     <Input
@@ -463,16 +480,60 @@ export default function AdminPage() {
                                     )}
                                 </Field.Root>
                                 <Field.Root invalid={!!errors.videoUrl}>
-                                    <Field.Label>视频地址</Field.Label>
-                                    <Input
-                                        placeholder="视频地址"
-                                        {...register('videoUrl', {
-                                            required: '请输入视频地址',
-                                            pattern: {
-                                                value: /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/,
-                                                message: '请输入有效的视频地址',
-                                            },
-                                        })}
+                                    <Field.Label>视频文件</Field.Label>
+                                    <Controller
+                                        name="videoUrl"
+                                        control={control}
+                                        rules={{ required: '请上传视频文件' }}
+                                        render={({ field }) => (
+                                            <VideoUpload
+                                                value={field.value}
+                                                onChange={field.onChange}
+                                                onThumbnailGenerated={(
+                                                    thumbnailBase64
+                                                ) => {
+                                                    // 上传缩略图
+                                                    uploadImage.mutate(
+                                                        {
+                                                            image: thumbnailBase64,
+                                                            filename:
+                                                                'thumbnail.jpg',
+                                                            folder: 'courses/thumbnails',
+                                                        },
+                                                        {
+                                                            onSuccess: (
+                                                                result
+                                                            ) => {
+                                                                // 设置封面图
+                                                                setValue(
+                                                                    'coverImage',
+                                                                    result.url
+                                                                );
+                                                            },
+                                                            onError: (
+                                                                error
+                                                            ) => {
+                                                                console.warn(
+                                                                    '缩略图上传失败:',
+                                                                    error
+                                                                );
+                                                            },
+                                                        }
+                                                    );
+                                                }}
+                                                onDurationExtracted={(
+                                                    duration
+                                                ) => {
+                                                    // 自动设置视频时长
+                                                    setValue(
+                                                        'duration',
+                                                        duration
+                                                    );
+                                                }}
+                                                folder="courses"
+                                                placeholder="点击上传视频文件"
+                                            />
+                                        )}
                                     />
                                     {errors.videoUrl && (
                                         <Text color="red.500" fontSize="sm">
@@ -486,23 +547,49 @@ export default function AdminPage() {
                                         name="coverImage"
                                         control={control}
                                         render={({ field }) => (
-                                            <ImageUpload
-                                                value={field.value}
-                                                onChange={field.onChange}
-                                                folder="course-covers"
-                                                placeholder="点击上传封面图"
-                                            />
+                                            <Box>
+                                                {field.value ? (
+                                                    <img
+                                                        src={field.value}
+                                                        alt="封面图"
+                                                        style={{
+                                                            width: '200px',
+                                                            height: '112px',
+                                                            objectFit: 'cover',
+                                                            borderRadius: '8px',
+                                                            border: '1px solid #e2e8f0',
+                                                        }}
+                                                    />
+                                                ) : (
+                                                    <Box
+                                                        w="200px"
+                                                        h="112px"
+                                                        bg="gray.100"
+                                                        borderRadius="8px"
+                                                        border="1px solid #e2e8f0"
+                                                        display="flex"
+                                                        alignItems="center"
+                                                        justifyContent="center"
+                                                    >
+                                                        <Text
+                                                            fontSize="sm"
+                                                            color="gray.500"
+                                                        >
+                                                            上传视频后自动生成
+                                                        </Text>
+                                                    </Box>
+                                                )}
+                                            </Box>
                                         )}
                                     />
                                 </Field.Root>
                                 <Field.Root invalid={!!errors.duration}>
-                                    <Field.Label>时长(秒)</Field.Label>
-                                    <Input
-                                        placeholder="时长"
-                                        type="number"
-                                        {...register('duration', {
-                                            required: '请输入时长',
-                                            valueAsNumber: true,
+                                    <Field.Label>时长</Field.Label>
+                                    <Controller
+                                        name="duration"
+                                        control={control}
+                                        rules={{
+                                            required: '请输入视频时长',
                                             min: {
                                                 value: 1,
                                                 message: '时长必须大于0秒',
@@ -511,13 +598,24 @@ export default function AdminPage() {
                                                 value: 86400,
                                                 message: '时长不能超过24小时',
                                             },
-                                        })}
+                                        }}
+                                        render={({ field }) => (
+                                            <DurationInput
+                                                value={field.value}
+                                                onChange={field.onChange}
+                                                onBlur={field.onBlur}
+                                                placeholder="00:00:00"
+                                            />
+                                        )}
                                     />
                                     {errors.duration && (
                                         <Text color="red.500" fontSize="sm">
                                             {errors.duration.message}
                                         </Text>
                                     )}
+                                    <Text fontSize="sm" color="gray.500">
+                                        上传视频后会自动获取时长，也可手动修改
+                                    </Text>
                                 </Field.Root>
                                 <Field.Root>
                                     <Field.Label>是否上架</Field.Label>
@@ -555,7 +653,7 @@ export default function AdminPage() {
                                         />
                                     </Field.Root>
                                 </Field.Root>
-                                <Field.Root>
+                                {/* <Field.Root>
                                     <Field.Label>是否免费</Field.Label>
                                     <Field.Root>
                                         <Controller
@@ -584,14 +682,12 @@ export default function AdminPage() {
                                                         </Switch.Control>
                                                         <Switch.Label />
                                                     </Switch.Root>
-                                                    {/* 可选：错误提示 */}
-                                                    {/* <Field.ErrorText>{errors.isFree?.message}</Field.ErrorText> */}
                                                 </>
                                             )}
                                         />
                                     </Field.Root>
-                                </Field.Root>
-                                <Field.Root invalid={!!errors.price}>
+                                </Field.Root> */}
+                                {/* <Field.Root invalid={!!errors.price}>
                                     <Field.Label>价格</Field.Label>
                                     <Input
                                         placeholder="价格"
@@ -601,27 +697,9 @@ export default function AdminPage() {
                                             valueAsNumber: true,
                                         })}
                                     />
-                                </Field.Root>
-                                <Field.Root>
-                                    <Field.Label>合集ID</Field.Label>
-                                    <NativeSelect.Root size="sm" width="240px">
-                                        <NativeSelect.Field
-                                            placeholder="选择合集"
-                                            {...register('collectionId')}
-                                        >
-                                            {collections.map((cat: any) => (
-                                                <option
-                                                    key={cat.id}
-                                                    value={cat.id}
-                                                >
-                                                    {cat.title}
-                                                </option>
-                                            ))}
-                                        </NativeSelect.Field>
-                                        <NativeSelect.Indicator />
-                                    </NativeSelect.Root>
-                                </Field.Root>
-                                <Field.Root>
+                                </Field.Root> */}
+
+                                {/* <Field.Root>
                                     <Field.Label>标签（逗号分隔）</Field.Label>
                                     <Input
                                         placeholder="标签,多个用逗号分隔"
@@ -637,8 +715,8 @@ export default function AdminPage() {
                                                     : v,
                                         })}
                                     />
-                                </Field.Root>
-                                <Field.Root>
+                                </Field.Root> */}
+                                {/* <Field.Root>
                                     <Field.Label>排序</Field.Label>
                                     <Input
                                         placeholder="排序"
@@ -647,7 +725,7 @@ export default function AdminPage() {
                                             valueAsNumber: true,
                                         })}
                                     />
-                                </Field.Root>
+                                </Field.Root> */}
                             </Stack>
                             <Box
                                 display="flex"

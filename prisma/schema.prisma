@@ -232,7 +232,7 @@ model Course {
   collection   Collection? @relation(fields: [collectionId], references: [id]) // 所属合集
   collectionId String    // 合集ID
   tags         String[]  // 课程标签
-  isFree       Boolean   @default(true) // 是否免费
+  isFree       Boolean?   @default(true) // 是否免费
   price        Float?    // 课程价格
   order        Int?      // 排序
   isDeleted    Boolean   @default(false) // 是否已删除

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { api } from '@/trpc/react';
 import TabBar from '../_components/TabBar';
 import { ContentLoading } from '@/app/_components/LoadingSpinner';
+import { formatDuration } from '@/app/utils/formatDuration';
 
 export default function VideoPage() {
     // 获取所有合集
@@ -20,11 +21,12 @@ export default function VideoPage() {
     const [activeCollectionId, setActiveCollectionId] = useState<string>('all');
     // 获取课程，按合集过滤
     const { data: courses = [], isLoading: coursesLoading } =
-        api.course.list.useQuery(
-            activeCollectionId !== 'all'
+        api.course.list.useQuery({
+            ...(activeCollectionId !== 'all'
                 ? { collectionId: activeCollectionId }
-                : undefined
-        );
+                : undefined),
+            isPublished: true,
+        });
     const router = useRouter();
 
     if (collectionsLoading) {
@@ -97,9 +99,16 @@ export default function VideoPage() {
                                 <Text fontWeight="bold" fontSize="sm" truncate>
                                     {course.title}
                                 </Text>
-                                <Text fontSize="xs" color="gray.500">
-                                    {course.views}次播放 | {course.duration}秒
-                                </Text>
+                                <Flex
+                                    fontSize="xs"
+                                    justify="space-between"
+                                    color="gray.500"
+                                >
+                                    <Text>{course.views}次播放</Text>
+                                    <Text>
+                                        {formatDuration(course.duration)}
+                                    </Text>
+                                </Flex>
                             </Box>
                         </Box>
                     ))}

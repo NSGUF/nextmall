@@ -14,6 +14,7 @@ export const courseRouter = createTRPCRouter({
                     orderBy: z.string().optional(),
                     order: z.enum(['asc', 'desc']).optional(),
                     collectionId: z.string().optional(),
+                    isPublished: z.boolean().optional(),
                 })
                 .optional()
         )
@@ -22,9 +23,14 @@ export const courseRouter = createTRPCRouter({
                 orderBy: input?.orderBy
                     ? { [input.orderBy]: input.order ?? 'asc' }
                     : { createdAt: 'desc' },
-                where: input?.collectionId
-                    ? { collectionId: input.collectionId }
-                    : undefined,
+                where: {
+                    ...(input?.collectionId
+                        ? { collectionId: input.collectionId }
+                        : undefined),
+                    ...(input?.isPublished
+                        ? { isPublished: input.isPublished }
+                        : undefined),
+                },
             });
         }),
 
@@ -38,10 +44,6 @@ export const courseRouter = createTRPCRouter({
                 duration: z.number(),
                 isPublished: z.boolean(),
                 collectionId: z.string().optional(),
-                tags: z.array(z.string()),
-                isFree: z.boolean(),
-                price: z.number().optional(),
-                order: z.number().optional(),
             })
         )
         .mutation(async ({ ctx, input }) => {
@@ -67,10 +69,6 @@ export const courseRouter = createTRPCRouter({
                 duration: z.number(),
                 isPublished: z.boolean(),
                 collectionId: z.string().optional(),
-                tags: z.array(z.string()),
-                isFree: z.boolean(),
-                price: z.number().optional(),
-                order: z.number().optional(),
             })
         )
         .mutation(async ({ ctx, input }) => {
