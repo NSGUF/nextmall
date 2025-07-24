@@ -199,6 +199,16 @@ export default function AdminPage() {
         [openEdit]
     );
 
+    // Memoize the data to avoid unnecessary re-renders
+    const memoizedData = useMemo(() => {
+        return categories.map((c) => ({
+            ...c,
+            name: c.name ?? '',
+            description: c.description ?? '',
+            icon: c.icon ?? '',
+        })) as any;
+    }, [categories]);
+
     if (isLoading) {
         return (
             <Box
@@ -265,14 +275,7 @@ export default function AdminPage() {
                           }
                         : col
                 )}
-                data={useMemo(() => {
-                    return categories.map((c) => ({
-                        ...c,
-                        name: c.name ?? '',
-                        description: c.description ?? '',
-                        icon: c.icon ?? '',
-                    })) as any;
-                }, [categories])}
+                data={memoizedData}
                 selectable
                 manualSorting
                 onSortingChange={setSorting}

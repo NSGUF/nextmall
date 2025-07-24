@@ -23,10 +23,10 @@ export default function PaymentCodePage() {
 
     // 获取支付码数据
     const {
-        data: paymentCode,
+        data: payment,
         isLoading,
         refetch,
-    } = api.paymentCode.get.useQuery(undefined, {
+    } = api.payment.get.useQuery(undefined, {
         refetchOnMount: 'always',
         refetchOnWindowFocus: true,
         staleTime: 1000 * 60, // 1分钟缓存
@@ -34,7 +34,7 @@ export default function PaymentCodePage() {
     });
 
     // 上传支付码
-    const uploadPaymentCode = api.paymentCode.upload.useMutation({
+    const uploadPaymentCode = api.payment.upload.useMutation({
         onSuccess: () => {
             showSuccessToast('支付码上传成功');
             refetch();
@@ -129,7 +129,7 @@ export default function PaymentCodePage() {
 
             <Center>
                 <VStack gap={6} maxW="400px" w="100%">
-                    {paymentCode?.image ? (
+                    {payment?.image ? (
                         // 显示已上传的支付码
                         <VStack gap={4}>
                             <Box
@@ -141,7 +141,7 @@ export default function PaymentCodePage() {
                                 p={4}
                             >
                                 <Image
-                                    src={paymentCode.image}
+                                    src={payment.image}
                                     alt="支付码"
                                     maxW="500px"
                                     maxH="500px"

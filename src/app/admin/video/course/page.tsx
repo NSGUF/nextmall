@@ -281,6 +281,25 @@ export default function AdminPage() {
         [openEdit]
     );
 
+    // Memoize the data to avoid unnecessary re-renders
+    const memoizedData = useMemo(() => {
+        return courses.map((c) => ({
+            ...c,
+            title: c.title ?? '',
+            description: c.description ?? '',
+            videoUrl: c.videoUrl ?? '',
+            coverImage: c.coverImage ?? '',
+            duration: c.duration ?? 0,
+            creatorId: c.creatorId ?? '',
+            isPublished: c.isPublished ?? false,
+            collectionId: c.collectionId ?? undefined,
+            tags: c.tags ?? [],
+            isFree: c.isFree ?? true,
+            price: c.price ?? undefined,
+            order: c.order ?? undefined,
+        })) as any;
+    }, [courses]);
+
     return (
         <Box borderRadius="lg" minHeight="full" p={4} bg="white" boxShadow="xs">
             <Box
@@ -325,23 +344,7 @@ export default function AdminPage() {
                           }
                         : col
                 )}
-                data={useMemo(() => {
-                    return courses.map((c) => ({
-                        ...c,
-                        title: c.title ?? '',
-                        description: c.description ?? '',
-                        videoUrl: c.videoUrl ?? '',
-                        coverImage: c.coverImage ?? '',
-                        duration: c.duration ?? 0,
-                        creatorId: c.creatorId ?? '',
-                        isPublished: c.isPublished ?? false,
-                        collectionId: c.collectionId ?? undefined,
-                        tags: c.tags ?? [],
-                        isFree: c.isFree ?? true,
-                        price: c.price ?? undefined,
-                        order: c.order ?? undefined,
-                    })) as any;
-                }, [courses])}
+                data={memoizedData}
                 selectable
                 manualSorting
                 onSortingChange={setSorting}

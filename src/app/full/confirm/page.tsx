@@ -59,8 +59,8 @@ export default function ConfirmPage() {
         });
 
     // 获取支付码
-    const { data: paymentCode, isLoading: paymentCodeLoading } =
-        api.paymentCode.get.useQuery(undefined, {
+    const { data: payment, isLoading: paymentCodeLoading } =
+        api.payment.get.useQuery(undefined, {
             staleTime: 1000 * 60 * 5, // 5分钟缓存
             gcTime: 1000 * 60 * 10, // 10分钟垃圾回收
         });
@@ -330,11 +330,11 @@ export default function ConfirmPage() {
                         <Text color="red.500">请扫二维码支付</Text>
                     </Flex>
                 </Flex>
-                {paymentCode?.image ? (
+                {payment?.image ? (
                     <Image
                         m="auto"
                         maxW="50vw"
-                        src={paymentCode.image}
+                        src={payment.image}
                         alt="请扫码支付"
                         borderRadius="md"
                     />

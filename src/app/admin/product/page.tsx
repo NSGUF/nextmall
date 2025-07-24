@@ -225,6 +225,11 @@ export default function AdminPage() {
         [openEdit]
     );
 
+    // Memoize the data to avoid unnecessary re-renders
+    const memoizedData = useMemo(() => {
+        return products;
+    }, [products]);
+
     if (isLoading) {
         return (
             <Box
@@ -287,9 +292,7 @@ export default function AdminPage() {
                           }
                         : col
                 )}
-                data={useMemo(() => {
-                    return products;
-                }, [products])}
+                data={memoizedData}
                 selectable
                 manualSorting
                 onSortingChange={setSorting}
@@ -388,10 +391,7 @@ export default function AdminPage() {
                                         </NativeSelect.Root>
                                         {errors.vendorId && (
                                             <Text color="red.500" fontSize="sm">
-                                                {
-                                                    errors.vendorId
-                                                        .message as string
-                                                }
+                                                {errors.vendorId.message}
                                             </Text>
                                         )}
                                     </Field.Root>
@@ -405,7 +405,7 @@ export default function AdminPage() {
                                         />
                                         {errors.title && (
                                             <Text color="red.500" fontSize="sm">
-                                                {errors.title.message as string}
+                                                {errors.title.message}
                                             </Text>
                                         )}
                                     </Field.Root>
@@ -431,7 +431,7 @@ export default function AdminPage() {
                                     />
                                     {errors.images && (
                                         <Text color="red.500" fontSize="sm">
-                                            {errors.images.message as string}
+                                            {errors.images.message}
                                         </Text>
                                     )}
                                 </Field.Root>
@@ -457,10 +457,7 @@ export default function AdminPage() {
                                         />
                                         {errors.logistics && (
                                             <Text color="red.500" fontSize="sm">
-                                                {
-                                                    errors.logistics
-                                                        .message as string
-                                                }
+                                                {errors.logistics.message}
                                             </Text>
                                         )}
                                     </Field.Root>
@@ -581,10 +578,7 @@ export default function AdminPage() {
                                     />
                                     {errors.description && (
                                         <Text color="red.500" fontSize="sm">
-                                            {
-                                                errors.description
-                                                    .message as string
-                                            }
+                                            {errors.description.message}
                                         </Text>
                                     )}
                                 </Field.Root>

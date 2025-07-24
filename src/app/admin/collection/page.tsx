@@ -177,6 +177,11 @@ export default function AdminPage() {
         [openEdit]
     );
 
+    // Memoize the data to avoid unnecessary re-renders
+    const memoizedData = useMemo(() => {
+        return collections as any;
+    }, [collections]);
+
     return (
         <Box borderRadius="lg" minHeight="full" p={4} bg="white" boxShadow="xs">
             <Box
@@ -221,9 +226,7 @@ export default function AdminPage() {
                           }
                         : col
                 )}
-                data={useMemo(() => {
-                    return collections as any;
-                }, [collections])}
+                data={memoizedData}
                 selectable
                 manualSorting
                 onSortingChange={setSorting}

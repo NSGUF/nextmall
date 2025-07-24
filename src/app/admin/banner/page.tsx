@@ -209,6 +209,11 @@ export default function AdminPage() {
         [openEdit]
     );
 
+    // Memoize the data to avoid unnecessary re-renders
+    const memoizedData = useMemo(() => {
+        return banners;
+    }, [banners]);
+
     if (isLoading) {
         return (
             <Box
@@ -275,14 +280,7 @@ export default function AdminPage() {
                           }
                         : col
                 )}
-                data={useMemo(() => {
-                    return banners.map((b) => ({
-                        ...b,
-                        title: b.title ?? '',
-                        description: b.description ?? '',
-                        link: b.link ?? '',
-                    })) as any;
-                }, [banners])}
+                data={memoizedData}
                 selectable
                 manualSorting
                 onSortingChange={setSorting}

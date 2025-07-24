@@ -108,7 +108,7 @@ export default function VideoPage() {
                     <Flex
                         justify="center"
                         align="center"
-                        h="200px"
+                        h="calc(100vh - 64px)"
                         color="gray.400"
                         fontSize="lg"
                     >
