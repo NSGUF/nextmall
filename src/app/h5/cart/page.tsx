@@ -199,9 +199,9 @@ export default function CartPage() {
                 py={3}
                 bg="#fff"
             >
-                <Flex align="center" gap={1} color="gray.600">
-                    <FiMapPin />
-                    <Text fontSize="md">请添加收货地址</Text>
+                <Flex align="center" fontSize="md" fontWeight="medium" gap={1}>
+                    购物车
+                    <Text fontSize="xs">（1）</Text>
                 </Flex>
                 <Text
                     fontSize="md"

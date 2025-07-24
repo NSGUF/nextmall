@@ -18,6 +18,7 @@ import Link from 'next/link';
 import { api } from '@/trpc/react';
 import { useConfirmDialog } from '@/app/hooks/useConfirmDialog';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { STORE_ADDRESS_KEY } from '@/app/const';
 
 export default function AddressPage() {
     // 获取地址列表
@@ -76,7 +77,7 @@ export default function AddressPage() {
     };
     const handlerChoose = (id) => {
         if (!searchParams.get('is_choose')) return;
-        localStorage.setItem('addressId', id);
+        localStorage.setItem(STORE_ADDRESS_KEY, id);
         router.back();
     };
     return (

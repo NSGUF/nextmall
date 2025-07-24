@@ -19,6 +19,11 @@ import { api } from '@/trpc/react';
 import useCustomToast from '@/app/hooks/useCustomToast';
 import Link from 'next/link';
 import { useConfirmDialog } from '@/app/hooks/useConfirmDialog';
+import {
+    STORE_ADDRESS_KEY,
+    STORE_GOOD_DATA_KEY,
+    STORE_LAUNCH_INFO_KEY,
+} from '@/app/const';
 
 export default function ConfirmPage() {
     const searchParams = useSearchParams();
@@ -27,18 +32,21 @@ export default function ConfirmPage() {
     const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
         null
     );
-    const productId = searchParams.get('productId');
-    const specId = searchParams.get('specId');
-    const quantity = parseInt(searchParams.get('quantity') ?? '1');
-
-    const [remark, setRemark] = useState('');
+    const data = searchParams.get('data');
+    const goodData = JSON.parse(localStorage.getItem(STORE_GOOD_DATA_KEY));
+    const isValid = data === localStorage.getItem(STORE_LAUNCH_INFO_KEY);
     const [defaultAddress, setDefaultAddress] = useState(null);
 
-    // 获取产品信息
-    const { data: product } = api.product.get.useQuery(
-        { id: productId!, isPage: false },
-        { enabled: !!productId }
-    );
+    // 添加状态来管理每个商品的备注
+    const [remarks, setRemarks] = useState<Record<number, string>>({});
+
+    // 更新备注的函数
+    const updateRemark = (index: number, value: string) => {
+        setRemarks((prev) => ({
+            ...prev,
+            [index]: value,
+        }));
+    };
 
     // 获取默认地址
     const { data: address } = api.address.list.useQuery(undefined, {
@@ -51,10 +59,10 @@ export default function ConfirmPage() {
     // 监听localStorage变化和页面焦点
     useEffect(() => {
         const handleStorageChange = () => {
-            const storedAddressId = localStorage.getItem('addressId');
+            const storedAddressId = localStorage.getItem(STORE_ADDRESS_KEY);
             if (storedAddressId) {
                 setSelectedAddressId(storedAddressId);
-                localStorage.removeItem('addressId'); // 使用后清除
+                localStorage.removeItem(STORE_ADDRESS_KEY); // 使用后清除
             }
         };
 
@@ -72,6 +80,7 @@ export default function ConfirmPage() {
             window.removeEventListener('focus', handleFocus);
         };
     }, []);
+
     useEffect(() => {
         if (address?.length) {
             if (selectedAddressId) {
@@ -83,22 +92,26 @@ export default function ConfirmPage() {
                     address.find((addr) => addr.isDefault) ?? address[0]
                 );
             }
-            console.log(defaultAddress);
         }
     }, [address, selectedAddressId]);
 
     const createOrderMutation = api.order.create.useMutation({
         onSuccess: (data) => {
+            console.log(data);
             showSuccessToast('订单创建成功');
-            router.push(`/full/order/${data.id}`);
+            router.push(`/full/order/detail?orderId=${data.id}`);
         },
         onError: (error) => {
             showErrorToast(error.message);
         },
     });
-    const selectedSpec = product?.specs?.find((spec) => spec.id === specId);
-    const totalPrice = (selectedSpec?.price ?? 0) * quantity;
-    const shippingFee = product?.logiPrice ?? 0;
+
+    const totalPrice = goodData.reduce((acc, item) => {
+        return acc + item.selectedSpec.price * item.quantity;
+    }, 0);
+    const shippingFee = goodData.reduce((acc, item) => {
+        return acc + item.product.logiPrice;
+    }, 0);
     const finalPrice = totalPrice + shippingFee;
 
     const handleSubmitOrder = () => {
@@ -111,7 +124,7 @@ export default function ConfirmPage() {
         close: closeDeleteConfirm,
     } = useConfirmDialog({
         title: '确认提交订单',
-        content: `确定已扫码支付吗？总金额：¥${totalPrice.toFixed(2)}`,
+        content: `确定已扫码支付吗？总金额：¥${finalPrice.toFixed(2)}`,
         confirmText: '确认',
         cancelText: '取消',
         buttonProps: { style: { display: 'none' } }, // 不显示按钮，手动控制
@@ -121,21 +134,22 @@ export default function ConfirmPage() {
                 return;
             }
 
+            const items = goodData.map((item, index) => ({
+                productId: item.product.id,
+                specId: item.selectedSpec.id,
+                quantity: item.quantity,
+                remark: remarks[index] || '', // 使用状态中的备注
+            }));
+
             createOrderMutation.mutate({
-                items: [
-                    {
-                        productId: productId,
-                        specId: specId,
-                        quantity,
-                    },
-                ],
+                items,
                 addressId: defaultAddress.id,
-                remark: remark,
             });
         },
     });
-    if (!productId || !specId) {
-        router.push('/h5');
+    if (!isValid) {
+        showErrorToast('商品信息有误，请重新选择商品');
+        setTimeout(() => router.push('/h5'), 1000);
         return null;
     }
 
@@ -181,84 +195,99 @@ export default function ConfirmPage() {
             </Box>
 
             {/* 商品信息 */}
-            <Box bg="white" m={2} p={4} borderRadius="md">
-                <Flex gap={3}>
-                    <Image
-                        src={
-                            product?.images?.[0] ??
-                            product?.specs?.[0]?.image ??
-                            '/default.jpg'
-                        }
-                        alt={product?.title}
-                        w={20}
-                        h={20}
-                        borderRadius="md"
-                        objectFit="cover"
-                    />
-                    <Box flex={1}>
-                        <Text fontWeight="medium" fontSize="md" mb={1}>
-                            {product?.title}
-                        </Text>
-                        <Text color="gray.400" mb={2}>
-                            {selectedSpec?.value} * {selectedSpec?.name}
-                        </Text>
-                        <Flex align="center">
+            {goodData?.map(({ product, selectedSpec, quantity }, index) => (
+                <Box bg="white" key={product.id} m={2} p={4} borderRadius="md">
+                    <Flex gap={3}>
+                        <Image
+                            src={
+                                product?.images?.[0] ??
+                                product?.specs?.[0]?.image ??
+                                '/default.jpg'
+                            }
+                            alt={product?.title}
+                            w={20}
+                            h={20}
+                            borderRadius="md"
+                            objectFit="cover"
+                        />
+                        <Box flex={1} minW={0}>
                             <Text
-                                color="red.500"
-                                fontWeight="bold"
-                                fontSize="lg"
-                                mr={4}
+                                fontWeight="medium"
+                                fontSize="md"
+                                mb={1}
+                                overflow="hidden"
+                                textOverflow="ellipsis"
+                                whiteSpace="nowrap"
+                                minW={0}
+                                w="100%"
                             >
-                                ¥{selectedSpec?.price.toFixed(2)}
+                                {product?.title}
                             </Text>
-                            <Text color="gray.400">x{quantity}</Text>
-                        </Flex>
-                    </Box>
-                </Flex>
-
-                {/* 配送方式 */}
-                <Flex justify="space-between" align="center" my={3}>
-                    <Text color="gray.600">配送方式</Text>
-                    <Flex align="center" gap={1}>
-                        <Text>{product?.logistics ?? '快递发货'}</Text>
-                        <FiChevronRight color="#999" size={16} />
+                            <Text color="gray.400" mb={2}>
+                                {selectedSpec?.value} * {selectedSpec?.name}
+                            </Text>
+                            <Flex align="center">
+                                <Text
+                                    color="red.500"
+                                    fontWeight="bold"
+                                    fontSize="lg"
+                                    mr={4}
+                                >
+                                    ¥{selectedSpec?.price.toFixed(2)}
+                                </Text>
+                                <Text color="gray.400">x{quantity}</Text>
+                            </Flex>
+                        </Box>
                     </Flex>
-                </Flex>
 
-                {/* 订单留言 */}
-                <Flex align="center" gap={4} my={3}>
-                    <Text color="gray.600" mb={2}>
-                        订单留言
-                    </Text>
-                    <Input
-                        flex="1"
-                        textAlign="right"
-                        placeholder="如有，请留言"
-                        bgColor="white"
-                        value={remark}
-                        onChange={(e) => setRemark(e.target.value)}
-                        bg="gray.50"
-                        border="none"
-                    />
-                </Flex>
-
-                {/* 价格明细 */}
-                <VStack align="stretch" gap={2}>
-                    <Flex justify="space-between" my={2}>
-                        <Text color="gray.600">共{quantity}件</Text>
-                        <Flex>
-                            小计:
-                            <Text ml={2} color="red.500">
-                                ¥{totalPrice.toFixed(2)}
-                            </Text>
+                    {/* 配送方式 */}
+                    <Flex justify="space-between" align="center" my={3}>
+                        <Text color="gray.600">配送方式</Text>
+                        <Flex align="center" gap={1}>
+                            <Text>{product?.logistics ?? '快递发货'}</Text>
+                            <FiChevronRight color="#999" size={16} />
                         </Flex>
                     </Flex>
-                    <Flex justify="space-between" my={2}>
-                        <Text color="gray.600">运费</Text>
-                        <Text color="red.600">¥{shippingFee.toFixed(2)}</Text>
+
+                    {/* 订单留言 */}
+                    <Flex align="center" gap={4} my={3}>
+                        <Text color="gray.600" mb={2}>
+                            订单留言
+                        </Text>
+                        <Input
+                            flex="1"
+                            textAlign="right"
+                            placeholder="如有，请留言"
+                            bgColor="white"
+                            value={remarks[index] || ''}
+                            onChange={(e) =>
+                                updateRemark(index, e.target.value)
+                            }
+                            bg="gray.50"
+                            border="none"
+                        />
                     </Flex>
-                </VStack>
-            </Box>
+
+                    {/* 价格明细 */}
+                    <VStack align="stretch" gap={2}>
+                        <Flex justify="space-between" my={2}>
+                            <Text color="gray.600">共{quantity}件</Text>
+                            <Flex>
+                                小计:
+                                <Text ml={2} color="red.500">
+                                    ¥{totalPrice.toFixed(2)}
+                                </Text>
+                            </Flex>
+                        </Flex>
+                        <Flex justify="space-between" my={2}>
+                            <Text color="gray.600">运费</Text>
+                            <Text color="red.600">
+                                ¥{shippingFee.toFixed(2)}
+                            </Text>
+                        </Flex>
+                    </VStack>
+                </Box>
+            ))}
 
             {/* 支付方式 */}
             <Box bg="white" m={2} p={4} borderRadius="md">

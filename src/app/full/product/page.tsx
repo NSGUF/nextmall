@@ -18,6 +18,7 @@ import {
     Spinner,
 } from '@chakra-ui/react';
 import { FaStar } from 'react-icons/fa';
+import { STORE_GOOD_DATA_KEY, STORE_LAUNCH_INFO_KEY } from '@/app/const';
 
 export default function ProductPage() {
     const searchParams = useSearchParams();
@@ -95,12 +96,19 @@ export default function ProductPage() {
             });
         } else if (actionType === 'buy') {
             // 跳转到订单确认页
-            const params = new URLSearchParams({
-                productId: id,
-                specId: selectedSpec.id,
-                quantity: quantity.toString(),
-            });
-            router.push(`/full/confirm?${params.toString()}`);
+            const params = btoa(id);
+            localStorage.setItem(STORE_LAUNCH_INFO_KEY, params);
+            localStorage.setItem(
+                STORE_GOOD_DATA_KEY,
+                JSON.stringify([
+                    {
+                        product: product,
+                        selectedSpec: selectedSpec,
+                        quantity,
+                    },
+                ])
+            );
+            router.push(`/full/confirm?data=${params}`);
         }
     };
     return (

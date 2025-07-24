@@ -18,7 +18,7 @@ export default function ProductItem({
                     borderRadius="xs"
                     boxShadow="1sx"
                     p={2}
-                    py={3}
+                    py={2}
                     _hover={{ boxShadow: 'md' }}
                 >
                     <Link href={'/full/product?id=' + item.id}>

@@ -56,9 +56,7 @@ EMAIL_FROM=发件人邮箱
 
 dev环境
 
-1. npx prisma generate
-2. npx prisma migrate dev --name add-super-admin-to-user
-3. npx prisma db push
+1. npx prisma db push
 
 # 报错
 

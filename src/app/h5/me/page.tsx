@@ -130,7 +130,7 @@ export default function MePage() {
                     <Flex direction="column" align="center" justify="center">
                         <FiCreditCard size={24} />
                         <Text fontSize="xs" color="gray.500" mt={1}>
-                            待付款
+                            待审核
                         </Text>
                     </Flex>
                     <Flex direction="column" align="center" justify="center">

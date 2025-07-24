@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Box, Flex, Text, Image, Badge, SimpleGrid } from '@chakra-ui/react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/trpc/react';
+import TabBar from '../_components/TabBar';
 
 export default function VideoPage() {
     // 获取所有合集
@@ -23,66 +24,17 @@ export default function VideoPage() {
     );
     const router = useRouter();
 
-    // 合集tab数据，最前面加一个“全部”
+    // 合集tab数据，最前面加一个"全部"
     const tabs = [{ id: 'all', title: '全部' }, ...collections];
 
     return (
         <Box minH="100vh" bg="gray.50">
             {/* 顶部Tab栏 */}
-            <Box
-                px={2}
-                py={2}
-                bg="white"
-                boxShadow="sm"
-                position="sticky"
-                top={0}
-                zIndex={10}
-                overflowX="auto"
-                whiteSpace="nowrap"
-                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-                className="hide-scrollbar"
-            >
-                <style jsx global>{`
-                    .hide-scrollbar {
-                        scrollbar-width: none;
-                        -ms-overflow-style: none;
-                    }
-                    .hide-scrollbar::-webkit-scrollbar {
-                        display: none;
-                    }
-                `}</style>
-                <Flex gap={2} minW="max-content">
-                    {tabs.map((tab) => (
-                        <Box
-                            key={tab.id}
-                            px={2}
-                            py={0}
-                            fontWeight={
-                                activeCollectionId === tab.id
-                                    ? 'bold'
-                                    : 'normal'
-                            }
-                            color={
-                                activeCollectionId === tab.id
-                                    ? 'red.500'
-                                    : 'gray.600'
-                            }
-                            fontSize="md"
-                            borderBottom={
-                                activeCollectionId === tab.id
-                                    ? '2px solid #ef4444'
-                                    : '2px solid transparent'
-                            }
-                            cursor="pointer"
-                            onClick={() => setActiveCollectionId(tab.id)}
-                            display="inline-block"
-                            whiteSpace="nowrap"
-                        >
-                            {tab.title}
-                        </Box>
-                    ))}
-                </Flex>
-            </Box>
+            <TabBar
+                tabs={tabs as any}
+                activeTabId={activeCollectionId}
+                onTabChange={setActiveCollectionId}
+            />
             {/* 视频宫格 */}
             <Box px={4} py={4}>
                 <SimpleGrid columns={2} gap={4}>

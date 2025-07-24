@@ -144,6 +144,7 @@ export const productRouter = createTRPCRouter({
                 where: { id: input.id },
                 include: {
                     specs: true,
+                    vendor: true,
                 },
             });
 

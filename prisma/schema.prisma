@@ -174,21 +174,21 @@ model Order {
   userId        String      // 用户ID
   items         OrderItem[] // 订单商品项
   totalPrice    Float       // 订单总价
-  address       Address?    @relation(fields: [addressId], references: [id])
-  addressId     String?     // 收货地址ID
+  address       Address    @relation(fields: [addressId], references: [id])
+  addressId     String     // 收货地址ID
   status        OrderStatus @default(PAID) // 订单状态
   paymentMethod String?     // 支付方式
-  paidAt        DateTime?   // 支付时间
+  paidAt        DateTime?    @default(now())// 支付时间
   trackingNumber String?    // 物流单号
   paymentInfo   String?     // 支付相关信息
   shippingInfo  String?     // 发货相关信息
   refundInfo    String?     // 退款/售后信息
-  remark        String?     // 订单备注
   createdAt     DateTime    @default(now()) // 创建时间
   updatedAt     DateTime    @updatedAt @default(now()) // 更新时间
   isDeleted     Boolean     @default(false) // 是否已删除
 }
 
+// 目前我的需求就是每个Order就一项，这个字段放这里扩展吧
 model OrderItem {
   id        String   @id @default(cuid()) // 订单项ID
   order     Order    @relation(fields: [orderId], references: [id])
@@ -197,8 +197,11 @@ model OrderItem {
   productId String   // 商品ID
   spec      ProductSpec? @relation(fields: [specId], references: [id])
   specId    String?  // 规格ID
+  specInfo  String?  // 规格描述
   quantity  Int      // 购买数量
   price     Float    // 购买时单价
+  logiPrice Float    @default(0)// 物流价格
+  remark    String?   // 订单备注
 }
 
 model Cart {

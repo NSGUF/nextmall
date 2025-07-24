@@ -15,9 +15,9 @@ export const orderRouter = createTRPCRouter({
                     order: z.enum(['asc', 'desc']).optional(),
                     status: z
                         .enum([
-                            'PENDING',
                             'PAID',
-                            'SHIPPED',
+                            'CHECKED',
+                            'DELIVERED',
                             'COMPLETED',
                             'CANCELLED',
                         ])
@@ -134,14 +134,14 @@ export const orderRouter = createTRPCRouter({
                         productId: z.string(),
                         specId: z.string(),
                         quantity: z.number().min(1),
+                        remark: z.string().optional(),
                     })
                 ),
                 addressId: z.string(),
-                remark: z.string().optional(),
             })
         )
         .mutation(async ({ ctx, input }) => {
-            const { items, addressId, remark } = input;
+            const { items, addressId } = input;
             const userId = ctx.session.user.id;
 
             // 验证地址是否属于当前用户
@@ -182,6 +182,9 @@ export const orderRouter = createTRPCRouter({
                     specId: item.specId,
                     quantity: item.quantity,
                     price: spec.price,
+                    remark: item.remark,
+                    logiPrice: product.logiPrice,
+                    specinfo: `${spec.value} * ${spec.name}`,
                 });
                 totalAmount += spec.price * item.quantity;
             }
@@ -192,7 +195,6 @@ export const orderRouter = createTRPCRouter({
                     userId,
                     addressId,
                     totalPrice: totalAmount,
-                    remark: remark,
                     items: {
                         create: createItem,
                     },
