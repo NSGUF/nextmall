@@ -6,19 +6,29 @@ import { FiSearch } from 'react-icons/fi';
 import BannerCarousel from './_components/BannerCarousel';
 import { api } from '@/trpc/react';
 import Link from 'next/link';
+import { ContentLoading } from '@/app/_components/LoadingSpinner';
 
 export default function H5Home() {
     // 获取 isActive 的 banners
-    const { data: banners = [] } = api.banner.list.useQuery({ isActive: true });
-    const { data: category = [] } = api.category.list.useQuery(undefined, {
-        refetchOnMount: 'always',
-        refetchOnWindowFocus: true,
-        staleTime: 0,
-        gcTime: 0,
-    });
-    const { data: products = [] } = api.product.list.useQuery({
-        orderBy: 'sales',
-    });
+    const { data: banners = [], isLoading: bannersLoading } =
+        api.banner.list.useQuery({ isActive: true });
+    const { data: category = [], isLoading: categoryLoading } =
+        api.category.list.useQuery(undefined, {
+            refetchOnMount: 'always',
+            refetchOnWindowFocus: true,
+            staleTime: 1000 * 60, // 1分钟缓存
+            gcTime: 1000 * 60 * 5, // 5分钟垃圾回收
+        });
+    const { data: products = [], isLoading: productsLoading } =
+        api.product.list.useQuery({
+            orderBy: 'sales',
+        });
+
+    const isLoading = bannersLoading || categoryLoading || productsLoading;
+
+    if (isLoading) {
+        return <ContentLoading text="首页加载中..." />;
+    }
 
     return (
         <Box

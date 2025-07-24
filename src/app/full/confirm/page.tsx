@@ -24,6 +24,7 @@ import {
     STORE_GOOD_DATA_KEY,
     STORE_LAUNCH_INFO_KEY,
 } from '@/app/const';
+import { ContentLoading } from '@/app/_components/LoadingSpinner';
 
 export default function ConfirmPage() {
     const searchParams = useSearchParams();
@@ -49,12 +50,13 @@ export default function ConfirmPage() {
     };
 
     // 获取默认地址
-    const { data: address } = api.address.list.useQuery(undefined, {
-        refetchOnMount: 'always',
-        refetchOnWindowFocus: true,
-        staleTime: 0,
-        gcTime: 0,
-    });
+    const { data: address, isLoading: addressLoading } =
+        api.address.list.useQuery(undefined, {
+            refetchOnMount: 'always',
+            refetchOnWindowFocus: true,
+            staleTime: 1000 * 60, // 1分钟缓存
+            gcTime: 1000 * 60 * 5, // 5分钟垃圾回收
+        });
 
     // 监听localStorage变化和页面焦点
     useEffect(() => {
@@ -151,6 +153,15 @@ export default function ConfirmPage() {
         showErrorToast('商品信息有误，请重新选择商品');
         setTimeout(() => router.push('/h5'), 1000);
         return null;
+    }
+
+    if (addressLoading) {
+        return (
+            <Box bg="#f5f5f7" minH="100vh" pb="100px">
+                <TopNav title="确认订单" />
+                <ContentLoading text="订单信息加载中..." />
+            </Box>
+        );
     }
 
     return (

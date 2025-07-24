@@ -7,6 +7,7 @@ import TabBar from '@/app/h5/_components/TabBar';
 import { useState, useEffect } from 'react';
 import { api } from '@/trpc/react';
 import Link from 'next/link';
+import { ContentLoading } from '@/app/_components/LoadingSpinner';
 
 export default function OrderPage() {
     const router = useRouter();
@@ -29,7 +30,7 @@ export default function OrderPage() {
     // 根据选中的标签过滤订单
     const orderStatus =
         activeCollectionId === 'all' ? undefined : (activeCollectionId as any);
-    const { data: order } = api.order.list.useQuery({
+    const { data: order, isLoading: orderLoading } = api.order.list.useQuery({
         status: orderStatus,
     });
 
@@ -39,6 +40,15 @@ export default function OrderPage() {
             setActiveCollectionId(statusFromUrl);
         }
     }, [statusFromUrl]);
+
+    if (orderLoading) {
+        return (
+            <Box bg="#f5f5f7" minH="100vh" pb="100px">
+                <TopNav title="订单列表" onBack={() => router.push('/h5/me')} />
+                <ContentLoading text="订单加载中..." />
+            </Box>
+        );
+    }
 
     return (
         <Box bg="#f5f5f7" minH="100vh" pb="100px">

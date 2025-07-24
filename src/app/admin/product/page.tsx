@@ -20,6 +20,7 @@ import { api } from '@/trpc/react';
 import { useForm, Controller, useFieldArray } from 'react-hook-form';
 import { useConfirmDialog } from '@/app/hooks/useConfirmDialog';
 import { FiTrash2 } from 'react-icons/fi';
+import { ContentLoading } from '@/app/_components/LoadingSpinner';
 
 export default function AdminPage() {
     // tRPC hooks
@@ -223,6 +224,28 @@ export default function AdminPage() {
         ],
         [openEdit]
     );
+
+    if (isLoading) {
+        return (
+            <Box
+                borderRadius="lg"
+                minHeight="full"
+                p={4}
+                bg="white"
+                boxShadow="xs"
+            >
+                <Box
+                    display="flex"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    mb={4}
+                >
+                    <Heading size="lg">产品管理</Heading>
+                </Box>
+                <ContentLoading text="产品数据加载中..." />
+            </Box>
+        );
+    }
 
     return (
         <Box borderRadius="lg" minHeight="full" p={4} bg="white" boxShadow="xs">

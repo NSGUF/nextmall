@@ -5,24 +5,31 @@ import { Box, Flex, Text, Image, Badge, SimpleGrid } from '@chakra-ui/react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/trpc/react';
 import TabBar from '../_components/TabBar';
+import { ContentLoading } from '@/app/_components/LoadingSpinner';
 
 export default function VideoPage() {
     // 获取所有合集
-    const { data: collections = [] } = api.collection.list.useQuery(undefined, {
-        refetchOnMount: 'always',
-        refetchOnWindowFocus: true,
-        staleTime: 0,
-        gcTime: 0,
-    });
+    const { data: collections = [], isLoading: collectionsLoading } =
+        api.collection.list.useQuery(undefined, {
+            refetchOnMount: 'always',
+            refetchOnWindowFocus: true,
+            staleTime: 1000 * 60, // 1分钟缓存
+            gcTime: 1000 * 60 * 5, // 5分钟垃圾回收
+        });
     // 当前选中的合集ID，"all" 表示全部
     const [activeCollectionId, setActiveCollectionId] = useState<string>('all');
     // 获取课程，按合集过滤
-    const { data: courses = [] } = api.course.list.useQuery(
-        activeCollectionId !== 'all'
-            ? { collectionId: activeCollectionId }
-            : undefined
-    );
+    const { data: courses = [], isLoading: coursesLoading } =
+        api.course.list.useQuery(
+            activeCollectionId !== 'all'
+                ? { collectionId: activeCollectionId }
+                : undefined
+        );
     const router = useRouter();
+
+    if (collectionsLoading) {
+        return <ContentLoading text="视频内容加载中..." />;
+    }
 
     // 合集tab数据，最前面加一个"全部"
     const tabs = [{ id: 'all', title: '全部' }, ...collections];

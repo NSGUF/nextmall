@@ -14,14 +14,16 @@ import { FiSearch } from 'react-icons/fi';
 import { api } from '@/trpc/react';
 import { useSearchParams } from 'next/navigation';
 import ProductItem from '@/app/h5/_components/ProductItem';
+import { ContentLoading } from '@/app/_components/LoadingSpinner';
 
 export default function CategoryPage() {
-    const { data: categories = [] } = api.category.list.useQuery(undefined, {
-        refetchOnMount: 'always',
-        refetchOnWindowFocus: true,
-        staleTime: 0,
-        gcTime: 0,
-    });
+    const { data: categories = [], isLoading: categoriesLoading } =
+        api.category.list.useQuery(undefined, {
+            refetchOnMount: 'always',
+            refetchOnWindowFocus: true,
+            staleTime: 1000 * 60, // 1分钟缓存
+            gcTime: 1000 * 60 * 5, // 5分钟垃圾回收
+        });
     const searchParams = useSearchParams();
     const id = searchParams.get('id');
     // 计算初始index
@@ -31,9 +33,14 @@ export default function CategoryPage() {
     );
 
     const activeCategory = categories[activeIndex];
-    const { data: products = [] } = api.product.list.useQuery(
-        activeCategory ? { categoryId: activeCategory.id } : undefined
-    );
+    const { data: products = [], isLoading: productsLoading } =
+        api.product.list.useQuery(
+            activeCategory ? { categoryId: activeCategory.id } : undefined
+        );
+
+    if (categoriesLoading) {
+        return <ContentLoading text="分类加载中..." />;
+    }
 
     return (
         <Flex h="calc(100vh - 64px)" flexDirection="column" overflow="hidden">

@@ -19,6 +19,7 @@ import { api } from '@/trpc/react';
 import { useConfirmDialog } from '@/app/hooks/useConfirmDialog';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { STORE_ADDRESS_KEY } from '@/app/const';
+import { ContentLoading } from '@/app/_components/LoadingSpinner';
 
 export default function AddressPage() {
     // 获取地址列表
@@ -61,9 +62,10 @@ export default function AddressPage() {
     // 空状态
     if (isLoading) {
         return (
-            <Box textAlign="center" mt={24}>
-                加载中...
-            </Box>
+            <>
+                <TopNav title="地址管理" onBack={() => router.push('/h5/me')} />
+                <ContentLoading text="地址加载中..." />
+            </>
         );
     }
 

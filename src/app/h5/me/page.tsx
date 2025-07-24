@@ -22,6 +22,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/app/hooks/useAuth';
 import { api } from '@/trpc/react';
+import { ContentLoading } from '@/app/_components/LoadingSpinner';
 
 function IconWithBadge({
     icon,
@@ -61,7 +62,12 @@ function IconWithBadge({
 
 export default function MePage() {
     const { session } = useAuth();
-    const { data: userStats } = api.user.getStats.useQuery();
+    const { data: userStats, isLoading: statsLoading } =
+        api.user.getStats.useQuery();
+
+    if (statsLoading) {
+        return <ContentLoading text="个人信息加载中..." />;
+    }
 
     return (
         <Box

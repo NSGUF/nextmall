@@ -24,6 +24,7 @@ import { api } from '@/trpc/react';
 import { useRouter } from 'next/navigation';
 import useCustomToast from '@/app/hooks/useCustomToast';
 import { STORE_GOOD_DATA_KEY, STORE_LAUNCH_INFO_KEY } from '@/app/const';
+import { ContentLoading } from '@/app/_components/LoadingSpinner';
 
 // 购物车商品接口
 interface CartItem {
@@ -48,6 +49,7 @@ interface CartItem {
         value: string;
         price: number;
         image?: string;
+        stock?: number;
     };
 }
 
@@ -64,29 +66,22 @@ export default function CartPage() {
     const { showSuccessToast, showErrorToast } = useCustomToast();
 
     // 获取购物车数据
-    const { data: cartData = [], refetch } = api.cart.list.useQuery(undefined, {
+    const {
+        data: cartData = [],
+        refetch,
+        isLoading: cartLoading,
+    } = api.cart.list.useQuery(undefined, {
         refetchOnMount: 'always',
         refetchOnWindowFocus: true,
-        staleTime: 0,
-        gcTime: 0,
-    });
-
-    // 删除购物车商品
-    const removeCartItem = api.cart.remove.useMutation({
-        onSuccess: () => {
-            showSuccessToast('删除成功');
-            refetch();
-        },
-        onError: (error) => {
-            showErrorToast(error.message);
-        },
+        staleTime: 1000 * 60, // 1分钟缓存
+        gcTime: 1000 * 60 * 5, // 5分钟垃圾回收
     });
 
     // 批量删除购物车商品
     const removeManyCartItems = api.cart.removeMany.useMutation({
         onSuccess: () => {
             showSuccessToast('删除成功');
-            refetch();
+            void refetch();
         },
         onError: (error) => {
             showErrorToast(error.message);
@@ -95,7 +90,7 @@ export default function CartPage() {
 
     // 更新购物车商品数量
     const updateQuantity = api.cart.updateQuantity.useMutation({
-        onSuccess: () => refetch(),
+        onSuccess: () => void refetch(),
         onError: (error) => {
             showErrorToast(error.message);
         },
@@ -106,17 +101,45 @@ export default function CartPage() {
         const vendorMap = new Map<string, CartVendor>();
 
         cartData.forEach((item) => {
-            const vendorId = item.product.vendor.id;
+            const vendorId = item.product?.vendor?.id;
+            if (!vendorId) return;
+
             const cartItem: CartItem = {
-                ...item,
+                id: item.id!,
+                productId: item.productId!,
+                specId: item.specId || undefined,
+                quantity: item.quantity!,
                 checked: false, // 默认不选中
+                product: {
+                    id: item.product!.id!,
+                    title: item.product!.title!,
+                    images: item.product!.images || [],
+                    vendor: {
+                        id: item.product!.vendor!.id!,
+                        name: item.product!.vendor!.name!,
+                    },
+                    logiPrice: item.product!.logiPrice || 0,
+                },
+                spec: item.spec
+                    ? {
+                          id: item.spec.id,
+                          name: item.spec.name,
+                          value: item.spec.value,
+                          price: item.spec.price,
+                          image: item.spec.image || undefined,
+                          stock: item.spec.stock || 0,
+                      }
+                    : undefined,
             };
 
             if (vendorMap.has(vendorId)) {
                 vendorMap.get(vendorId)!.items.push(cartItem);
             } else {
                 vendorMap.set(vendorId, {
-                    vendor: item.product.vendor,
+                    vendor: {
+                        id: item.product!.vendor!.id!,
+                        name: item.product!.vendor!.name!,
+                    },
                     items: [cartItem],
                 });
             }
@@ -127,9 +150,16 @@ export default function CartPage() {
 
     // 购物车状态：每个商品有checked属性
     const [cartState, setCartState] = React.useState<CartVendor[]>([]);
+    const prevCartRef = React.useRef<CartVendor[]>([]);
 
     React.useEffect(() => {
-        setCartState(cart);
+        // 比较当前 cart 和之前的 cart，只有真正变化时才更新
+        const cartChanged =
+            JSON.stringify(cart) !== JSON.stringify(prevCartRef.current);
+        if (cartChanged) {
+            setCartState(cart);
+            prevCartRef.current = cart;
+        }
     }, [cart]);
 
     // 计算总价和结算数量
@@ -312,6 +342,10 @@ export default function CartPage() {
         router.push(`/full/confirm?data=${params}`);
     };
 
+    if (cartLoading) {
+        return <ContentLoading text="购物车加载中..." />;
+    }
+
     return (
         <Box bg="#f5f5f7" minH="100vh" pb="80px">
             {/* 地址栏 */}
@@ -331,9 +365,9 @@ export default function CartPage() {
                     size="sm"
                     color="red.500"
                     fontWeight="medium"
-                    leftIcon={<FiTrash2 />}
                     onClick={handleDeleteSelected}
                 >
+                    <FiTrash2 />
                     删除
                 </Button>
             </Flex>

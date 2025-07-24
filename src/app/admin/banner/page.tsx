@@ -17,6 +17,7 @@ import { api } from '@/trpc/react';
 import { useForm } from 'react-hook-form';
 import { Controller } from 'react-hook-form';
 import { useConfirmDialog } from '@/app/hooks/useConfirmDialog';
+import { ContentLoading } from '@/app/_components/LoadingSpinner';
 
 // react-hook-form
 type Banner = {
@@ -207,6 +208,28 @@ export default function AdminPage() {
         ],
         [openEdit]
     );
+
+    if (isLoading) {
+        return (
+            <Box
+                borderRadius="lg"
+                minHeight="full"
+                p={4}
+                bg="white"
+                boxShadow="xs"
+            >
+                <Box
+                    display="flex"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    mb={4}
+                >
+                    <Heading size="lg">banner管理</Heading>
+                </Box>
+                <ContentLoading text="Banner数据加载中..." />
+            </Box>
+        );
+    }
 
     return (
         <Box borderRadius="lg" minHeight="full" p={4} bg="white" boxShadow="xs">
