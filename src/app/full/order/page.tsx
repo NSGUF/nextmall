@@ -57,7 +57,7 @@ export default function OrderPage() {
                                 >
                                     <Image
                                         src={
-                                            item.items[0].spec.image ??
+                                            item.items[0]?.spec?.image ??
                                             '/logo.svg'
                                         }
                                         alt={item.items[0].product.title}

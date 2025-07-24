@@ -153,10 +153,9 @@ export const orderRouter = createTRPCRouter({
                 throw new Error('收货地址不存在');
             }
 
-            let totalAmount = 0;
-            const createItem = [];
+            const orders = [];
 
-            // 验证商品和规格
+            // 为每个商品创建单独的订单
             for (const item of items) {
                 const product = await ctx.db.product.findUnique({
                     where: { id: item.productId },
@@ -177,41 +176,40 @@ export const orderRouter = createTRPCRouter({
                         `商品库存不足: ${product.title} - ${spec.name}`
                     );
                 }
-                createItem.push({
-                    productId: item.productId,
-                    specId: item.specId,
-                    quantity: item.quantity,
-                    price: spec.price,
-                    remark: item.remark,
-                    logiPrice: product.logiPrice,
-                    specinfo: `${spec.value} * ${spec.name}`,
-                });
-                totalAmount += spec.price * item.quantity;
-            }
 
-            // 创建订单
-            const order = await ctx.db.order.create({
-                data: {
-                    userId,
-                    addressId,
-                    totalPrice: totalAmount,
-                    items: {
-                        create: createItem,
-                    },
-                },
-                include: {
-                    items: {
-                        include: {
-                            product: true,
-                            spec: true,
+                const totalAmount =
+                    spec.price * item.quantity + product.logiPrice;
+
+                // 创建单个订单
+                const order = await ctx.db.order.create({
+                    data: {
+                        userId,
+                        addressId,
+                        totalPrice: totalAmount,
+                        items: {
+                            create: {
+                                productId: item.productId,
+                                specId: item.specId,
+                                quantity: item.quantity,
+                                price: spec.price,
+                                remark: item.remark,
+                                logiPrice: product.logiPrice,
+                                specInfo: `${spec.value} * ${spec.name}`,
+                            },
                         },
                     },
-                    address: true,
-                },
-            });
+                    include: {
+                        items: {
+                            include: {
+                                product: true,
+                                spec: true,
+                            },
+                        },
+                        address: true,
+                    },
+                });
 
-            // 减少库存
-            for (const item of items) {
+                // 减少库存
                 await ctx.db.productSpec.update({
                     where: { id: item.specId },
                     data: {
@@ -220,9 +218,11 @@ export const orderRouter = createTRPCRouter({
                         },
                     },
                 });
+
+                orders.push(order);
             }
 
-            return order;
+            return orders;
         }),
 
     // 更新订单状态

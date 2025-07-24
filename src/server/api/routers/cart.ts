@@ -9,6 +9,7 @@ export const cartRouter = createTRPCRouter({
             include: {
                 product: {
                     include: {
+                        vendor: true,
                         specs: true,
                     },
                 },
@@ -67,6 +68,26 @@ export const cartRouter = createTRPCRouter({
             })
         )
         .mutation(async ({ ctx, input }) => {
+            // 先获取购物车项和商品规格信息
+            const cartItem = await ctx.db.cart.findFirst({
+                where: {
+                    id: input.id,
+                    userId: ctx.session.user.id,
+                },
+                include: {
+                    spec: true,
+                },
+            });
+
+            if (!cartItem) {
+                throw new Error('购物车商品不存在');
+            }
+
+            // 检查库存
+            if (cartItem.spec && cartItem.spec.stock < input.quantity) {
+                throw new Error(`库存不足，当前库存：${cartItem.spec.stock}`);
+            }
+
             return ctx.db.cart.update({
                 where: {
                     id: input.id,

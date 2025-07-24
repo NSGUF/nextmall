@@ -99,7 +99,7 @@ export default function ConfirmPage() {
         onSuccess: (data) => {
             console.log(data);
             showSuccessToast('订单创建成功');
-            router.push(`/full/order/detail?orderId=${data.id}`);
+            router.push(`/full/order?type=paid`);
         },
         onError: (error) => {
             showErrorToast(error.message);
@@ -271,19 +271,33 @@ export default function ConfirmPage() {
                     {/* 价格明细 */}
                     <VStack align="stretch" gap={2}>
                         <Flex justify="space-between" my={2}>
-                            <Text color="gray.600">共{quantity}件</Text>
+                            <Text color="gray.600">运费</Text>
+                            <Text color="red.600">
+                                ¥{product?.logiPrice.toFixed(2)}
+                            </Text>
+                        </Flex>
+                        <Flex justify="space-between" my={2}>
+                            <Text color="gray.600">商品总价</Text>
                             <Flex>
-                                小计:
                                 <Text ml={2} color="red.500">
-                                    ¥{totalPrice.toFixed(2)}
+                                    ¥
+                                    {(selectedSpec?.price * quantity).toFixed(
+                                        2
+                                    )}
                                 </Text>
                             </Flex>
                         </Flex>
                         <Flex justify="space-between" my={2}>
-                            <Text color="gray.600">运费</Text>
-                            <Text color="red.600">
-                                ¥{shippingFee.toFixed(2)}
-                            </Text>
+                            <Text color="gray.600">实付:</Text>
+                            <Flex>
+                                <Text ml={2} color="red.500">
+                                    ¥
+                                    {(
+                                        selectedSpec?.price * quantity +
+                                        product?.logiPrice
+                                    ).toFixed(2)}
+                                </Text>
+                            </Flex>
                         </Flex>
                     </VStack>
                 </Box>

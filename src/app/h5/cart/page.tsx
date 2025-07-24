@@ -1,6 +1,15 @@
 'use client';
 
-import { Box, Flex, Text, Button, Image, Grid, Badge } from '@chakra-ui/react';
+import {
+    Box,
+    Flex,
+    Text,
+    Button,
+    Image,
+    Grid,
+    Badge,
+    Input,
+} from '@chakra-ui/react';
 import { Checkbox } from '@chakra-ui/react';
 import {
     FiChevronRight,
@@ -8,147 +17,189 @@ import {
     FiPlus,
     FiMapPin,
     FiChevronDown,
+    FiTrash2,
 } from 'react-icons/fi';
 import * as React from 'react';
+import { api } from '@/trpc/react';
+import { useRouter } from 'next/navigation';
+import useCustomToast from '@/app/hooks/useCustomToast';
+import { STORE_GOOD_DATA_KEY, STORE_LAUNCH_INFO_KEY } from '@/app/const';
 
-// 假数据
+// 购物车商品接口
 interface CartItem {
-    id: number;
-    name: string;
-    attrs?: string;
-    price: number;
-    img: string;
-    count: number;
+    id: string;
+    productId: string;
+    specId?: string;
+    quantity: number;
     checked: boolean;
-}
-interface CartShop {
-    shop: {
+    product: {
+        id: string;
+        title: string;
+        images: string[];
+        vendor: {
+            id: string;
+            name: string;
+        };
+        logiPrice: number;
+    };
+    spec?: {
+        id: string;
         name: string;
-        tag: string;
+        value: string;
+        price: number;
+        image?: string;
+    };
+}
+
+interface CartVendor {
+    vendor: {
+        id: string;
+        name: string;
     };
     items: CartItem[];
 }
 
-const initialCartData: CartShop[] = [
-    {
-        shop: {
-            name: 'Mall4j蓝海商城',
-            tag: '自营',
-        },
-        items: [
-            {
-                id: 1,
-                name: '狗狗拔河发声玩具批发亚马逊爆款',
-                attrs: '绿色 金属',
-                price: 108.68,
-                img: '/image.png',
-                count: 1,
-                checked: false,
-            },
-            {
-                id: 2,
-                name: '明星彩笔 无暇版',
-                price: 8.99,
-                img: '/image.png',
-                count: 1,
-                checked: false,
-            },
-        ],
-    },
-    {
-        shop: {
-            name: '很久很久',
-            tag: '',
-        },
-        items: [
-            {
-                id: 3,
-                name: 'CD glasses',
-                price: 8.99,
-                img: '/image.png',
-                count: 1,
-                checked: false,
-            },
-        ],
-    },
-];
-
 export default function CartPage() {
+    const router = useRouter();
+    const { showSuccessToast, showErrorToast } = useCustomToast();
+
+    // 获取购物车数据
+    const { data: cartData = [], refetch } = api.cart.list.useQuery(undefined, {
+        refetchOnMount: 'always',
+        refetchOnWindowFocus: true,
+        staleTime: 0,
+        gcTime: 0,
+    });
+
+    // 删除购物车商品
+    const removeCartItem = api.cart.remove.useMutation({
+        onSuccess: () => {
+            showSuccessToast('删除成功');
+            refetch();
+        },
+        onError: (error) => {
+            showErrorToast(error.message);
+        },
+    });
+
+    // 批量删除购物车商品
+    const removeManyCartItems = api.cart.removeMany.useMutation({
+        onSuccess: () => {
+            showSuccessToast('删除成功');
+            refetch();
+        },
+        onError: (error) => {
+            showErrorToast(error.message);
+        },
+    });
+
+    // 更新购物车商品数量
+    const updateQuantity = api.cart.updateQuantity.useMutation({
+        onSuccess: () => refetch(),
+        onError: (error) => {
+            showErrorToast(error.message);
+        },
+    });
+
+    // 处理购物车数据，按供应商分组
+    const cart: CartVendor[] = React.useMemo(() => {
+        const vendorMap = new Map<string, CartVendor>();
+
+        cartData.forEach((item) => {
+            const vendorId = item.product.vendor.id;
+            const cartItem: CartItem = {
+                ...item,
+                checked: false, // 默认不选中
+            };
+
+            if (vendorMap.has(vendorId)) {
+                vendorMap.get(vendorId)!.items.push(cartItem);
+            } else {
+                vendorMap.set(vendorId, {
+                    vendor: item.product.vendor,
+                    items: [cartItem],
+                });
+            }
+        });
+
+        return Array.from(vendorMap.values());
+    }, [cartData]);
+
     // 购物车状态：每个商品有checked属性
-    const [cart, setCart] = React.useState<CartShop[]>(() =>
-        initialCartData.map((shop) => ({
-            ...shop,
-            items: shop.items.map((item) => ({ ...item })),
-        }))
-    );
+    const [cartState, setCartState] = React.useState<CartVendor[]>([]);
+
+    React.useEffect(() => {
+        setCartState(cart);
+    }, [cart]);
 
     // 计算总价和结算数量
     const { totalPrice, totalCount } = React.useMemo(() => {
         let totalPrice = 0;
         let totalCount = 0;
-        cart.forEach((shop) => {
-            shop.items.forEach((item) => {
+        cartState.forEach((vendor) => {
+            vendor.items.forEach((item) => {
                 if (item.checked) {
-                    totalPrice += item.price * item.count;
+                    const price = item.spec?.price || 0;
+                    totalPrice += price * item.quantity;
                     totalCount += 1;
                 }
             });
         });
         return { totalPrice, totalCount };
-    }, [cart]);
+    }, [cartState]);
 
     // 全选状态
-    const allChecked = cart.every((shop) =>
-        shop.items.every((item) => item.checked)
+    const allChecked = cartState.every((vendor) =>
+        vendor.items.every((item) => item.checked)
     );
     const indeterminate =
-        cart.some((shop) => shop.items.some((item) => item.checked)) &&
+        cartState.some((vendor) => vendor.items.some((item) => item.checked)) &&
         !allChecked;
 
     // 全选/取消全选
     const handleAllChecked = (e: { checked: boolean | 'indeterminate' }) => {
         const checked = e.checked === true || e.checked === 'indeterminate';
-        setCart(
-            cart.map((shop) => ({
-                ...shop,
-                items: shop.items.map((item) => ({ ...item, checked })),
+        setCartState(
+            cartState.map((vendor) => ({
+                ...vendor,
+                items: vendor.items.map((item) => ({ ...item, checked })),
             }))
         );
     };
 
-    // 店铺下所有商品选中/取消
-    const handleShopChecked = (
-        shopIdx: number,
+    // 供应商下所有商品选中/取消
+    const handleVendorChecked = (
+        vendorIdx: number,
         e: { checked: boolean | 'indeterminate' }
     ) => {
         const checked = e.checked === true || e.checked === 'indeterminate';
-        setCart(
-            cart.map((shop, idx) =>
-                idx === shopIdx
+        setCartState(
+            cartState.map((vendor, idx) =>
+                idx === vendorIdx
                     ? {
-                          ...shop,
-                          items: shop.items.map((item) => ({
+                          ...vendor,
+                          items: vendor.items.map((item) => ({
                               ...item,
                               checked,
                           })),
                       }
-                    : shop
+                    : vendor
             )
         );
     };
 
     // 单个商品选中/取消
     const handleItemChecked = (
-        shopIdx: number,
+        vendorIdx: number,
         itemIdx: number,
         e: { checked: boolean | 'indeterminate' }
     ) => {
-        setCart(
-            cart.map((shop, sIdx) =>
-                sIdx === shopIdx
+        setCartState(
+            cartState.map((vendor, vIdx) =>
+                vIdx === vendorIdx
                     ? {
-                          ...shop,
-                          items: shop.items.map((item, iIdx) =>
+                          ...vendor,
+                          items: vendor.items.map((item, iIdx) =>
                               iIdx === itemIdx
                                   ? {
                                         ...item,
@@ -159,34 +210,106 @@ export default function CartPage() {
                                   : item
                           ),
                       }
-                    : shop
+                    : vendor
             )
         );
     };
 
     // 数量加减
     const handleCountChange = (
-        shopIdx: number,
+        vendorIdx: number,
         itemIdx: number,
         delta: number
     ) => {
-        setCart((cart) =>
-            cart.map((shop, sIdx) =>
-                sIdx === shopIdx
+        const vendor = cartState[vendorIdx];
+        const item = vendor.items[itemIdx];
+        const maxStock = item.spec?.stock || 999;
+        const newQuantity = Math.max(
+            1,
+            Math.min(maxStock, item.quantity + delta)
+        );
+
+        // 如果数量没有变化，不执行更新
+        if (newQuantity === item.quantity) {
+            if (item.quantity >= maxStock && delta > 0) {
+                showErrorToast('库存不足');
+            }
+            return;
+        }
+
+        // 更新本地状态
+        setCartState((cartState) =>
+            cartState.map((vendor, vIdx) =>
+                vIdx === vendorIdx
                     ? {
-                          ...shop,
-                          items: shop.items.map((item, iIdx) =>
+                          ...vendor,
+                          items: vendor.items.map((item, iIdx) =>
                               iIdx === itemIdx
                                   ? {
                                         ...item,
-                                        count: Math.max(1, item.count + delta),
+                                        quantity: newQuantity,
                                     }
                                   : item
                           ),
                       }
-                    : shop
+                    : vendor
             )
         );
+
+        // 更新后台数据
+        updateQuantity.mutate({
+            id: item.id,
+            quantity: newQuantity,
+        });
+    };
+
+    // 删除选中的商品
+    const handleDeleteSelected = () => {
+        const selectedIds: string[] = [];
+        cartState.forEach((vendor) => {
+            vendor.items.forEach((item) => {
+                if (item.checked) {
+                    selectedIds.push(item.id);
+                }
+            });
+        });
+
+        if (selectedIds.length === 0) {
+            showErrorToast('请选择要删除的商品');
+            return;
+        }
+
+        removeManyCartItems.mutate({ ids: selectedIds });
+    };
+
+    // 结算
+    const handleCheckout = () => {
+        const selectedItems: any[] = [];
+        cartState.forEach((vendor) => {
+            vendor.items.forEach((item) => {
+                if (item.checked) {
+                    selectedItems.push({
+                        product: item.product,
+                        selectedSpec: item.spec,
+                        quantity: item.quantity,
+                    });
+                }
+            });
+        });
+
+        if (selectedItems.length === 0) {
+            showErrorToast('请选择要结算的商品');
+            return;
+        }
+
+        // 跳转到订单确认页
+        const params = btoa(Date.now().toString());
+        localStorage.setItem(STORE_LAUNCH_INFO_KEY, params);
+        localStorage.setItem(
+            STORE_GOOD_DATA_KEY,
+            JSON.stringify(selectedItems)
+        );
+        router.push(`/full/confirm?data=${params}`);
     };
 
     return (
@@ -201,30 +324,32 @@ export default function CartPage() {
             >
                 <Flex align="center" fontSize="md" fontWeight="medium" gap={1}>
                     购物车
-                    <Text fontSize="xs">（1）</Text>
+                    <Text fontSize="xs">（{cartData.length}）</Text>
                 </Flex>
-                <Text
-                    fontSize="md"
+                <Button
+                    variant="ghost"
+                    size="sm"
                     color="red.500"
                     fontWeight="medium"
-                    cursor="pointer"
+                    leftIcon={<FiTrash2 />}
+                    onClick={handleDeleteSelected}
                 >
-                    管理
-                </Text>
+                    删除
+                </Button>
             </Flex>
 
-            {/* 购物车店铺和商品 */}
+            {/* 购物车供应商和商品 */}
             <Box px={4} pt={4}>
-                {cart.map((shop, shopIdx) => {
-                    const shopAllChecked = shop.items.every(
+                {cartState.map((vendor, vendorIdx) => {
+                    const vendorAllChecked = vendor.items.every(
                         (item) => item.checked
                     );
-                    const shopIndeterminate =
-                        shop.items.some((item) => item.checked) &&
-                        !shopAllChecked;
+                    const vendorIndeterminate =
+                        vendor.items.some((item) => item.checked) &&
+                        !vendorAllChecked;
                     return (
                         <Box
-                            key={shop.shop.name + shopIdx}
+                            key={vendor.vendor.id}
                             bg="#fff"
                             borderRadius="xl"
                             mb={4}
@@ -234,35 +359,33 @@ export default function CartPage() {
                             <Flex align="center" mb={2}>
                                 <Checkbox.Root
                                     checked={
-                                        shopIndeterminate
+                                        vendorIndeterminate
                                             ? 'indeterminate'
-                                            : shopAllChecked
+                                            : vendorAllChecked
                                     }
                                     onCheckedChange={(e) =>
-                                        handleShopChecked(shopIdx, e)
+                                        handleVendorChecked(vendorIdx, e)
                                     }
                                     style={{ marginRight: 8 }}
                                 >
                                     <Checkbox.HiddenInput />
                                     <Checkbox.Control />
                                 </Checkbox.Root>
-                                {shop.shop.tag && (
-                                    <Badge colorScheme="red" mr={2}>
-                                        {shop.shop.tag}
-                                    </Badge>
-                                )}
+                                {/* <Badge colorScheme="blue" mr={2}>
+                                    供应商
+                                </Badge> */}
                                 <Text
                                     fontWeight="bold"
                                     color="#222"
                                     fontSize="md"
                                 >
-                                    {shop.shop.name}
+                                    {vendor.vendor.name}
                                 </Text>
-                                <FiChevronRight
+                                {/* <FiChevronRight
                                     style={{ marginLeft: 4, color: '#bbb' }}
-                                />
+                                /> */}
                             </Flex>
-                            {shop.items.map((item, itemIdx) => (
+                            {vendor.items.map((item, itemIdx) => (
                                 <Flex
                                     key={item.id}
                                     align="center"
@@ -274,7 +397,7 @@ export default function CartPage() {
                                         checked={item.checked}
                                         onCheckedChange={(e) =>
                                             handleItemChecked(
-                                                shopIdx,
+                                                vendorIdx,
                                                 itemIdx,
                                                 e
                                             )
@@ -285,22 +408,28 @@ export default function CartPage() {
                                         <Checkbox.Control />
                                     </Checkbox.Root>
                                     <Image
-                                        src={item.img}
-                                        alt={item.name}
-                                        boxSize="64px"
-                                        borderRadius="lg"
-                                        objectFit="cover"
+                                        src={
+                                            item.spec?.image ||
+                                            item.product.images[0] ||
+                                            '/logo.svg'
+                                        }
+                                        alt={item.product.title}
+                                        boxSize="60px"
+                                        borderRadius="md"
                                         mr={3}
                                     />
-                                    <Box flex={1} minW={0}>
+                                    <Box flex={1} minW="0">
                                         <Text
                                             fontWeight="medium"
-                                            fontSize="sm"
-                                            truncate
+                                            color="#222"
+                                            textOverflow="ellipsis"
+                                            overflow="hidden"
+                                            whiteSpace="nowrap"
+                                            minW="0"
                                         >
-                                            {item.name}
+                                            {item.product.title}
                                         </Text>
-                                        {item.attrs && (
+                                        {item.spec && (
                                             <Flex
                                                 align="center"
                                                 bg="#f5f5f5"
@@ -313,7 +442,8 @@ export default function CartPage() {
                                                 color="#222"
                                                 gap={1}
                                             >
-                                                {item.attrs}
+                                                {item.spec.value}{' '}
+                                                {item.spec.name}
                                                 <Box
                                                     as="span"
                                                     ml={1}
@@ -326,35 +456,32 @@ export default function CartPage() {
                                         )}
                                         <Flex
                                             align="center"
-                                            mt={1}
                                             justify="space-between"
+                                            mt={2}
                                         >
                                             <Text
-                                                color="red.500"
-                                                fontWeight="bold"
                                                 fontSize="lg"
+                                                fontWeight="bold"
+                                                color="red.500"
                                             >
-                                                ￥
-                                                <Text as="span" fontSize="xl">
-                                                    {item.price}
-                                                </Text>
+                                                ¥
+                                                {item.spec?.price?.toFixed(2) ||
+                                                    '0.00'}
                                             </Text>
-                                            {/* 数量操作 */}
                                             <Flex
                                                 align="center"
                                                 border="1px solid #eee"
                                                 borderRadius="full"
                                                 px={2}
-                                                gap={1}
+                                                gap={0}
                                             >
                                                 <Button
                                                     size="2xs"
                                                     variant="ghost"
-                                                    minW={6}
                                                     p={0}
                                                     onClick={() =>
                                                         handleCountChange(
-                                                            shopIdx,
+                                                            vendorIdx,
                                                             itemIdx,
                                                             -1
                                                         )
@@ -362,20 +489,54 @@ export default function CartPage() {
                                                 >
                                                     <FiMinus />
                                                 </Button>
-                                                <Text
-                                                    minW={4}
+                                                <Input
+                                                    size="2xs"
+                                                    value={item.quantity}
+                                                    onChange={(e) => {
+                                                        const maxStock =
+                                                            item.spec?.stock ||
+                                                            999;
+                                                        const newQuantity =
+                                                            Math.max(
+                                                                1,
+                                                                Math.min(
+                                                                    maxStock,
+                                                                    parseInt(
+                                                                        e.target
+                                                                            .value
+                                                                    ) || 1
+                                                                )
+                                                            );
+                                                        handleCountChange(
+                                                            vendorIdx,
+                                                            itemIdx,
+                                                            newQuantity -
+                                                                item.quantity
+                                                        );
+                                                    }}
                                                     textAlign="center"
-                                                >
-                                                    {item.count}
-                                                </Text>
+                                                    border="none"
+                                                    p={0}
+                                                    minW={6}
+                                                    maxW={8}
+                                                    fontSize="sm"
+                                                    fontWeight="medium"
+                                                    _focus={{
+                                                        border: 'none',
+                                                        boxShadow: 'none',
+                                                    }}
+                                                />
                                                 <Button
                                                     size="2xs"
                                                     variant="ghost"
-                                                    minW={6}
                                                     p={0}
+                                                    disabled={
+                                                        item.quantity >=
+                                                        item.spec?.stock
+                                                    }
                                                     onClick={() =>
                                                         handleCountChange(
-                                                            shopIdx,
+                                                            vendorIdx,
                                                             itemIdx,
                                                             1
                                                         )
@@ -435,6 +596,7 @@ export default function CartPage() {
                     ml={4}
                     px={8}
                     size="lg"
+                    onClick={handleCheckout}
                 >
                     结算 ({totalCount})
                 </Button>

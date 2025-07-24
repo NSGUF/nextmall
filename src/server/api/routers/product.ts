@@ -98,6 +98,7 @@ export const productRouter = createTRPCRouter({
                             value: z.string(),
                             price: z.number(),
                             stock: z.number(),
+                            image: z.string(),
                         })
                     )
                     .optional(),
@@ -105,21 +106,47 @@ export const productRouter = createTRPCRouter({
         )
         .mutation(async ({ ctx, input }) => {
             const { id, specs, ...productData } = input;
-            // 先删除原有规格，再批量创建新规格
-            await ctx.db.productSpec.deleteMany({ where: { productId: id } });
+
+            if (specs && specs.length > 0) {
+                // 分离需要更新和新建的规格
+                const specsToUpdate = specs.filter((spec) => spec.id);
+                const specsToCreate = specs.filter((spec) => !spec.id);
+
+                // 更新现有规格
+                for (const spec of specsToUpdate) {
+                    await ctx.db.productSpec.update({
+                        where: { id: spec.id },
+                        data: {
+                            name: spec.name,
+                            value: spec.value,
+                            price: spec.price,
+                            stock: spec.stock,
+                            image: spec.image,
+                        },
+                    });
+                }
+
+                // 创建新规格
+                if (specsToCreate.length > 0) {
+                    await ctx.db.productSpec.createMany({
+                        data: specsToCreate.map((spec) => ({
+                            productId: id,
+                            name: spec.name,
+                            value: spec.value,
+                            price: spec.price,
+                            stock: spec.stock,
+                            image: spec.image,
+                        })),
+                    });
+                }
+            }
+
             const updated = await ctx.db.product.update({
                 where: { id },
-                data: {
-                    ...productData,
-                    specs:
-                        specs && specs.length > 0
-                            ? {
-                                  create: specs,
-                              }
-                            : undefined,
-                } as any,
+                data: productData,
                 include: { specs: true },
             });
+
             return updated;
         }),
 
