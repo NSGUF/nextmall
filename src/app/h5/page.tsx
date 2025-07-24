@@ -14,7 +14,7 @@ export default function H5Home() {
 
     // 获取 isActive 的 banners
     const { data: banners = [], isLoading: bannersLoading } =
-        api.banner.list.useQuery({ isActive: true });
+        api.banner.list.useQuery({ isActive: true, orderBy: 'sort' });
     const { data: category = [], isLoading: categoryLoading } =
         api.category.list.useQuery(undefined, {
             refetchOnMount: 'always',
@@ -66,7 +66,7 @@ export default function H5Home() {
 
             {/* Banner */}
             <Box px={4} mt={4}>
-                <BannerCarousel banners={banners} />
+                <BannerCarousel banners={banners} borderRadius="md" />
             </Box>
 
             <Box px={4} mt={4}>

@@ -2,7 +2,11 @@
 import { useState, useRef, useEffect } from 'react';
 import { Box, Image, Flex } from '@chakra-ui/react';
 
-export default function BannerCarousel({ banners = [], height = '140px' }) {
+export default function BannerCarousel({
+    banners = [],
+    height = '140px',
+    borderRadius = 'none',
+}) {
     const [index, setIndex] = useState(0);
     const [fade, setFade] = useState(true);
     const touchStartX = useRef(0);
@@ -73,6 +77,7 @@ export default function BannerCarousel({ banners = [], height = '140px' }) {
         <Box
             position="relative"
             w="100%"
+            borderRadius="full"
             onTouchStart={onTouchStart}
             onTouchMove={onTouchMove}
             onTouchEnd={onTouchEnd}
@@ -90,9 +95,9 @@ export default function BannerCarousel({ banners = [], height = '140px' }) {
                         <Image
                             src={banners[index].image}
                             alt={banners[index]?.description ?? 'banner'}
-                            borderRadius="xl"
                             w="100%"
                             h={height}
+                            borderRadius={borderRadius}
                             objectFit="cover"
                             cursor="pointer"
                             transition="opacity 0.4s"
@@ -105,6 +110,7 @@ export default function BannerCarousel({ banners = [], height = '140px' }) {
                         alt={banners[index]?.description ?? 'banner'}
                         w="100%"
                         h={height}
+                        borderRadius={borderRadius}
                         objectFit="cover"
                         cursor="pointer"
                         transition="opacity 0.4s"

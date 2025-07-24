@@ -281,9 +281,8 @@ model VerificationToken {
 model Banner {
   id          String   @id @default(cuid()) // Banner ID
   image       String   // Banner图片地址
-  link        String  // 跳转链接
+  link        String?  // 跳转链接
   title       String?  // 标题
-  description String?  // 描述
   sort        Int      @default(0) // 排序
   isActive    Boolean  @default(true) // 是否启用
   createdAt   DateTime @default(now()) // 创建时间

@@ -145,16 +145,16 @@ const DataTable = <T extends object>({
     // 工具栏
     const Toolbar = () => (
         <Box display="flex" alignItems="center" gap={2} mb={2}>
-            <Input
+            {/* <Input
                 placeholder="搜索..."
                 size="sm"
                 value={globalFilter}
                 onChange={(e) => setGlobalFilter(e.target.value)}
                 flex={1}
                 minWidth={0}
-            />
-            <ColumnVisibilityMenu table={table} />
+            /> */}
             {renderBulkActions?.(selectedRows)}
+            <ColumnVisibilityMenu table={table} />
         </Box>
     );
 
@@ -436,9 +436,23 @@ const DataTable = <T extends object>({
                     </Table.Header>
                     <Table.Body>
                         {table.getRowModel().rows.map((row) => (
-                            <Table.Row key={row.id}>
+                            <Table.Row
+                                key={row.id}
+                                onClick={
+                                    selectable
+                                        ? () => row.toggleSelected()
+                                        : undefined
+                                }
+                                cursor={selectable ? 'pointer' : 'default'}
+                                _hover={
+                                    selectable ? { bg: 'gray.50' } : undefined
+                                }
+                                bg={row.getIsSelected() ? 'blue.50' : undefined}
+                            >
                                 {selectable && (
-                                    <Table.Cell>
+                                    <Table.Cell
+                                        onClick={(e) => e.stopPropagation()} // 防止双重触发
+                                    >
                                         <input
                                             type="checkbox"
                                             checked={row.getIsSelected()}
@@ -447,7 +461,15 @@ const DataTable = <T extends object>({
                                     </Table.Cell>
                                 )}
                                 {row.getVisibleCells().map((cell) => (
-                                    <Table.Cell key={cell.id}>
+                                    <Table.Cell
+                                        key={cell.id}
+                                        onClick={(e) => {
+                                            // 如果点击的是操作按钮区域，阻止行选择
+                                            if (cell.column.id === 'action') {
+                                                e.stopPropagation();
+                                            }
+                                        }}
+                                    >
                                         {flexRender(
                                             cell.column.columnDef.cell,
                                             cell.getContext()

@@ -127,6 +127,32 @@ export default function AdminPage() {
         openDeleteConfirm();
     };
 
+    // 批量删除确认弹窗
+    const [bulkDeleteRows, setBulkDeleteRows] = useState<any[]>([]);
+    const {
+        ConfirmDialog: BulkDeleteConfirmDialog,
+        open: openBulkDeleteConfirm,
+        close: closeBulkDeleteConfirm,
+    } = useConfirmDialog({
+        title: '确认批量删除',
+        content: `确定要删除选中的 ${bulkDeleteRows.length} 个Collection吗？此操作不可撤销。`,
+        confirmText: '删除',
+        cancelText: '取消',
+        buttonProps: { style: { display: 'none' } }, // 不显示按钮，手动控制
+        onConfirm: async () => {
+            if (bulkDeleteRows.length > 0) {
+                await handleBulkDelete(bulkDeleteRows);
+                setBulkDeleteRows([]);
+            }
+        },
+        onCancel: () => setBulkDeleteRows([]),
+    });
+
+    const handleBulkDeleteWithConfirm = (rows: any[]) => {
+        setBulkDeleteRows(rows);
+        openBulkDeleteConfirm();
+    };
+
     const columns = useMemo(
         () => [
             { accessorKey: 'title', header: '标题', width: 150 },
@@ -233,12 +259,15 @@ export default function AdminPage() {
                             <Button
                                 size="sm"
                                 colorScheme="red"
-                                onClick={() => handleBulkDelete(rows)}
+                                onClick={() =>
+                                    handleBulkDeleteWithConfirm(rows)
+                                }
                                 disabled={!hasSelection}
                             >
                                 批量删除
                             </Button>
                             <Button
+                                size="sm"
                                 colorScheme="blue"
                                 onClick={() => openEdit()}
                             >
@@ -275,8 +304,21 @@ export default function AdminPage() {
                                         placeholder="标题"
                                         {...register('title', {
                                             required: '请输入标题',
+                                            minLength: {
+                                                value: 2,
+                                                message: '标题至少需要2个字符',
+                                            },
+                                            maxLength: {
+                                                value: 50,
+                                                message: '标题不能超过50个字符',
+                                            },
                                         })}
                                     />
+                                    {errors.title && (
+                                        <Text color="red.500" fontSize="sm">
+                                            {errors.title.message}
+                                        </Text>
+                                    )}
                                 </Field.Root>
                             </Stack>
                             <Box
@@ -301,6 +343,7 @@ export default function AdminPage() {
                 </Box>
             )}
             {DeleteConfirmDialog}
+            {BulkDeleteConfirmDialog}
         </Box>
     );
 }

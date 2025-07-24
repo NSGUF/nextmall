@@ -71,7 +71,7 @@ export const userRouter = createTRPCRouter({
             // 生成 JWT token
             const token = jwt.sign(
                 { userId: user.id, email: user.email },
-                process.env.AUTH_SECRET!,
+                process.env.AUTH_SECRET,
                 { expiresIn: '30m' }
             );
 
@@ -86,7 +86,6 @@ export const userRouter = createTRPCRouter({
                     pass: process.env.SMTP_PASS, // 发件邮箱授权码/密码
                 },
             };
-            console.log(options);
             const transporter = nodemailer.createTransport(options);
             await transporter.sendMail({
                 from: `"NextMall" <${process.env.SMTP_USER}>`, // 必须和 SMTP_USER 一致

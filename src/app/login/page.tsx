@@ -38,8 +38,6 @@ export default function Login() {
                 redirect: false, // 防止自动跳转，方便前端拿到 session
             });
 
-            console.log('SignIn result:', res);
-
             if (res?.error) {
                 handleError({ message: '邮箱或密码错误' });
             } else if (res?.ok) {

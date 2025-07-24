@@ -19,6 +19,8 @@ export default function AdminLayout({
                 _dark={{ bgColor: 'transparent' }}
                 h="full"
                 w="full"
+                minW="800px"
+                overflow="auto"
                 gap={3}
                 display="flex"
                 flexDirection="column"

@@ -40,12 +40,12 @@ const Sidebar = () => {
             icon: FiBookOpen,
         },
         {
-            title: '产品分类',
+            title: '商品分类',
             url: '/admin/category',
             icon: FiMonitor,
         },
         {
-            title: '产品管理',
+            title: '商品管理',
             url: '/admin/product',
             icon: FiBook,
         },

@@ -18,12 +18,12 @@ import { useForm } from 'react-hook-form';
 import { Controller } from 'react-hook-form';
 import { useConfirmDialog } from '@/app/hooks/useConfirmDialog';
 import { ContentLoading } from '@/app/_components/LoadingSpinner';
+import ImageUpload from '../_components/ImageUpload';
 
 // react-hook-form
 type Banner = {
     id: string;
     title: string;
-    description: string;
     image: string;
     isActive: boolean;
     sort: number;
@@ -74,7 +74,6 @@ export default function AdminPage() {
             title: '',
             image: '',
             isActive: true,
-            description: '',
             sort: 0,
             link: '',
         },
@@ -85,7 +84,6 @@ export default function AdminPage() {
         if (banner) {
             reset({
                 title: banner.title ?? '',
-                description: banner.description ?? '',
                 image: banner.image ?? '',
                 isActive: banner.isActive ?? true,
                 sort: banner.sort ?? 0,
@@ -96,7 +94,6 @@ export default function AdminPage() {
                 title: '',
                 image: '',
                 isActive: true,
-                description: '',
                 sort: 0,
                 link: '',
             });
@@ -109,7 +106,6 @@ export default function AdminPage() {
         const payload = {
             ...data,
             title: data.title ?? '',
-            description: data.description ?? '',
             image: data.image ?? '',
             link: data.link ?? '',
         };
@@ -156,10 +152,35 @@ export default function AdminPage() {
         openDeleteConfirm();
     };
 
+    // 批量删除确认弹窗
+    const [bulkDeleteRows, setBulkDeleteRows] = useState<any[]>([]);
+    const {
+        ConfirmDialog: BulkDeleteConfirmDialog,
+        open: openBulkDeleteConfirm,
+        close: closeBulkDeleteConfirm,
+    } = useConfirmDialog({
+        title: '确认批量删除',
+        content: `确定要删除选中的 ${bulkDeleteRows.length} 个Banner吗？此操作不可撤销。`,
+        confirmText: '删除',
+        cancelText: '取消',
+        buttonProps: { style: { display: 'none' } }, // 不显示按钮，手动控制
+        onConfirm: async () => {
+            if (bulkDeleteRows.length > 0) {
+                await handleBulkDelete(bulkDeleteRows);
+                setBulkDeleteRows([]);
+            }
+        },
+        onCancel: () => setBulkDeleteRows([]),
+    });
+
+    const handleBulkDeleteWithConfirm = (rows: any[]) => {
+        setBulkDeleteRows(rows);
+        openBulkDeleteConfirm();
+    };
+
     const columns = useMemo(
         () => [
             { accessorKey: 'title', header: '标题', width: 150 },
-            { accessorKey: 'description', header: '描述', width: 150 },
             {
                 accessorKey: 'image',
                 header: '图片',
@@ -179,6 +200,7 @@ export default function AdminPage() {
                 cell: ({ row }: { row: any }) =>
                     row.original.isActive ? '是' : '否',
             },
+            { accessorKey: '跳转连接', header: '跳转链接', width: 80 },
             { accessorKey: 'sort', header: '排序', width: 80 },
             {
                 id: 'action',
@@ -291,12 +313,15 @@ export default function AdminPage() {
                             <Button
                                 size="sm"
                                 colorScheme="red"
-                                onClick={() => handleBulkDelete(rows)}
+                                onClick={() =>
+                                    handleBulkDeleteWithConfirm(rows)
+                                }
                                 disabled={!hasSelection}
                             >
                                 批量删除
                             </Button>
                             <Button
+                                size="sm"
                                 colorScheme="blue"
                                 onClick={() => openEdit()}
                             >
@@ -333,24 +358,42 @@ export default function AdminPage() {
                                         placeholder="标题"
                                         {...register('title', {
                                             required: '请输入标题',
+                                            minLength: {
+                                                value: 2,
+                                                message: '标题至少需要2个字符',
+                                            },
+                                            maxLength: {
+                                                value: 50,
+                                                message: '标题不能超过50个字符',
+                                            },
                                         })}
                                     />
-                                </Field.Root>
-                                <Field.Root>
-                                    <Field.Label>描述</Field.Label>
-                                    <Input
-                                        placeholder="描述"
-                                        {...register('description')}
-                                    />
+                                    {errors.title && (
+                                        <Text color="red.500" fontSize="sm">
+                                            {errors.title.message}
+                                        </Text>
+                                    )}
                                 </Field.Root>
                                 <Field.Root invalid={!!errors.image}>
-                                    <Field.Label>图片URL</Field.Label>
-                                    <Input
-                                        placeholder="图片URL"
-                                        {...register('image', {
-                                            required: '请输入图片URL',
-                                        })}
+                                    <Field.Label>图片</Field.Label>
+                                    <Controller
+                                        name="image"
+                                        control={control}
+                                        rules={{ required: '请上传图片' }}
+                                        render={({ field }) => (
+                                            <ImageUpload
+                                                value={field.value}
+                                                onChange={field.onChange}
+                                                folder="banners"
+                                                placeholder="点击上传Banner图片"
+                                            />
+                                        )}
                                     />
+                                    {errors.image && (
+                                        <Text color="red.500" fontSize="sm">
+                                            {errors.image.message}
+                                        </Text>
+                                    )}
                                 </Field.Root>
                                 <Field.Root>
                                     <Field.Label>是否启用</Field.Label>
@@ -382,22 +425,45 @@ export default function AdminPage() {
                                         )}
                                     />
                                 </Field.Root>
-                                <Field.Root>
+                                <Field.Root invalid={!!errors.sort}>
                                     <Field.Label>排序</Field.Label>
                                     <Input
-                                        placeholder="排序"
+                                        placeholder="排序（数字越小越靠前）"
                                         type="number"
                                         {...register('sort', {
                                             valueAsNumber: true,
+                                            min: {
+                                                value: 0,
+                                                message: '排序值不能小于0',
+                                            },
+                                            max: {
+                                                value: 9999,
+                                                message: '排序值不能大于9999',
+                                            },
                                         })}
                                     />
+                                    {errors.sort && (
+                                        <Text color="red.500" fontSize="sm">
+                                            {errors.sort.message}
+                                        </Text>
+                                    )}
                                 </Field.Root>
-                                <Field.Root>
+                                <Field.Root invalid={!!errors.link}>
                                     <Field.Label>跳转链接</Field.Label>
                                     <Input
-                                        placeholder="跳转链接"
-                                        {...register('link')}
+                                        placeholder="跳转链接（可选）"
+                                        {...register('link', {
+                                            pattern: {
+                                                value: /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/,
+                                                message: '请输入有效的链接地址',
+                                            },
+                                        })}
                                     />
+                                    {errors.link && (
+                                        <Text color="red.500" fontSize="sm">
+                                            {errors.link.message}
+                                        </Text>
+                                    )}
                                 </Field.Root>
                             </Stack>
                             <Box
@@ -422,6 +488,7 @@ export default function AdminPage() {
                 </Box>
             )}
             {DeleteConfirmDialog}
+            {BulkDeleteConfirmDialog}
         </Box>
     );
 }

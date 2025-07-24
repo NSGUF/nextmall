@@ -38,9 +38,6 @@ export const system = createSystem(defaultConfig, {
 });
 
 export function Provider({ children }: { children: React.ReactNode }) {
-    // 只在客户端渲染 children，避免 SSR mismatch
-    const [mounted, setMounted] = React.useState(false);
-    React.useEffect(() => setMounted(true), []);
     return (
         <SessionProvider>
             <ChakraProvider value={system}>
@@ -48,8 +45,9 @@ export function Provider({ children }: { children: React.ReactNode }) {
                     attribute="class"
                     defaultTheme="system"
                     enableSystem
+                    suppressHydrationWarning
                 >
-                    {mounted ? children : null}
+                    {children}
                 </ThemeProvider>
                 <Toaster />
             </ChakraProvider>

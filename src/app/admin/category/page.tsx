@@ -18,6 +18,7 @@ import { useForm } from 'react-hook-form';
 import { Controller } from 'react-hook-form';
 import { useConfirmDialog } from '@/app/hooks/useConfirmDialog';
 import { ContentLoading } from '@/app/_components/LoadingSpinner';
+import ImageUpload from '../_components/ImageUpload';
 
 // react-hook-form
 type Category = {
@@ -133,6 +134,32 @@ export default function AdminPage() {
     const handleDeleteWithConfirm = (id: string) => {
         setDeleteId(id);
         openDeleteConfirm();
+    };
+
+    // 批量删除确认弹窗
+    const [bulkDeleteRows, setBulkDeleteRows] = useState<any[]>([]);
+    const {
+        ConfirmDialog: BulkDeleteConfirmDialog,
+        open: openBulkDeleteConfirm,
+        close: closeBulkDeleteConfirm,
+    } = useConfirmDialog({
+        title: '确认批量删除',
+        content: `确定要删除选中的 ${bulkDeleteRows.length} 个分类吗？此操作不可撤销。`,
+        confirmText: '删除',
+        cancelText: '取消',
+        buttonProps: { style: { display: 'none' } }, // 不显示按钮，手动控制
+        onConfirm: async () => {
+            if (bulkDeleteRows.length > 0) {
+                await handleBulkDelete(bulkDeleteRows);
+                setBulkDeleteRows([]);
+            }
+        },
+        onCancel: () => setBulkDeleteRows([]),
+    });
+
+    const handleBulkDeleteWithConfirm = (rows: any[]) => {
+        setBulkDeleteRows(rows);
+        openBulkDeleteConfirm();
     };
 
     const columns = useMemo(
@@ -286,12 +313,15 @@ export default function AdminPage() {
                             <Button
                                 size="sm"
                                 colorScheme="red"
-                                onClick={() => handleBulkDelete(rows)}
+                                onClick={() =>
+                                    handleBulkDeleteWithConfirm(rows)
+                                }
                                 disabled={!hasSelection}
                             >
                                 批量删除
                             </Button>
                             <Button
+                                size="sm"
                                 colorScheme="blue"
                                 onClick={() => openEdit()}
                             >
@@ -328,24 +358,60 @@ export default function AdminPage() {
                                         placeholder="名称"
                                         {...register('name', {
                                             required: '请输入名称',
+                                            minLength: {
+                                                value: 2,
+                                                message: '名称至少需要2个字符',
+                                            },
+                                            maxLength: {
+                                                value: 20,
+                                                message: '名称不能超过20个字符',
+                                            },
                                         })}
                                     />
+                                    {errors.name && (
+                                        <Text color="red.500" fontSize="sm">
+                                            {errors.name.message}
+                                        </Text>
+                                    )}
                                 </Field.Root>
-                                <Field.Root>
+                                <Field.Root invalid={!!errors.description}>
                                     <Field.Label>描述</Field.Label>
                                     <Input
-                                        placeholder="描述"
-                                        {...register('description')}
-                                    />
-                                </Field.Root>
-                                <Field.Root invalid={!!errors.icon}>
-                                    <Field.Label>图标URL</Field.Label>
-                                    <Input
-                                        placeholder="图标URL"
-                                        {...register('icon', {
-                                            required: '请输入图标URL',
+                                        placeholder="描述（可选）"
+                                        {...register('description', {
+                                            maxLength: {
+                                                value: 100,
+                                                message:
+                                                    '描述不能超过100个字符',
+                                            },
                                         })}
                                     />
+                                    {errors.description && (
+                                        <Text color="red.500" fontSize="sm">
+                                            {errors.description.message}
+                                        </Text>
+                                    )}
+                                </Field.Root>
+                                <Field.Root invalid={!!errors.icon}>
+                                    <Field.Label>图标</Field.Label>
+                                    <Controller
+                                        name="icon"
+                                        control={control}
+                                        rules={{ required: '请上传图标' }}
+                                        render={({ field }) => (
+                                            <ImageUpload
+                                                value={field.value}
+                                                onChange={field.onChange}
+                                                folder="categories"
+                                                placeholder="点击上传分类图标"
+                                            />
+                                        )}
+                                    />
+                                    {errors.icon && (
+                                        <Text color="red.500" fontSize="sm">
+                                            {errors.icon.message}
+                                        </Text>
+                                    )}
                                 </Field.Root>
                             </Stack>
                             <Box
@@ -370,6 +436,7 @@ export default function AdminPage() {
                 </Box>
             )}
             {DeleteConfirmDialog}
+            {BulkDeleteConfirmDialog}
         </Box>
     );
 }

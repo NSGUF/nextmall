@@ -66,7 +66,7 @@ export const paymentRouter = createTRPCRouter({
                 await writeFile(filepath, buffer);
 
                 // 生成访问 URL
-                const imageUrl = `/uploads/payment/${filename}`;
+                const imageUrl = `/uploads/images/payment/${filename}`;
 
                 // 删除旧的支付码记录（如果存在）
                 await ctx.db.payment.deleteMany({});

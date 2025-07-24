@@ -21,6 +21,7 @@ import { useForm, Controller, useFieldArray } from 'react-hook-form';
 import { useConfirmDialog } from '@/app/hooks/useConfirmDialog';
 import { FiTrash2 } from 'react-icons/fi';
 import { ContentLoading } from '@/app/_components/LoadingSpinner';
+import ImageUpload from '../_components/ImageUpload';
 
 export default function AdminPage() {
     // tRPC hooks
@@ -33,7 +34,6 @@ export default function AdminPage() {
         refetch,
         isLoading,
     } = api.product.list.useQuery(orderBy ? { orderBy, order } : undefined);
-    console.log(products);
     const createProduct = api.product.create.useMutation({
         onSuccess: () => refetch(),
     });
@@ -152,6 +152,32 @@ export default function AdminPage() {
         openDeleteConfirm();
     };
 
+    // 批量删除确认弹窗
+    const [bulkDeleteRows, setBulkDeleteRows] = useState<any[]>([]);
+    const {
+        ConfirmDialog: BulkDeleteConfirmDialog,
+        open: openBulkDeleteConfirm,
+        close: closeBulkDeleteConfirm,
+    } = useConfirmDialog({
+        title: '确认批量删除',
+        content: `确定要删除选中的 ${bulkDeleteRows.length} 个商品吗？此操作不可撤销。`,
+        confirmText: '删除',
+        cancelText: '取消',
+        buttonProps: { style: { display: 'none' } }, // 不显示按钮，手动控制
+        onConfirm: async () => {
+            if (bulkDeleteRows.length > 0) {
+                await handleBulkDelete(bulkDeleteRows);
+                setBulkDeleteRows([]);
+            }
+        },
+        onCancel: () => setBulkDeleteRows([]),
+    });
+
+    const handleBulkDeleteWithConfirm = (rows: any[]) => {
+        setBulkDeleteRows(rows);
+        openBulkDeleteConfirm();
+    };
+
     const columns = useMemo(
         () => [
             { accessorKey: 'title', header: '标题', width: 150 },
@@ -245,9 +271,9 @@ export default function AdminPage() {
                     alignItems="center"
                     mb={4}
                 >
-                    <Heading size="lg">产品管理</Heading>
+                    <Heading size="lg">商品管理</Heading>
                 </Box>
-                <ContentLoading text="产品数据加载中..." />
+                <ContentLoading text="商品数据加载中..." />
             </Box>
         );
     }
@@ -260,7 +286,7 @@ export default function AdminPage() {
                 alignItems="center"
                 mb={4}
             >
-                <Heading size="lg">产品管理</Heading>
+                <Heading size="lg">商品管理</Heading>
             </Box>
             <DataTable
                 columns={columns.map((col) =>
@@ -303,12 +329,15 @@ export default function AdminPage() {
                             <Button
                                 size="sm"
                                 colorScheme="red"
-                                onClick={() => handleBulkDelete(rows)}
+                                onClick={() =>
+                                    handleBulkDeleteWithConfirm(rows)
+                                }
                                 disabled={!hasSelection}
                             >
                                 批量删除
                             </Button>
                             <Button
+                                size="sm"
                                 colorScheme="blue"
                                 onClick={() => openEdit()}
                             >
@@ -401,6 +430,16 @@ export default function AdminPage() {
                                             placeholder="标题"
                                             {...register('title', {
                                                 required: '请输入标题',
+                                                minLength: {
+                                                    value: 2,
+                                                    message:
+                                                        '标题至少需要2个字符',
+                                                },
+                                                maxLength: {
+                                                    value: 100,
+                                                    message:
+                                                        '标题不能超过100个字符',
+                                                },
                                             })}
                                         />
                                         {errors.title && (
@@ -411,23 +450,21 @@ export default function AdminPage() {
                                     </Field.Root>
                                 </Flex>
                                 <Field.Root invalid={!!errors.images}>
-                                    <Field.Label>
-                                        图片（逗号分隔URL）
-                                    </Field.Label>
-                                    <Input
-                                        placeholder="图片URL,多个用逗号分隔"
-                                        {...register('images', {
-                                            required: '请填写图片URL',
-                                            setValueAs: (v) =>
-                                                typeof v === 'string'
-                                                    ? v
-                                                          .split(',')
-                                                          .map((s: string) =>
-                                                              s.trim()
-                                                          )
-                                                          .filter(Boolean)
-                                                    : v,
-                                        })}
+                                    <Field.Label>商品图片</Field.Label>
+                                    <Controller
+                                        name="images"
+                                        control={control}
+                                        rules={{ required: '请上传商品图片' }}
+                                        render={({ field }) => (
+                                            <ImageUpload
+                                                value={field.value}
+                                                onChange={field.onChange}
+                                                multiple={true}
+                                                maxFiles={10}
+                                                folder="products"
+                                                placeholder="点击上传商品图片"
+                                            />
+                                        )}
                                     />
                                     {errors.images && (
                                         <Text color="red.500" fontSize="sm">
@@ -444,8 +481,22 @@ export default function AdminPage() {
                                             {...register('minAmount', {
                                                 required: '请输入最低购买价',
                                                 valueAsNumber: true,
+                                                min: {
+                                                    value: 0,
+                                                    message: '价格不能小于0',
+                                                },
+                                                max: {
+                                                    value: 999999,
+                                                    message:
+                                                        '价格不能超过999999',
+                                                },
                                             })}
                                         />
+                                        {errors.minAmount && (
+                                            <Text color="red.500" fontSize="sm">
+                                                {errors.minAmount.message}
+                                            </Text>
+                                        )}
                                     </Field.Root>
                                     <Field.Root invalid={!!errors.logistics}>
                                         <Field.Label>物流方式</Field.Label>
@@ -461,15 +512,30 @@ export default function AdminPage() {
                                             </Text>
                                         )}
                                     </Field.Root>
-                                    <Field.Root>
+                                    <Field.Root invalid={!!errors.logiPrice}>
                                         <Field.Label>物流价格</Field.Label>
                                         <Input
                                             placeholder="物流价格（包邮默认写0）"
                                             type="number"
                                             {...register('logiPrice', {
                                                 valueAsNumber: true,
+                                                min: {
+                                                    value: 0,
+                                                    message:
+                                                        '物流价格不能小于0',
+                                                },
+                                                max: {
+                                                    value: 9999,
+                                                    message:
+                                                        '物流价格不能超过9999',
+                                                },
                                             })}
                                         />
+                                        {errors.logiPrice && (
+                                            <Text color="red.500" fontSize="sm">
+                                                {errors.logiPrice.message}
+                                            </Text>
+                                        )}
                                     </Field.Root>
                                 </Flex>
 
@@ -528,16 +594,26 @@ export default function AdminPage() {
                                                     }
                                                 )}
                                             />
-                                            <Input
-                                                placeholder="图片URL"
-                                                {...register(
-                                                    `specs.${idx}.image`,
-                                                    {
+                                            <Box flex="1">
+                                                <Controller
+                                                    name={`specs.${idx}.image`}
+                                                    control={control}
+                                                    rules={{
                                                         required:
-                                                            '请填写图片URL',
-                                                    }
-                                                )}
-                                            />
+                                                            '请上传规格图片',
+                                                    }}
+                                                    render={({ field }) => (
+                                                        <ImageUpload
+                                                            value={field.value}
+                                                            onChange={
+                                                                field.onChange
+                                                            }
+                                                            folder="product-specs"
+                                                            placeholder="上传规格图片"
+                                                        />
+                                                    )}
+                                                />
+                                            </Box>
                                             {specFields.length > 1 && (
                                                 <Button
                                                     variant="ghost"
@@ -574,6 +650,15 @@ export default function AdminPage() {
                                         placeholder="描述"
                                         {...register('description', {
                                             required: '请输入描述',
+                                            minLength: {
+                                                value: 10,
+                                                message: '描述至少需要10个字符',
+                                            },
+                                            maxLength: {
+                                                value: 1000,
+                                                message:
+                                                    '描述不能超过1000个字符',
+                                            },
                                         })}
                                     />
                                     {errors.description && (
@@ -641,6 +726,7 @@ export default function AdminPage() {
                 </Box>
             )}
             {DeleteConfirmDialog}
+            {BulkDeleteConfirmDialog}
         </Box>
     );
 }

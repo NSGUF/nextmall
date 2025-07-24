@@ -106,7 +106,6 @@ export default function ConfirmPage() {
 
     const createOrderMutation = api.order.create.useMutation({
         onSuccess: (data) => {
-            console.log(data);
             showSuccessToast('订单创建成功');
             router.push(`/full/order?type=paid`);
         },
