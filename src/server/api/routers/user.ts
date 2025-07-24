@@ -2,6 +2,7 @@ import { z } from 'zod';
 import {
     createTRPCRouter,
     publicProcedure,
+    protectedProcedure,
     superAdminProcedure,
 } from '@/server/api/trpc';
 import { hash } from 'bcryptjs';
@@ -104,5 +105,54 @@ export const userRouter = createTRPCRouter({
             orderBy: { createdAt: 'desc' },
         });
         return vendors;
+    }),
+
+    // 获取用户统计信息
+    getStats: protectedProcedure.query(async ({ ctx }) => {
+        const userId = ctx.session.user.id;
+
+        const [
+            favoritesCount,
+            footprintsCount,
+            paidOrdersCount,
+            checkedOrdersCount,
+            deliveredOrdersCount,
+            completedOrdersCount,
+            cancelledOrdersCount,
+        ] = await Promise.all([
+            ctx.db.productFavorite.count({
+                where: { userId },
+            }),
+            ctx.db.footprint.count({
+                where: { userId },
+            }),
+            ctx.db.order.count({
+                where: { userId, status: 'PAID', isDeleted: false },
+            }),
+            ctx.db.order.count({
+                where: { userId, status: 'CHECKED', isDeleted: false },
+            }),
+            ctx.db.order.count({
+                where: { userId, status: 'DELIVERED', isDeleted: false },
+            }),
+            ctx.db.order.count({
+                where: { userId, status: 'COMPLETED', isDeleted: false },
+            }),
+            ctx.db.order.count({
+                where: { userId, status: 'CANCELLED', isDeleted: false },
+            }),
+        ]);
+
+        return {
+            favoritesCount,
+            footprintsCount,
+            orderCounts: {
+                paid: paidOrdersCount,
+                checked: checkedOrdersCount,
+                delivered: deliveredOrdersCount,
+                completed: completedOrdersCount,
+                cancelled: cancelledOrdersCount,
+            },
+        };
     }),
 });

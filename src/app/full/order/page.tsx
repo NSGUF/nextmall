@@ -2,24 +2,43 @@
 
 import { Box, Flex, Image, Text } from '@chakra-ui/react';
 import TopNav from '@/app/full/_components/TopNav';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import TabBar from '@/app/h5/_components/TabBar';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { api } from '@/trpc/react';
 import Link from 'next/link';
 
 export default function OrderPage() {
     const router = useRouter();
-    const [activeCollectionId, setActiveCollectionId] = useState<string>('all');
+    const searchParams = useSearchParams();
+    const statusFromUrl = searchParams.get('status');
+
+    const [activeCollectionId, setActiveCollectionId] = useState<string>(
+        statusFromUrl || 'all'
+    );
+
     const tabs = [
         { id: 'all', title: '全部' },
-        { id: 'PENDING', title: '待付款' },
-        { id: 'PAID', title: '待发货' },
-        { id: 'SHIPPED', title: '待收货' },
+        { id: 'PAID', title: '待审核' },
+        { id: 'CHECKED', title: '待发货' },
+        { id: 'DELIVERED', title: '待收货' },
         { id: 'COMPLETED', title: '已完成' },
         { id: 'CANCELLED', title: '已取消' },
     ];
-    const { data: order } = api.order.list.useQuery({});
+
+    // 根据选中的标签过滤订单
+    const orderStatus =
+        activeCollectionId === 'all' ? undefined : (activeCollectionId as any);
+    const { data: order } = api.order.list.useQuery({
+        status: orderStatus,
+    });
+
+    // 当URL参数变化时更新选中的标签
+    useEffect(() => {
+        if (statusFromUrl) {
+            setActiveCollectionId(statusFromUrl);
+        }
+    }, [statusFromUrl]);
 
     return (
         <Box bg="#f5f5f7" minH="100vh" pb="100px">
@@ -105,8 +124,9 @@ export default function OrderPage() {
                                                 fontSize="xs"
                                                 textAlign="left"
                                             >
-                                                {item.items[0]?.specInfo} x{' '}
-                                                {item.items?.[0]?.quantity}
+                                                {item.items[0]?.spec?.value ||
+                                                    '默认规格'}{' '}
+                                                x {item.items?.[0]?.quantity}
                                             </Text>
                                         </Flex>
                                     </Flex>

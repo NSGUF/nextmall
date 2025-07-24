@@ -20,36 +20,49 @@ import {
 import { LuCrown, LuLanguages } from 'react-icons/lu';
 import * as React from 'react';
 import Link from 'next/link';
+import { useAuth } from '@/app/hooks/useAuth';
+import { api } from '@/trpc/react';
 
-function IconCircleButton({
+function IconWithBadge({
     icon,
-    label,
+    count,
 }: {
     icon: React.ReactNode;
-    label: string;
+    count: number;
 }) {
+    const displayCount = count > 99 ? '99+' : count.toString();
+
     return (
-        <button
-            aria-label={label}
-            style={{
-                background: 'none',
-                border: 'none',
-                padding: 4,
-                borderRadius: 8,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 20,
-            }}
-            tabIndex={0}
-        >
+        <Box position="relative" display="inline-block">
             {icon}
-        </button>
+            {count > 0 && (
+                <Box
+                    position="absolute"
+                    top="-8px"
+                    right="-12px"
+                    bg="red.500"
+                    color="white"
+                    borderRadius="full"
+                    minW="18px"
+                    h="18px"
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    fontSize="10px"
+                    fontWeight="bold"
+                    px="4px"
+                >
+                    {displayCount}
+                </Box>
+            )}
+        </Box>
     );
 }
 
 export default function MePage() {
+    const { session } = useAuth();
+    const { data: userStats } = api.user.getStats.useQuery();
+
     return (
         <Box
             style={{
@@ -63,11 +76,13 @@ export default function MePage() {
                 <Flex align="center" justify="space-between">
                     <Flex align="center" gap={3}>
                         <Avatar.Root>
-                            <Avatar.Fallback name="Segun Adebayo" />
+                            <Avatar.Fallback
+                                name={session?.user?.name || 'User'}
+                            />
                         </Avatar.Root>
                         <Box>
                             <Text fontWeight="bold" fontSize="xl">
-                                u2522
+                                {session?.user?.name || '用户'}
                             </Text>
                         </Box>
                     </Flex>
@@ -85,7 +100,7 @@ export default function MePage() {
                     <Link href="/full/favorite">
                         <Box textAlign="center">
                             <Text fontWeight="bold" fontSize="lg">
-                                0
+                                {userStats?.favoritesCount || 0}
                             </Text>
                             <Text color="gray.500" fontSize="sm">
                                 我的收藏
@@ -95,7 +110,7 @@ export default function MePage() {
                     <Link href="/full/footprint">
                         <Box textAlign="center">
                             <Text fontWeight="bold" fontSize="lg">
-                                0
+                                {userStats?.footprintsCount || 0}
                             </Text>
                             <Text color="gray.500" fontSize="sm">
                                 我的足迹
@@ -117,46 +132,98 @@ export default function MePage() {
             >
                 <Flex justify="space-between" align="center" mb={2}>
                     <Text fontWeight="bold">我的订单</Text>
-                    <Flex
-                        align="center"
-                        color="gray.500"
-                        fontSize="sm"
-                        cursor="pointer"
-                    >
-                        全部订单 <FiChevronRight />
-                    </Flex>
+                    <Link href="/full/order">
+                        <Flex
+                            align="center"
+                            color="gray.500"
+                            fontSize="sm"
+                            cursor="pointer"
+                        >
+                            全部订单 <FiChevronRight />
+                        </Flex>
+                    </Link>
                 </Flex>
                 <Grid templateColumns="repeat(5, 1fr)" gap={2} mt={4}>
-                    <Flex direction="column" align="center" justify="center">
-                        <FiCreditCard size={24} />
-                        <Text fontSize="xs" color="gray.500" mt={1}>
-                            待审核
-                        </Text>
-                    </Flex>
-                    <Flex direction="column" align="center" justify="center">
-                        <FiGift size={24} />
-                        <Text fontSize="xs" color="gray.500" mt={1}>
-                            待发货
-                        </Text>
-                    </Flex>
-                    <Flex direction="column" align="center" justify="center">
-                        <FiTruck size={24} />
-                        <Text fontSize="xs" color="gray.500" mt={1}>
-                            待收货
-                        </Text>
-                    </Flex>
-                    <Flex direction="column" align="center" justify="center">
-                        <FiCheckCircle size={24} />
-                        <Text fontSize="xs" color="gray.500" mt={1}>
-                            已完成
-                        </Text>
-                    </Flex>
-                    <Flex direction="column" align="center" justify="center">
-                        <FiRefreshCw size={24} />
-                        <Text fontSize="xs" color="gray.500" mt={1}>
-                            退款退货
-                        </Text>
-                    </Flex>
+                    <Link href="/full/order?status=PAID">
+                        <Flex
+                            direction="column"
+                            align="center"
+                            justify="center"
+                            cursor="pointer"
+                        >
+                            <IconWithBadge
+                                icon={<FiCreditCard size={24} />}
+                                count={userStats?.orderCounts?.paid || 0}
+                            />
+                            <Text fontSize="xs" color="gray.500" mt={1}>
+                                待审核
+                            </Text>
+                        </Flex>
+                    </Link>
+                    <Link href="/full/order?status=CHECKED">
+                        <Flex
+                            direction="column"
+                            align="center"
+                            justify="center"
+                            cursor="pointer"
+                        >
+                            <IconWithBadge
+                                icon={<FiGift size={24} />}
+                                count={userStats?.orderCounts?.checked || 0}
+                            />
+                            <Text fontSize="xs" color="gray.500" mt={1}>
+                                待发货
+                            </Text>
+                        </Flex>
+                    </Link>
+                    <Link href="/full/order?status=DELIVERED">
+                        <Flex
+                            direction="column"
+                            align="center"
+                            justify="center"
+                            cursor="pointer"
+                        >
+                            <IconWithBadge
+                                icon={<FiTruck size={24} />}
+                                count={userStats?.orderCounts?.delivered || 0}
+                            />
+                            <Text fontSize="xs" color="gray.500" mt={1}>
+                                待收货
+                            </Text>
+                        </Flex>
+                    </Link>
+                    <Link href="/full/order?status=COMPLETED">
+                        <Flex
+                            direction="column"
+                            align="center"
+                            justify="center"
+                            cursor="pointer"
+                        >
+                            <IconWithBadge
+                                icon={<FiCheckCircle size={24} />}
+                                count={userStats?.orderCounts?.completed || 0}
+                            />
+                            <Text fontSize="xs" color="gray.500" mt={1}>
+                                已完成
+                            </Text>
+                        </Flex>
+                    </Link>
+                    <Link href="/full/order?status=CANCELLED">
+                        <Flex
+                            direction="column"
+                            align="center"
+                            justify="center"
+                            cursor="pointer"
+                        >
+                            <IconWithBadge
+                                icon={<FiRefreshCw size={24} />}
+                                count={userStats?.orderCounts?.cancelled || 0}
+                            />
+                            <Text fontSize="xs" color="gray.500" mt={1}>
+                                退款退货
+                            </Text>
+                        </Flex>
+                    </Link>
                 </Grid>
             </Box>
 
