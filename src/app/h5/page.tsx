@@ -7,8 +7,11 @@ import BannerCarousel from './_components/BannerCarousel';
 import { api } from '@/trpc/react';
 import Link from 'next/link';
 import { ContentLoading } from '@/app/_components/LoadingSpinner';
+import { useRouter } from 'next/navigation';
 
 export default function H5Home() {
+    const router = useRouter();
+
     // 获取 isActive 的 banners
     const { data: banners = [], isLoading: bannersLoading } =
         api.banner.list.useQuery({ isActive: true });
@@ -54,6 +57,9 @@ export default function H5Home() {
                         borderRadius="full"
                         _focus={{ bg: 'white' }}
                         _placeholder={{ color: 'gray.400' }}
+                        onClick={() => router.push('/full/search')}
+                        readOnly
+                        cursor="pointer"
                     />
                 </InputGroup>
             </Box>

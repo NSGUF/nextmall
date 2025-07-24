@@ -12,11 +12,12 @@ import {
 import { InputGroup } from '@/app/_components/ui';
 import { FiSearch } from 'react-icons/fi';
 import { api } from '@/trpc/react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import ProductItem from '@/app/h5/_components/ProductItem';
 import { ContentLoading } from '@/app/_components/LoadingSpinner';
 
 export default function CategoryPage() {
+    const router = useRouter();
     const { data: categories = [], isLoading: categoriesLoading } =
         api.category.list.useQuery(undefined, {
             refetchOnMount: 'always',
@@ -59,6 +60,9 @@ export default function CategoryPage() {
                         borderRadius="full"
                         _focus={{ bg: 'white' }}
                         _placeholder={{ color: 'gray.400' }}
+                        onClick={() => router.push('/full/search')}
+                        readOnly
+                        cursor="pointer"
                     />
                 </InputGroup>
             </Box>

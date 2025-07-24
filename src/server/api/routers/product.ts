@@ -7,7 +7,7 @@ import {
 } from '@/server/api/trpc';
 
 export const productRouter = createTRPCRouter({
-    // 获取所有商品，支持排序
+    // 获取所有商品，支持排序和搜索
     list: publicProcedure
         .input(
             z
@@ -15,17 +15,60 @@ export const productRouter = createTRPCRouter({
                     orderBy: z.string().optional(),
                     order: z.enum(['asc', 'desc']).optional(),
                     categoryId: z.string().optional(),
+                    search: z.string().optional(),
                 })
                 .optional()
         )
         .query(async ({ ctx, input }) => {
+            // 构建where条件
+            const where: any = {};
+
+            // 分类筛选
+            if (input?.categoryId) {
+                where.categoryId = input.categoryId;
+            }
+
+            // 搜索功能
+            if (input?.search) {
+                where.title = {
+                    contains: input.search,
+                    mode: 'insensitive',
+                };
+            }
+
+            // 构建排序条件
+            let orderBy: any = { createdAt: 'desc' };
+            if (input?.orderBy) {
+                if (
+                    input.orderBy === 'price_asc' ||
+                    input.orderBy === 'price_desc'
+                ) {
+                    // 对于价格排序，我们先获取所有商品，然后在内存中排序
+                    const products = await ctx.db.product.findMany({
+                        where,
+                        include: { specs: true },
+                    });
+
+                    // 按最低价格排序
+                    return products.sort((a, b) => {
+                        const minPriceA = Math.min(
+                            ...a.specs.map((spec) => spec.price)
+                        );
+                        const minPriceB = Math.min(
+                            ...b.specs.map((spec) => spec.price)
+                        );
+                        return input.orderBy === 'price_asc'
+                            ? minPriceA - minPriceB
+                            : minPriceB - minPriceA;
+                    });
+                } else {
+                    orderBy = { [input.orderBy]: input.order ?? 'asc' };
+                }
+            }
+
             return ctx.db.product.findMany({
-                orderBy: input?.orderBy
-                    ? { [input.orderBy]: input.order ?? 'asc' }
-                    : { createdAt: 'desc' },
-                where: input?.categoryId
-                    ? { categoryId: input.categoryId }
-                    : undefined,
+                orderBy,
+                where,
                 include: { specs: true },
             });
         }),

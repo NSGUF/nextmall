@@ -58,6 +58,13 @@ export default function ConfirmPage() {
             gcTime: 1000 * 60 * 5, // 5分钟垃圾回收
         });
 
+    // 获取支付码
+    const { data: paymentCode, isLoading: paymentCodeLoading } =
+        api.paymentCode.get.useQuery(undefined, {
+            staleTime: 1000 * 60 * 5, // 5分钟缓存
+            gcTime: 1000 * 60 * 10, // 10分钟垃圾回收
+        });
+
     // 监听localStorage变化和页面焦点
     useEffect(() => {
         const handleStorageChange = () => {
@@ -155,7 +162,7 @@ export default function ConfirmPage() {
         return null;
     }
 
-    if (addressLoading) {
+    if (addressLoading || paymentCodeLoading) {
         return (
             <Box bg="#f5f5f7" minH="100vh" pb="100px">
                 <TopNav title="确认订单" />
@@ -323,12 +330,41 @@ export default function ConfirmPage() {
                         <Text color="red.500">请扫二维码支付</Text>
                     </Flex>
                 </Flex>
-                <Image
-                    m="auto"
-                    maxW="50vw"
-                    src="\userAvatar.jpg"
-                    alt="请扫码支付"
-                />
+                {paymentCode?.image ? (
+                    <Image
+                        m="auto"
+                        maxW="50vw"
+                        src={paymentCode.image}
+                        alt="请扫码支付"
+                        borderRadius="md"
+                    />
+                ) : (
+                    <Box
+                        m="auto"
+                        maxW="50vw"
+                        h="200px"
+                        bg="gray.100"
+                        borderRadius="md"
+                        display="flex"
+                        alignItems="center"
+                        justifyContent="center"
+                        border="2px dashed"
+                        borderColor="gray.300"
+                    >
+                        <VStack gap={2}>
+                            <FiCreditCard size={32} color="#CBD5E0" />
+                            <Text
+                                color="gray.500"
+                                fontSize="sm"
+                                textAlign="center"
+                            >
+                                暂无支付码
+                                <br />
+                                请联系管理员设置
+                            </Text>
+                        </VStack>
+                    </Box>
+                )}
             </Box>
 
             {/* 底部提交栏 */}

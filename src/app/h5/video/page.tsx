@@ -41,6 +41,10 @@ export default function VideoPage() {
                 tabs={tabs as any}
                 activeTabId={activeCollectionId}
                 onTabChange={setActiveCollectionId}
+                urlSync={{
+                    paramName: 'collection',
+                    defaultValue: 'all',
+                }}
             />
             {/* 视频宫格 */}
             <Box px={4} py={4}>

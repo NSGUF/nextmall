@@ -13,6 +13,7 @@ import {
     FiCircle as Dot,
     FiChevronDown as ChevronDown,
     FiBookOpen,
+    FiCreditCard,
 } from 'react-icons/fi';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -57,6 +58,11 @@ const Sidebar = () => {
             title: '课程管理',
             url: '/admin/video/course',
             icon: FiDollarSign,
+        },
+        {
+            title: '支付码管理',
+            url: '/admin/payment',
+            icon: FiCreditCard,
         },
         // {
         //   title: "Business",

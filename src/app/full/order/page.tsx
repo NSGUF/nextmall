@@ -4,7 +4,7 @@ import { Box, Flex, Image, Text } from '@chakra-ui/react';
 import TopNav from '@/app/full/_components/TopNav';
 import { useRouter, useSearchParams } from 'next/navigation';
 import TabBar from '@/app/h5/_components/TabBar';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { api } from '@/trpc/react';
 import Link from 'next/link';
 import { ContentLoading } from '@/app/_components/LoadingSpinner';
@@ -34,12 +34,12 @@ export default function OrderPage() {
         status: orderStatus,
     });
 
-    // 当URL参数变化时更新选中的标签
-    useEffect(() => {
-        if (statusFromUrl) {
-            setActiveCollectionId(statusFromUrl);
-        }
-    }, [statusFromUrl]);
+    // 当URL参数变化时更新选中的标签（现在由 TabBar 自动处理）
+    // useEffect(() => {
+    //     if (statusFromUrl) {
+    //         setActiveCollectionId(statusFromUrl);
+    //     }
+    // }, [statusFromUrl]);
 
     if (orderLoading) {
         return (
@@ -57,6 +57,10 @@ export default function OrderPage() {
                 tabs={tabs as any}
                 activeTabId={activeCollectionId}
                 onTabChange={setActiveCollectionId}
+                urlSync={{
+                    paramName: 'status',
+                    defaultValue: 'all',
+                }}
             />
             <Box h="100" overflow="auto">
                 {order?.length ? (
@@ -73,10 +77,7 @@ export default function OrderPage() {
                             _hover={{ boxShadow: 'md' }}
                         >
                             <Link
-                                href={
-                                    '/full/product?id=' +
-                                    item.items[0].productId
-                                }
+                                href={'/full/order/detail?orderId=' + item.id}
                             >
                                 <Flex
                                     align="center"

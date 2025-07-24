@@ -24,6 +24,7 @@ import {
     STORE_GOOD_DATA_KEY,
     STORE_LAUNCH_INFO_KEY,
 } from '@/app/const';
+import { Item } from 'node_modules/@chakra-ui/react/dist/types/components/accordion/namespace';
 
 export default function OrderDetailPage() {
     const searchParams = useSearchParams();
@@ -37,10 +38,6 @@ export default function OrderDetailPage() {
     });
 
     const defaultAddress = order?.address || {};
-    const totalLogiPrice = order?.items.reduce((acc, item) => {
-        return acc + item.logiPrice;
-    }, 0);
-    const finalPrice = order?.totalPrice + totalLogiPrice;
 
     return (
         <Box bg="#f5f5f7" minH="100vh" pb="100px">
@@ -67,7 +64,10 @@ export default function OrderDetailPage() {
 
             {/* 商品信息 */}
             {order?.items?.map(
-                ({ product, spec, quantity, remark, specInfo }, index) => (
+                (
+                    { product, spec, quantity, remark, specInfo, logiPrice },
+                    index
+                ) => (
                     <Box
                         bg="white"
                         key={product.id}
@@ -131,31 +131,29 @@ export default function OrderDetailPage() {
                         <Flex align="center" gap={4} my={3}>
                             <Text color="gray.600">订单留言</Text>
                             <Text color="gray.400" flex="1" textAlign="right">
-                                {remark}
+                                {remark || '无'}
                             </Text>
                         </Flex>
 
                         {/* 价格明细 */}
                         <VStack align="stretch" gap={2}>
                             <Flex justify="space-between" my={2}>
-                                <Text color="gray.600">共{quantity}件</Text>
-                                <Flex>
-                                    小计:
-                                    <Text ml={2} color="red.500">
-                                        ¥{order.totalPrice?.toFixed(2)}
-                                    </Text>
-                                </Flex>
+                                <Text color="gray.600">运费</Text>
+                                <Text color="red.600">
+                                    ¥{logiPrice.toFixed(2)}
+                                </Text>
                             </Flex>
                             <Flex justify="space-between" my={2}>
-                                <Text color="gray.600">订单运费</Text>
-                                <Text color="red.600">
-                                    ¥{totalLogiPrice.toFixed(2)}
+                                <Text color="gray.600">商品总价</Text>
+                                <Text ml={2} color="red.500">
+                                    ¥
+                                    {(order.totalPrice - logiPrice)?.toFixed(2)}
                                 </Text>
                             </Flex>
                             <Flex justify="space-between" my={2}>
                                 <Text color="gray.600">实付</Text>
                                 <Text color="red.600">
-                                    ¥{finalPrice.toFixed(2)}
+                                    ¥{order.totalPrice.toFixed(2)}
                                 </Text>
                             </Flex>
                             <Flex justify="space-between" my={2}>

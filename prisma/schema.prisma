@@ -311,4 +311,14 @@ model Footprint {
   @@unique([userId, productId])
 }
 
+// 支付码管理表
+model Payment {
+  id           String   @id @default(cuid()) // 支付码ID
+  image        String   // 支付码图片地址
+  filename     String   // 文件名
+  originalName String   // 原始文件名
+  createdAt    DateTime @default(now()) // 创建时间
+  updatedAt    DateTime @updatedAt @default(now()) // 更新时间
+}
+
 
