@@ -34,6 +34,42 @@ export const courseRouter = createTRPCRouter({
             });
         }),
 
+    // 获取单个课程详情
+    get: publicProcedure
+        .input(z.object({ id: z.string() }))
+        .query(async ({ ctx, input }) => {
+            const course = await ctx.db.course.findUnique({
+                where: { id: input.id },
+                include: {
+                    creator: {
+                        select: {
+                            id: true,
+                            name: true,
+                            image: true,
+                        },
+                    },
+                    collection: {
+                        select: {
+                            id: true,
+                            title: true,
+                        },
+                    },
+                },
+            });
+
+            if (!course) {
+                throw new Error('课程不存在');
+            }
+
+            // 增加播放次数
+            await ctx.db.course.update({
+                where: { id: input.id },
+                data: { views: { increment: 1 } },
+            });
+
+            return course;
+        }),
+
     create: superAdminProcedure
         .input(
             z.object({

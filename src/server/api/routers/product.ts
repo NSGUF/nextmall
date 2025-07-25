@@ -202,9 +202,55 @@ export const productRouter = createTRPCRouter({
     deleteMany: superAdminProcedure
         .input(z.object({ ids: z.array(z.string()) }))
         .mutation(async ({ ctx, input }) => {
-            return ctx.db.product.deleteMany({
-                where: { id: { in: input.ids } },
-            });
+            if (!input.ids || input.ids.length === 0) {
+                throw new Error('请选择要删除的商品');
+            }
+
+            try {
+                // 检查是否有商品被购物车或订单引用
+                const cartItems = await ctx.db.cart.findMany({
+                    where: { productId: { in: input.ids } },
+                });
+
+                const orderItems = await ctx.db.orderItem.findMany({
+                    where: { productId: { in: input.ids } },
+                });
+
+                if (cartItems.length > 0 || orderItems.length > 0) {
+                    throw new Error('无法删除：商品已被购物车或订单引用');
+                }
+
+                // 先删除相关的规格
+                await ctx.db.productSpec.deleteMany({
+                    where: { productId: { in: input.ids } },
+                });
+
+                // 删除收藏记录
+                await ctx.db.productFavorite.deleteMany({
+                    where: { productId: { in: input.ids } },
+                });
+
+                // 删除足迹记录
+                await ctx.db.footprint.deleteMany({
+                    where: { productId: { in: input.ids } },
+                });
+
+                // 最后删除商品
+                const result = await ctx.db.product.deleteMany({
+                    where: { id: { in: input.ids } },
+                });
+
+                return {
+                    success: true,
+                    message: `成功删除 ${result.count} 个商品`,
+                    deletedCount: result.count,
+                };
+            } catch (error) {
+                console.error('删除商品失败:', error);
+                throw new Error(
+                    error instanceof Error ? error.message : '删除失败'
+                );
+            }
         }),
     // 商品详情，带是否已收藏
     get: protectedProcedure

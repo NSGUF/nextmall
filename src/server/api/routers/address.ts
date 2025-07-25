@@ -25,7 +25,7 @@ export const addressRouter = createTRPCRouter({
             });
         }),
 
-    create: superAdminProcedure
+    create: protectedProcedure
         .input(
             z.object({
                 name: z.string(),
@@ -73,7 +73,7 @@ export const addressRouter = createTRPCRouter({
             };
         }),
 
-    update: superAdminProcedure
+    update: protectedProcedure
         .input(
             z.object({
                 id: z.string(),
@@ -91,7 +91,7 @@ export const addressRouter = createTRPCRouter({
             return ctx.db.address.update({ where: { id }, data });
         }),
 
-    delete: superAdminProcedure
+    delete: protectedProcedure
         .input(z.object({ id: z.string() }))
         .mutation(async ({ ctx, input }) => {
             // 先查要删除的地址
@@ -119,7 +119,7 @@ export const addressRouter = createTRPCRouter({
             return { message: '删除成功' };
         }),
 
-    deleteMany: superAdminProcedure
+    deleteMany: protectedProcedure
         .input(z.object({ ids: z.array(z.string()) }))
         .mutation(async ({ ctx, input }) => {
             return ctx.db.address.deleteMany({

@@ -25,6 +25,7 @@ import { useRouter } from 'next/navigation';
 import useCustomToast from '@/app/hooks/useCustomToast';
 import { STORE_GOOD_DATA_KEY, STORE_LAUNCH_INFO_KEY } from '@/app/const';
 import { ContentLoading } from '@/app/_components/LoadingSpinner';
+import Link from 'next/link';
 
 // 购物车商品接口
 interface CartItem {
@@ -105,20 +106,20 @@ export default function CartPage() {
             if (!vendorId) return;
 
             const cartItem: CartItem = {
-                id: item.id!,
-                productId: item.productId!,
+                id: item.id,
+                productId: item.productId,
                 specId: item.specId || undefined,
-                quantity: item.quantity!,
+                quantity: item.quantity,
                 checked: false, // 默认不选中
                 product: {
-                    id: item.product!.id!,
-                    title: item.product!.title!,
-                    images: item.product!.images || [],
+                    id: item.product.id,
+                    title: item.product.title,
+                    images: item.product.images || [],
                     vendor: {
-                        id: item.product!.vendor!.id!,
-                        name: item.product!.vendor!.name!,
+                        id: item.product.vendor.id,
+                        name: item.product.vendor.name,
                     },
-                    logiPrice: item.product!.logiPrice || 0,
+                    logiPrice: item.product.logiPrice || 0,
                 },
                 spec: item.spec
                     ? {
@@ -133,12 +134,12 @@ export default function CartPage() {
             };
 
             if (vendorMap.has(vendorId)) {
-                vendorMap.get(vendorId)!.items.push(cartItem);
+                vendorMap.get(vendorId).items.push(cartItem);
             } else {
                 vendorMap.set(vendorId, {
                     vendor: {
-                        id: item.product!.vendor!.id!,
-                        name: item.product!.vendor!.name!,
+                        id: item.product.vendor.id,
+                        name: item.product.vendor.name,
                     },
                     items: [cartItem],
                 });
@@ -441,146 +442,160 @@ export default function CartPage() {
                                         <Checkbox.HiddenInput />
                                         <Checkbox.Control />
                                     </Checkbox.Root>
-                                    <Image
-                                        src={
-                                            item.spec?.image ||
-                                            item.product.images[0] ||
-                                            '/logo.svg'
+                                    <Flex
+                                        align="center"
+                                        onClick={() =>
+                                            router.push(
+                                                `/full/product?id=${item.productId}`
+                                            )
                                         }
-                                        alt={item.product.title}
-                                        boxSize="60px"
-                                        borderRadius="md"
-                                        mr={3}
-                                    />
-                                    <Box flex={1} minW="0">
-                                        <Text
-                                            fontWeight="medium"
-                                            color="#222"
-                                            textOverflow="ellipsis"
-                                            overflow="hidden"
-                                            whiteSpace="nowrap"
-                                            minW="0"
-                                        >
-                                            {item.product.title}
-                                        </Text>
-                                        {item.spec && (
-                                            <Flex
-                                                align="center"
-                                                bg="#f5f5f5"
-                                                borderRadius="full"
-                                                px={3}
-                                                py={1}
-                                                w="fit-content"
-                                                mt={1}
-                                                fontSize="xs"
-                                                color="#222"
-                                                gap={1}
-                                            >
-                                                {item.spec.value}{' '}
-                                                {item.spec.name}
-                                                <Box
-                                                    as="span"
-                                                    ml={1}
-                                                    display="flex"
-                                                    alignItems="center"
-                                                >
-                                                    <FiChevronDown />
-                                                </Box>
-                                            </Flex>
-                                        )}
-                                        <Flex
-                                            align="center"
-                                            justify="space-between"
-                                            mt={2}
-                                        >
+                                        flex="1"
+                                        minW="0"
+                                    >
+                                        <Image
+                                            src={
+                                                item.spec?.image ||
+                                                item.product.images[0] ||
+                                                '/logo.svg'
+                                            }
+                                            alt={item.product.title}
+                                            boxSize="60px"
+                                            borderRadius="md"
+                                            mr={3}
+                                        />
+                                        <Box flex={1} minW="0">
                                             <Text
-                                                fontSize="lg"
-                                                fontWeight="bold"
-                                                color="red.500"
+                                                fontWeight="medium"
+                                                color="#222"
+                                                textOverflow="ellipsis"
+                                                overflow="hidden"
+                                                whiteSpace="nowrap"
+                                                minW="0"
                                             >
-                                                ¥
-                                                {item.spec?.price?.toFixed(2) ||
-                                                    '0.00'}
+                                                {item.product.title}
                                             </Text>
+                                            {item.spec && (
+                                                <Flex
+                                                    align="center"
+                                                    bg="#f5f5f5"
+                                                    borderRadius="full"
+                                                    px={3}
+                                                    py={1}
+                                                    w="fit-content"
+                                                    mt={1}
+                                                    fontSize="xs"
+                                                    color="#222"
+                                                    gap={1}
+                                                >
+                                                    {item.spec.value}{' '}
+                                                    {item.spec.name}
+                                                    <Box
+                                                        as="span"
+                                                        ml={1}
+                                                        display="flex"
+                                                        alignItems="center"
+                                                    >
+                                                        <FiChevronDown />
+                                                    </Box>
+                                                </Flex>
+                                            )}
                                             <Flex
                                                 align="center"
-                                                border="1px solid #eee"
-                                                borderRadius="full"
-                                                px={2}
-                                                gap={0}
+                                                justify="space-between"
+                                                mt={2}
                                             >
-                                                <Button
-                                                    size="2xs"
-                                                    variant="ghost"
-                                                    p={0}
-                                                    onClick={() =>
-                                                        handleCountChange(
-                                                            vendorIdx,
-                                                            itemIdx,
-                                                            -1
-                                                        )
-                                                    }
+                                                <Text
+                                                    fontSize="lg"
+                                                    fontWeight="bold"
+                                                    color="red.500"
                                                 >
-                                                    <FiMinus />
-                                                </Button>
-                                                <Input
-                                                    size="2xs"
-                                                    value={item.quantity}
-                                                    onChange={(e) => {
-                                                        const maxStock =
-                                                            item.spec?.stock ||
-                                                            999;
-                                                        const newQuantity =
-                                                            Math.max(
-                                                                1,
-                                                                Math.min(
-                                                                    maxStock,
-                                                                    parseInt(
-                                                                        e.target
-                                                                            .value
-                                                                    ) || 1
-                                                                )
+                                                    ¥
+                                                    {item.spec?.price?.toFixed(
+                                                        2
+                                                    ) || '0.00'}
+                                                </Text>
+                                                <Flex
+                                                    align="center"
+                                                    border="1px solid #eee"
+                                                    borderRadius="full"
+                                                    px={2}
+                                                    gap={0}
+                                                >
+                                                    <Button
+                                                        size="2xs"
+                                                        variant="ghost"
+                                                        p={0}
+                                                        onClick={() =>
+                                                            handleCountChange(
+                                                                vendorIdx,
+                                                                itemIdx,
+                                                                -1
+                                                            )
+                                                        }
+                                                    >
+                                                        <FiMinus />
+                                                    </Button>
+                                                    <Input
+                                                        size="2xs"
+                                                        value={item.quantity}
+                                                        onChange={(e) => {
+                                                            const maxStock =
+                                                                item.spec
+                                                                    ?.stock ||
+                                                                999;
+                                                            const newQuantity =
+                                                                Math.max(
+                                                                    1,
+                                                                    Math.min(
+                                                                        maxStock,
+                                                                        parseInt(
+                                                                            e
+                                                                                .target
+                                                                                .value
+                                                                        ) || 1
+                                                                    )
+                                                                );
+                                                            handleCountChange(
+                                                                vendorIdx,
+                                                                itemIdx,
+                                                                newQuantity -
+                                                                    item.quantity
                                                             );
-                                                        handleCountChange(
-                                                            vendorIdx,
-                                                            itemIdx,
-                                                            newQuantity -
-                                                                item.quantity
-                                                        );
-                                                    }}
-                                                    textAlign="center"
-                                                    border="none"
-                                                    p={0}
-                                                    minW={6}
-                                                    maxW={8}
-                                                    fontSize="sm"
-                                                    fontWeight="medium"
-                                                    _focus={{
-                                                        border: 'none',
-                                                        boxShadow: 'none',
-                                                    }}
-                                                />
-                                                <Button
-                                                    size="2xs"
-                                                    variant="ghost"
-                                                    p={0}
-                                                    disabled={
-                                                        item.quantity >=
-                                                        item.spec?.stock
-                                                    }
-                                                    onClick={() =>
-                                                        handleCountChange(
-                                                            vendorIdx,
-                                                            itemIdx,
-                                                            1
-                                                        )
-                                                    }
-                                                >
-                                                    <FiPlus />
-                                                </Button>
+                                                        }}
+                                                        textAlign="center"
+                                                        border="none"
+                                                        p={0}
+                                                        minW={6}
+                                                        maxW={8}
+                                                        fontSize="sm"
+                                                        fontWeight="medium"
+                                                        _focus={{
+                                                            border: 'none',
+                                                            boxShadow: 'none',
+                                                        }}
+                                                    />
+                                                    <Button
+                                                        size="2xs"
+                                                        variant="ghost"
+                                                        p={0}
+                                                        disabled={
+                                                            item.quantity >=
+                                                            item.spec?.stock
+                                                        }
+                                                        onClick={() =>
+                                                            handleCountChange(
+                                                                vendorIdx,
+                                                                itemIdx,
+                                                                1
+                                                            )
+                                                        }
+                                                    >
+                                                        <FiPlus />
+                                                    </Button>
+                                                </Flex>
                                             </Flex>
-                                        </Flex>
-                                    </Box>
+                                        </Box>
+                                    </Flex>
                                 </Flex>
                             ))}
                         </Box>

@@ -212,7 +212,7 @@ export default function AdminPage() {
                 alignItems="center"
                 mb={4}
             >
-                <Heading size="lg">Collection管理</Heading>
+                <Heading size="lg">课程分类管理</Heading>
             </Box>
             <DataTable
                 columns={columns.map((col) =>

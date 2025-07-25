@@ -56,9 +56,9 @@ export const orderRouter = createTRPCRouter({
                     order: z.enum(['asc', 'desc']).optional(),
                     status: z
                         .enum([
-                            'PENDING',
                             'PAID',
-                            'SHIPPED',
+                            'CHECKED',
+                            'DELIVERED',
                             'COMPLETED',
                             'CANCELLED',
                         ])
@@ -231,9 +231,9 @@ export const orderRouter = createTRPCRouter({
             z.object({
                 id: z.string(),
                 status: z.enum([
-                    'PENDING',
                     'PAID',
-                    'SHIPPED',
+                    'CHECKED',
+                    'DELIVERED',
                     'COMPLETED',
                     'CANCELLED',
                 ]),
@@ -287,7 +287,7 @@ export const orderRouter = createTRPCRouter({
                 where: {
                     id: input.id,
                     userId: ctx.session.user.id,
-                    status: 'PENDING',
+                    status: 'CANCELLED',
                 },
                 include: { items: true },
             });
@@ -299,7 +299,7 @@ export const orderRouter = createTRPCRouter({
             // 恢复库存
             for (const item of order.items) {
                 await ctx.db.productSpec.update({
-                    where: { id: item.specId! },
+                    where: { id: item.specId },
                     data: {
                         stock: {
                             increment: item.quantity,
@@ -336,17 +336,17 @@ export const orderRouter = createTRPCRouter({
 
     // 获取订单统计
     getStats: superAdminProcedure.query(async ({ ctx }) => {
-        const [total, pending, paid, shipped, completed, cancelled] =
+        const [total, paid, checked, delivered, completed, cancelled] =
             await Promise.all([
                 ctx.db.order.count({ where: { isDeleted: false } }),
-                ctx.db.order.count({
-                    where: { status: 'PENDING', isDeleted: false },
-                }),
                 ctx.db.order.count({
                     where: { status: 'PAID', isDeleted: false },
                 }),
                 ctx.db.order.count({
-                    where: { status: 'SHIPPED', isDeleted: false },
+                    where: { status: 'CHECKED', isDeleted: false },
+                }),
+                ctx.db.order.count({
+                    where: { status: 'DELIVERED', isDeleted: false },
                 }),
                 ctx.db.order.count({
                     where: { status: 'COMPLETED', isDeleted: false },
@@ -358,9 +358,9 @@ export const orderRouter = createTRPCRouter({
 
         return {
             total,
-            pending,
             paid,
-            shipped,
+            checked,
+            delivered,
             completed,
             cancelled,
         };

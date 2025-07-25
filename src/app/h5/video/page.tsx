@@ -61,7 +61,9 @@ export default function VideoPage() {
                             cursor="pointer"
                             position="relative"
                             onClick={() =>
-                                router.push(`/h5/video/${course.id}`)
+                                router.push(
+                                    `/full/video/detail?id=${course.id}`
+                                )
                             }
                             _hover={{
                                 boxShadow: 'md',

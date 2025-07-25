@@ -583,40 +583,7 @@ export default function AdminPage() {
                                         )}
                                     />
                                 </Field.Root>
-                                <Field.Root invalid={!!errors.duration}>
-                                    <Field.Label>时长</Field.Label>
-                                    <Controller
-                                        name="duration"
-                                        control={control}
-                                        rules={{
-                                            required: '请输入视频时长',
-                                            min: {
-                                                value: 1,
-                                                message: '时长必须大于0秒',
-                                            },
-                                            max: {
-                                                value: 86400,
-                                                message: '时长不能超过24小时',
-                                            },
-                                        }}
-                                        render={({ field }) => (
-                                            <DurationInput
-                                                value={field.value}
-                                                onChange={field.onChange}
-                                                onBlur={field.onBlur}
-                                                placeholder="00:00:00"
-                                            />
-                                        )}
-                                    />
-                                    {errors.duration && (
-                                        <Text color="red.500" fontSize="sm">
-                                            {errors.duration.message}
-                                        </Text>
-                                    )}
-                                    <Text fontSize="sm" color="gray.500">
-                                        上传视频后会自动获取时长，也可手动修改
-                                    </Text>
-                                </Field.Root>
+
                                 <Field.Root>
                                     <Field.Label>是否上架</Field.Label>
                                     <Field.Root>

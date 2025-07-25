@@ -14,6 +14,7 @@ import {
     FiChevronDown as ChevronDown,
     FiBookOpen,
     FiCreditCard,
+    FiShoppingBag,
 } from 'react-icons/fi';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -58,6 +59,11 @@ const Sidebar = () => {
             title: '课程管理',
             url: '/admin/video/course',
             icon: FiDollarSign,
+        },
+        {
+            title: '订单管理',
+            url: '/admin/order',
+            icon: FiShoppingBag,
         },
         {
             title: '支付码管理',
