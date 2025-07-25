@@ -6,7 +6,7 @@ import {
 } from '@/server/api/trpc';
 
 export const bannerRouter = createTRPCRouter({
-    // 获取所有banner，支持排序
+    // 获取所有banner，支持排序和分页
     list: publicProcedure
         .input(
             z
@@ -14,17 +14,41 @@ export const bannerRouter = createTRPCRouter({
                     orderBy: z.string().optional(),
                     order: z.enum(['asc', 'desc']).optional(),
                     isActive: z.boolean().optional(), // 新增 isActive 参数
+                    page: z.number().min(1).optional().default(1),
+                    pageSize: z.number().min(1).max(100).optional().default(10),
                 })
                 .optional()
         )
         .query(async ({ ctx, input }) => {
-            return ctx.db.banner.findMany({
+            const page = input?.page ?? 1;
+            const pageSize = input?.pageSize ?? 10;
+            const skip = (page - 1) * pageSize;
+
+            const where =
+                input?.isActive === true ? { isActive: true } : undefined;
+
+            // 获取总数
+            const total = await ctx.db.banner.count({ where });
+
+            // 获取分页数据
+            const data = await ctx.db.banner.findMany({
                 orderBy: input?.orderBy
                     ? { [input.orderBy]: input.order ?? 'asc' }
                     : { sort: 'asc' },
-                where:
-                    input?.isActive === true ? { isActive: true } : undefined, // 新增 where 条件
+                where,
+                skip,
+                take: pageSize,
             });
+
+            return {
+                data,
+                pagination: {
+                    page,
+                    pageSize,
+                    total,
+                    totalPages: Math.ceil(total / pageSize),
+                },
+            };
         }),
 
     create: superAdminProcedure

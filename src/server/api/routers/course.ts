@@ -6,7 +6,7 @@ import {
 } from '@/server/api/trpc';
 
 export const courseRouter = createTRPCRouter({
-    // 获取所有课程，支持排序
+    // 获取所有课程，支持排序和分页
     list: publicProcedure
         .input(
             z
@@ -15,23 +15,47 @@ export const courseRouter = createTRPCRouter({
                     order: z.enum(['asc', 'desc']).optional(),
                     collectionId: z.string().optional(),
                     isPublished: z.boolean().optional(),
+                    page: z.number().min(1).optional().default(1),
+                    pageSize: z.number().min(1).max(100).optional().default(10),
                 })
                 .optional()
         )
         .query(async ({ ctx, input }) => {
-            return ctx.db.course.findMany({
+            const page = input?.page ?? 1;
+            const pageSize = input?.pageSize ?? 10;
+            const skip = (page - 1) * pageSize;
+
+            const where = {
+                ...(input?.collectionId
+                    ? { collectionId: input.collectionId }
+                    : undefined),
+                ...(input?.isPublished
+                    ? { isPublished: input.isPublished }
+                    : undefined),
+            };
+
+            // 获取总数
+            const total = await ctx.db.course.count({ where });
+
+            // 获取分页数据
+            const data = await ctx.db.course.findMany({
                 orderBy: input?.orderBy
                     ? { [input.orderBy]: input.order ?? 'asc' }
                     : { createdAt: 'desc' },
-                where: {
-                    ...(input?.collectionId
-                        ? { collectionId: input.collectionId }
-                        : undefined),
-                    ...(input?.isPublished
-                        ? { isPublished: input.isPublished }
-                        : undefined),
-                },
+                where,
+                skip,
+                take: pageSize,
             });
+
+            return {
+                data,
+                pagination: {
+                    page,
+                    pageSize,
+                    total,
+                    totalPages: Math.ceil(total / pageSize),
+                },
+            };
         }),
 
     // 获取单个课程详情

@@ -35,11 +35,33 @@ export default function AdminPage() {
     const [sorting, setSorting] = useState<any[]>([]);
     const orderBy = sorting[0]?.id;
     const order = sorting[0]?.desc ? 'desc' : 'asc';
+
+    // 分页 state
+    const [pagination, setPagination] = useState({
+        pageIndex: 0,
+        pageSize: 10,
+    });
+
     const {
-        data: collections = [],
+        data: collectionResponse,
         refetch,
         isLoading,
-    } = api.collection.list.useQuery(orderBy ? { orderBy, order } : undefined);
+    } = api.collection.list.useQuery({
+        ...(orderBy ? { orderBy, order } : {}),
+        page: pagination.pageIndex + 1,
+        pageSize: pagination.pageSize,
+    });
+
+    const collections = collectionResponse?.data ?? [];
+    const pageCount = collectionResponse?.pagination?.totalPages ?? 0;
+
+    // 分页回调函数
+    const handlePaginationChange = (newPagination: {
+        pageIndex: number;
+        pageSize: number;
+    }) => {
+        setPagination(newPagination);
+    };
     const createCollection = api.collection.create.useMutation({
         onSuccess: () => refetch(),
     });
@@ -256,6 +278,9 @@ export default function AdminPage() {
                 selectable
                 manualSorting
                 onSortingChange={setSorting}
+                manualPagination
+                pageCount={pageCount}
+                onPaginationChange={handlePaginationChange}
                 renderBulkActions={(rows) => {
                     const hasSelection = rows.length > 0;
                     return (

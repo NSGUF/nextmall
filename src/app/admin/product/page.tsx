@@ -1,5 +1,5 @@
 'use client';
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import {
     Box,
     Button,
@@ -29,11 +29,34 @@ export default function AdminPage() {
     const [sorting, setSorting] = useState<any[]>([]);
     const orderBy = sorting[0]?.id;
     const order = sorting[0]?.desc ? 'desc' : 'asc';
+
+    // 分页 state
+    const [pagination, setPagination] = useState({
+        pageIndex: 0,
+        pageSize: 10,
+    });
+
     const {
-        data: products = [],
+        data: productResponse,
         refetch,
         isLoading,
-    } = api.product.list.useQuery(orderBy ? { orderBy, order } : undefined);
+    } = api.product.list.useQuery({
+        ...(orderBy ? { orderBy, order } : {}),
+        page: pagination.pageIndex + 1,
+        pageSize: pagination.pageSize,
+    });
+
+    const products = productResponse?.data ?? [];
+    const pageCount = productResponse?.pagination?.totalPages ?? 0;
+
+    // 分页回调函数
+    const handlePaginationChange = useCallback(
+        (newPagination: { pageIndex: number; pageSize: number }) => {
+            setPagination(newPagination);
+        },
+        []
+    );
+
     const createProduct = api.product.create.useMutation({
         onSuccess: () => refetch(),
     });
@@ -48,7 +71,8 @@ export default function AdminPage() {
     });
 
     // 获取分类列表用于下拉
-    const { data: categories = [] } = api.category.list.useQuery();
+    const { data: categoryResponse } = api.category.list.useQuery();
+    const categories = categoryResponse?.data ?? [];
     // 供应商
     const { data: vendors = [] } = api.user.getAllVendors.useQuery();
 
@@ -322,6 +346,9 @@ export default function AdminPage() {
                 selectable
                 manualSorting
                 onSortingChange={setSorting}
+                manualPagination
+                pageCount={pageCount}
+                onPaginationChange={handlePaginationChange}
                 renderBulkActions={(rows) => {
                     const hasSelection = rows.length > 0;
                     return (

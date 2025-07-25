@@ -54,12 +54,35 @@ export default function OrderManagePage() {
     const orderBy = sorting[0]?.id;
     const order = sorting[0]?.desc ? 'desc' : 'asc';
 
+    // 分页 state
+    const [pagination, setPagination] = useState({
+        pageIndex: 0,
+        pageSize: 10,
+    });
+
     // 获取订单数据
     const {
-        data: orders = [],
+        data: orderResponse,
         refetch,
         isLoading,
-    } = api.order.adminList.useQuery(orderBy ? { orderBy, order } : undefined);
+    } = api.order.adminList.useQuery({
+        ...(orderBy ? { orderBy, order } : {}),
+        ...(statusFilter !== 'ALL' ? { status: statusFilter } : {}),
+        ...(searchTerm ? { search: searchTerm } : {}),
+        page: pagination.pageIndex + 1,
+        pageSize: pagination.pageSize,
+    });
+
+    const orders = orderResponse?.data ?? [];
+    const pageCount = orderResponse?.pagination?.totalPages ?? 0;
+
+    // 分页回调函数
+    const handlePaginationChange = (newPagination: {
+        pageIndex: number;
+        pageSize: number;
+    }) => {
+        setPagination(newPagination);
+    };
 
     // 获取订单统计
     const { data: orderStats } = api.order.getStats.useQuery();
@@ -111,25 +134,6 @@ export default function OrderManagePage() {
             setTrackingNumber('');
         }
     };
-
-    // 过滤订单数据
-    const filteredOrders = useMemo(() => {
-        return orders.filter((order: any) => {
-            const matchesSearch =
-                order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                order.user?.name
-                    ?.toLowerCase()
-                    .includes(searchTerm.toLowerCase()) ||
-                order.user?.email
-                    ?.toLowerCase()
-                    .includes(searchTerm.toLowerCase());
-
-            const matchesStatus =
-                statusFilter === 'ALL' || order.status === statusFilter;
-
-            return matchesSearch && matchesStatus;
-        });
-    }, [orders, searchTerm, statusFilter]);
 
     // 渲染商品信息
     const renderProductInfo = (items: any[]) => {
@@ -487,9 +491,12 @@ export default function OrderManagePage() {
 
             <DataTable
                 columns={columns}
-                data={filteredOrders}
+                data={orders}
                 onSortingChange={setSorting}
-                manualSorting={false}
+                manualSorting
+                manualPagination
+                pageCount={pageCount}
+                onPaginationChange={handlePaginationChange}
             />
 
             {ApproveConfirmDialog}

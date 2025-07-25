@@ -6,22 +6,44 @@ import {
 } from '@/server/api/trpc';
 
 export const categoryRouter = createTRPCRouter({
-    // 获取所有分类，支持排序
+    // 获取所有分类，支持排序和分页
     list: publicProcedure
         .input(
             z
                 .object({
                     orderBy: z.string().optional(),
                     order: z.enum(['asc', 'desc']).optional(),
+                    page: z.number().min(1).optional().default(1),
+                    pageSize: z.number().min(1).max(100).optional().default(10),
                 })
                 .optional()
         )
         .query(async ({ ctx, input }) => {
-            return ctx.db.category.findMany({
+            const page = input?.page ?? 1;
+            const pageSize = input?.pageSize ?? 10;
+            const skip = (page - 1) * pageSize;
+
+            // 获取总数
+            const total = await ctx.db.category.count();
+
+            // 获取分页数据
+            const data = await ctx.db.category.findMany({
                 orderBy: input?.orderBy
                     ? { [input.orderBy]: input.order ?? 'asc' }
                     : { createdAt: 'desc' },
+                skip,
+                take: pageSize,
             });
+
+            return {
+                data,
+                pagination: {
+                    page,
+                    pageSize,
+                    total,
+                    totalPages: Math.ceil(total / pageSize),
+                },
+            };
         }),
 
     create: superAdminProcedure

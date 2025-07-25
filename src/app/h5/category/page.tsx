@@ -18,13 +18,14 @@ import { ContentLoading } from '@/app/_components/LoadingSpinner';
 
 export default function CategoryPage() {
     const router = useRouter();
-    const { data: categories = [], isLoading: categoriesLoading } =
+    const { data: categoryResponse, isLoading: categoriesLoading } =
         api.category.list.useQuery(undefined, {
             refetchOnMount: 'always',
             refetchOnWindowFocus: true,
             staleTime: 1000 * 60, // 1分钟缓存
             gcTime: 1000 * 60 * 5, // 5分钟垃圾回收
         });
+    const categories = categoryResponse?.data ?? [];
     const searchParams = useSearchParams();
     const id = searchParams.get('id');
     // 计算初始index
@@ -34,10 +35,11 @@ export default function CategoryPage() {
     );
 
     const activeCategory = categories[activeIndex];
-    const { data: products = [], isLoading: productsLoading } =
+    const { data: productResponse, isLoading: productsLoading } =
         api.product.list.useQuery(
             activeCategory ? { categoryId: activeCategory.id } : undefined
         );
+    const products = productResponse?.data ?? [];
 
     if (categoriesLoading) {
         return <ContentLoading text="分类加载中..." />;

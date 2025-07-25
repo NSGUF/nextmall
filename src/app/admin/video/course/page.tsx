@@ -73,11 +73,33 @@ export default function AdminPage() {
     const [sorting, setSorting] = useState<any[]>([]);
     const orderBy = sorting[0]?.id;
     const order = sorting[0]?.desc ? 'desc' : 'asc';
+
+    // 分页 state
+    const [pagination, setPagination] = useState({
+        pageIndex: 0,
+        pageSize: 10,
+    });
+
     const {
-        data: courses = [],
+        data: courseResponse,
         refetch,
         isLoading,
-    } = api.course.list.useQuery(orderBy ? { orderBy, order } : undefined);
+    } = api.course.list.useQuery({
+        ...(orderBy ? { orderBy, order } : {}),
+        page: pagination.pageIndex + 1,
+        pageSize: pagination.pageSize,
+    });
+
+    const courses = courseResponse?.data ?? [];
+    const pageCount = courseResponse?.pagination?.totalPages ?? 0;
+
+    // 分页回调函数
+    const handlePaginationChange = (newPagination: {
+        pageIndex: number;
+        pageSize: number;
+    }) => {
+        setPagination(newPagination);
+    };
     const createCourse = api.course.create.useMutation({
         onSuccess: () => refetch(),
     });
@@ -95,7 +117,8 @@ export default function AdminPage() {
     const uploadImage = api.util.uploadImage.useMutation();
 
     // 获取分类列表用于下拉
-    const { data: collections = [] } = api.collection.list.useQuery();
+    const { data: collectionResponse } = api.collection.list.useQuery();
+    const collections = collectionResponse?.data ?? [];
 
     // 新增/编辑弹窗
     const [editing, setEditing] = useState<Course | null>(null);
@@ -365,6 +388,9 @@ export default function AdminPage() {
                 selectable
                 manualSorting
                 onSortingChange={setSorting}
+                manualPagination
+                pageCount={pageCount}
+                onPaginationChange={handlePaginationChange}
                 renderBulkActions={(rows) => {
                     const hasSelection = rows.length > 0;
                     return (

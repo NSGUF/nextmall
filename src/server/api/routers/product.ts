@@ -7,7 +7,7 @@ import {
 } from '@/server/api/trpc';
 
 export const productRouter = createTRPCRouter({
-    // 获取所有商品，支持排序和搜索
+    // 获取所有商品，支持排序、搜索和分页
     list: publicProcedure
         .input(
             z
@@ -16,6 +16,8 @@ export const productRouter = createTRPCRouter({
                     order: z.enum(['asc', 'desc']).optional(),
                     categoryId: z.string().optional(),
                     search: z.string().optional(),
+                    page: z.number().min(1).optional().default(1),
+                    pageSize: z.number().min(1).max(100).optional().default(10),
                 })
                 .optional()
         )
@@ -36,6 +38,10 @@ export const productRouter = createTRPCRouter({
                 };
             }
 
+            const page = input?.page ?? 1;
+            const pageSize = input?.pageSize ?? 10;
+            const skip = (page - 1) * pageSize;
+
             // 构建排序条件
             let orderBy: any = { createdAt: 'desc' };
             if (input?.orderBy) {
@@ -44,13 +50,13 @@ export const productRouter = createTRPCRouter({
                     input.orderBy === 'price_desc'
                 ) {
                     // 对于价格排序，我们先获取所有商品，然后在内存中排序
-                    const products = await ctx.db.product.findMany({
+                    const allProducts = await ctx.db.product.findMany({
                         where,
                         include: { specs: true },
                     });
 
                     // 按最低价格排序
-                    return products.sort((a, b) => {
+                    const sortedProducts = allProducts.sort((a, b) => {
                         const minPriceA = Math.min(
                             ...a.specs.map((spec) => spec.price)
                         );
@@ -61,16 +67,46 @@ export const productRouter = createTRPCRouter({
                             ? minPriceA - minPriceB
                             : minPriceB - minPriceA;
                     });
+
+                    // 手动分页
+                    const total = sortedProducts.length;
+                    const data = sortedProducts.slice(skip, skip + pageSize);
+
+                    return {
+                        data,
+                        pagination: {
+                            page,
+                            pageSize,
+                            total,
+                            totalPages: Math.ceil(total / pageSize),
+                        },
+                    };
                 } else {
                     orderBy = { [input.orderBy]: input.order ?? 'asc' };
                 }
             }
 
-            return ctx.db.product.findMany({
+            // 获取总数
+            const total = await ctx.db.product.count({ where });
+
+            // 获取分页数据
+            const data = await ctx.db.product.findMany({
                 orderBy,
                 where,
                 include: { specs: true },
+                skip,
+                take: pageSize,
             });
+
+            return {
+                data,
+                pagination: {
+                    page,
+                    pageSize,
+                    total,
+                    totalPages: Math.ceil(total / pageSize),
+                },
+            };
         }),
 
     create: superAdminProcedure

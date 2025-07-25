@@ -13,19 +13,24 @@ export default function H5Home() {
     const router = useRouter();
 
     // 获取 isActive 的 banners
-    const { data: banners = [], isLoading: bannersLoading } =
+    const { data: bannerResponse, isLoading: bannersLoading } =
         api.banner.list.useQuery({ isActive: true, orderBy: 'sort' });
-    const { data: category = [], isLoading: categoryLoading } =
+    const banners = bannerResponse?.data ?? [];
+
+    const { data: categoryResponse, isLoading: categoryLoading } =
         api.category.list.useQuery(undefined, {
             refetchOnMount: 'always',
             refetchOnWindowFocus: true,
             staleTime: 1000 * 60, // 1分钟缓存
             gcTime: 1000 * 60 * 5, // 5分钟垃圾回收
         });
-    const { data: products = [], isLoading: productsLoading } =
+    const category = categoryResponse?.data ?? [];
+
+    const { data: productResponse, isLoading: productsLoading } =
         api.product.list.useQuery({
             orderBy: 'sales',
         });
+    const products = productResponse?.data ?? [];
 
     const isLoading = bannersLoading || categoryLoading || productsLoading;
 
@@ -78,7 +83,7 @@ export default function H5Home() {
                     py={4}
                     shadow="md"
                 >
-                    {category.map((entry) => (
+                    {category?.map((entry: any) => (
                         <Link
                             href={`/h5/category?id=${entry.id}`}
                             key={entry.name}
@@ -117,7 +122,7 @@ export default function H5Home() {
             {/* 商品推荐区块 */}
             <Box px={4} mt={2} pb={4}>
                 <SimpleGrid columns={2} gap={2}>
-                    {products.map((item) => (
+                    {products?.map((item: any) => (
                         <Link
                             href={`/full/product?id=${item.id}`}
                             key={item.id}

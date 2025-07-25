@@ -6,12 +6,10 @@ import {
     Button,
     IconButton,
     Input,
-    Text,
     Portal,
     Table,
     Menu,
     Checkbox,
-    NativeSelect,
     Pagination,
     ButtonGroup,
     Separator,
@@ -84,12 +82,6 @@ const DataTable = <T extends object>({
     const [sorting, setSorting] = useState<SortingState>([]);
     const [globalFilter, setGlobalFilter] = useState('');
 
-    // 触发父组件回调
-    useEffect(() => {
-        if (manualPagination && onPaginationChange) {
-            onPaginationChange(pagination);
-        }
-    }, [pagination.pageIndex, pagination.pageSize]);
     useEffect(() => {
         if (manualSorting && onSortingChange) {
             onSortingChange(sorting);
@@ -118,7 +110,15 @@ const DataTable = <T extends object>({
         getPaginationRowModel: getPaginationRowModel(),
         getSortedRowModel: getSortedRowModel(),
         onRowSelectionChange: setRowSelection,
-        onPaginationChange: setPagination,
+        onPaginationChange: (updater) => {
+            const newPagination =
+                typeof updater === 'function' ? updater(pagination) : updater;
+            setPagination(newPagination);
+            // 同时触发父组件回调
+            if (manualPagination && onPaginationChange) {
+                onPaginationChange(newPagination);
+            }
+        },
         onColumnPinningChange: setColumnPinning,
         onColumnVisibilityChange: setColumnVisibility,
         onSortingChange: setSorting,
@@ -300,30 +300,21 @@ const DataTable = <T extends object>({
                     : data.length
             }
             pageSize={table.getState().pagination.pageSize}
-            defaultPage={table.getState().pagination.pageIndex + 1}
+            page={table.getState().pagination.pageIndex + 1}
+            onPageChange={(details) => {
+                const newPageIndex = details.page - 1;
+                // 使用 TanStack Table 的方法，这会自动触发 onPaginationChange
+                table.setPageIndex(newPageIndex);
+            }}
             mt={3}
             display="flex"
             justifyContent="space-between"
             fontSize={13}
         >
-            <Box display="flex" flexWrap="nowrap" alignItems="center" gap={2}>
-                <Text textWrap="nowrap">每页</Text>
-                <NativeSelect.Root
-                    {...({
-                        value: String(table.getState().pagination.pageSize),
-                        onChange: (e) =>
-                            table.setPageSize(Number(e.target?.value)),
-                    } as any)}
-                    size="sm"
-                >
-                    <NativeSelect.Field>
-                        <option value={10}>10</option>
-                        <option value={25}>25</option>
-                        <option value={50}>50</option>
-                    </NativeSelect.Field>
-                    <NativeSelect.Indicator />
-                </NativeSelect.Root>
-                <Text textWrap="nowrap">条</Text>
+            <Box display="flex" flexWrap="nowrap" alignItems="center" gap={4}>
+                {manualPagination && pageCount !== undefined && (
+                    <Pagination.PageText format="long" />
+                )}
             </Box>
             <ButtonGroup variant="ghost" size="sm">
                 <Pagination.PrevTrigger asChild>
@@ -335,11 +326,8 @@ const DataTable = <T extends object>({
                     render={(page) => (
                         <IconButton
                             key={page.value}
-                            variant={
-                                (page as any).selected ? 'outline' : 'ghost'
-                            }
+                            variant={{ base: 'ghost', _selected: 'outline' }}
                             aria-label={`第${page.value}页`}
-                            onClick={() => table.setPageIndex(page.value - 1)}
                         >
                             {page.value}
                         </IconButton>

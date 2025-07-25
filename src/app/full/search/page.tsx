@@ -17,7 +17,7 @@ export default function SearchPage() {
     const [activeTabId, setActiveTabId] = useState('all');
 
     // 搜索商品
-    const { data: products = [], isLoading: productsLoading } =
+    const { data: productResponse, isLoading: productsLoading } =
         api.product.list.useQuery(
             searchKeyword.trim()
                 ? {
@@ -36,6 +36,7 @@ export default function SearchPage() {
                 enabled: !!searchKeyword.trim() && hasSearched,
             }
         );
+    const products = productResponse?.data ?? [];
 
     // 搜索历史管理
     useEffect(() => {

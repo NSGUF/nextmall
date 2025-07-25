@@ -26,23 +26,74 @@ import {
 } from '@/app/const';
 import { Item } from 'node_modules/@chakra-ui/react/dist/types/components/accordion/namespace';
 
+// 订单状态映射
+const ORDER_STATUS_MAP = {
+    PAID: '待审核',
+    CHECKED: '待发货',
+    DELIVERED: '待收货',
+    COMPLETED: '交易完成',
+    CANCELLED: '交易取消',
+} as const;
+
+type OrderStatus = keyof typeof ORDER_STATUS_MAP;
+
 export default function OrderDetailPage() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const { showSuccessToast, showErrorToast } = useCustomToast();
     const orderId = searchParams.get('orderId');
 
-    // 获取默认地址
-    const { data: order } = api.order.get.useQuery({
+    // 获取订单数据
+    const { data: order, refetch } = api.order.get.useQuery({
         id: orderId,
     });
 
+    // 确认收货 mutation
+    const confirmReceived = api.order.confirmReceived.useMutation({
+        onSuccess: () => {
+            showSuccessToast('确认收货成功');
+            refetch();
+        },
+        onError: (error) => {
+            showErrorToast(error.message);
+        },
+    });
+
+    // 确认收货对话框
+    const { ConfirmDialog: ConfirmReceivedDialog, open: openConfirmReceived } =
+        useConfirmDialog({
+            title: '确认收货',
+            content: '确定已收到商品吗？确认后订单将变为已完成状态。',
+            confirmText: '确认收货',
+            cancelText: '取消',
+            buttonProps: { style: { display: 'none' } },
+            onConfirm: async () => {
+                if (orderId) {
+                    await confirmReceived.mutateAsync({ id: orderId });
+                }
+            },
+        });
+
+    // 处理确认收货
+    const handleConfirmReceived = () => {
+        openConfirmReceived();
+    };
+
     const defaultAddress = order?.address || {};
+
+    // 获取订单状态对应的中文名称
+    const getOrderStatusTitle = (status: string) => {
+        return ORDER_STATUS_MAP[status as OrderStatus] || '订单详情';
+    };
 
     return (
         <Box bg="#f5f5f7" minH="100vh" pb="100px">
             <TopNav
-                title="订单详情"
+                title={
+                    order?.status
+                        ? getOrderStatusTitle(order.status)
+                        : '订单详情'
+                }
                 onBack={() => router.push('/full/order?type=paid')}
             />
 
@@ -64,10 +115,7 @@ export default function OrderDetailPage() {
 
             {/* 商品信息 */}
             {order?.items?.map(
-                (
-                    { product, spec, quantity, remark, specInfo, logiPrice },
-                    index
-                ) => (
+                ({ product, spec, quantity, remark, specInfo, logiPrice }) => (
                     <Box
                         bg="white"
                         key={product.id}
@@ -174,6 +222,50 @@ export default function OrderDetailPage() {
                     </Box>
                 )
             )}
+
+            {/* 待收货状态显示快递单号和确认收货按钮 */}
+            {order?.status === 'DELIVERED' && (
+                <Box bg="white" borderRadius="xs" m={2} p={4}>
+                    {/* 快递单号 */}
+                    {order.trackingNumber && (
+                        <Flex justify="space-between" align="center" mb={4}>
+                            <Text color="gray.600" fontWeight="medium">
+                                快递单号
+                            </Text>
+                            <Text color="blue.600" fontWeight="medium">
+                                {order.trackingNumber}
+                            </Text>
+                        </Flex>
+                    )}
+
+                    {/* 确认收货按钮 */}
+                </Box>
+            )}
+            <Box
+                position="fixed"
+                left={0}
+                right={0}
+                bottom={0}
+                bg="transparent"
+                zIndex={10}
+                p={4}
+            >
+                <Button
+                    w="100%"
+                    borderRadius="md"
+                    bg="#fa2222"
+                    color="#fff"
+                    size="xl"
+                    colorScheme="blue"
+                    variant="solid"
+                    onClick={handleConfirmReceived}
+                    loading={confirmReceived.isPending}
+                >
+                    确认收货
+                </Button>
+            </Box>
+            {/* 确认收货对话框 */}
+            {ConfirmReceivedDialog}
         </Box>
     );
 }

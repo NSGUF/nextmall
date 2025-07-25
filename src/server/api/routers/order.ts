@@ -22,16 +22,28 @@ export const orderRouter = createTRPCRouter({
                             'CANCELLED',
                         ])
                         .optional(),
+                    page: z.number().min(1).optional().default(1),
+                    pageSize: z.number().min(1).max(100).optional().default(10),
                 })
                 .optional()
         )
         .query(async ({ ctx, input }) => {
-            return ctx.db.order.findMany({
-                where: {
-                    userId: ctx.session.user.id,
-                    isDeleted: false,
-                    ...(input?.status && { status: input.status }),
-                },
+            const page = input?.page ?? 1;
+            const pageSize = input?.pageSize ?? 10;
+            const skip = (page - 1) * pageSize;
+
+            const where = {
+                userId: ctx.session.user.id,
+                isDeleted: false,
+                ...(input?.status && { status: input.status }),
+            };
+
+            // 获取总数
+            const total = await ctx.db.order.count({ where });
+
+            // 获取分页数据
+            const data = await ctx.db.order.findMany({
+                where,
                 include: {
                     items: {
                         include: {
@@ -44,7 +56,19 @@ export const orderRouter = createTRPCRouter({
                 orderBy: input?.orderBy
                     ? { [input.orderBy]: input.order ?? 'desc' }
                     : { createdAt: 'desc' },
+                skip,
+                take: pageSize,
             });
+
+            return {
+                data,
+                pagination: {
+                    page,
+                    pageSize,
+                    total,
+                    totalPages: Math.ceil(total / pageSize),
+                },
+            };
         }),
 
     // 管理员获取所有订单
@@ -64,16 +88,57 @@ export const orderRouter = createTRPCRouter({
                         ])
                         .optional(),
                     userId: z.string().optional(),
+                    search: z.string().optional(),
+                    page: z.number().min(1).optional().default(1),
+                    pageSize: z.number().min(1).max(100).optional().default(10),
                 })
                 .optional()
         )
         .query(async ({ ctx, input }) => {
-            return ctx.db.order.findMany({
-                where: {
-                    isDeleted: false,
-                    ...(input?.status && { status: input.status }),
-                    ...(input?.userId && { userId: input.userId }),
-                },
+            const page = input?.page ?? 1;
+            const pageSize = input?.pageSize ?? 10;
+            const skip = (page - 1) * pageSize;
+
+            const where: any = {
+                isDeleted: false,
+                ...(input?.status && { status: input.status }),
+                ...(input?.userId && { userId: input.userId }),
+            };
+
+            // 搜索功能
+            if (input?.search) {
+                where.OR = [
+                    {
+                        id: {
+                            contains: input.search,
+                            mode: 'insensitive',
+                        },
+                    },
+                    {
+                        user: {
+                            name: {
+                                contains: input.search,
+                                mode: 'insensitive',
+                            },
+                        },
+                    },
+                    {
+                        user: {
+                            email: {
+                                contains: input.search,
+                                mode: 'insensitive',
+                            },
+                        },
+                    },
+                ];
+            }
+
+            // 获取总数
+            const total = await ctx.db.order.count({ where });
+
+            // 获取分页数据
+            const data = await ctx.db.order.findMany({
+                where,
                 include: {
                     items: {
                         include: {
@@ -94,7 +159,19 @@ export const orderRouter = createTRPCRouter({
                 orderBy: input?.orderBy
                     ? { [input.orderBy]: input.order ?? 'desc' }
                     : { createdAt: 'desc' },
+                skip,
+                take: pageSize,
             });
+
+            return {
+                data,
+                pagination: {
+                    page,
+                    pageSize,
+                    total,
+                    totalPages: Math.ceil(total / pageSize),
+                },
+            };
         }),
 
     // 获取订单详情
@@ -267,6 +344,41 @@ export const orderRouter = createTRPCRouter({
             return ctx.db.order.update({
                 where: { id },
                 data: updateData,
+                include: {
+                    items: {
+                        include: {
+                            product: true,
+                            spec: true,
+                        },
+                    },
+                    address: true,
+                },
+            });
+        }),
+
+    // 确认收货
+    confirmReceived: protectedProcedure
+        .input(z.object({ id: z.string() }))
+        .mutation(async ({ ctx, input }) => {
+            const order = await ctx.db.order.findFirst({
+                where: {
+                    id: input.id,
+                    userId: ctx.session.user.id,
+                    status: 'DELIVERED',
+                    isDeleted: false,
+                },
+            });
+
+            if (!order) {
+                throw new Error('订单不存在或无法确认收货');
+            }
+
+            return ctx.db.order.update({
+                where: { id: input.id },
+                data: {
+                    status: 'COMPLETED',
+                    updatedAt: new Date(),
+                },
                 include: {
                     items: {
                         include: {

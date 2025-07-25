@@ -10,23 +10,26 @@ import { formatDuration } from '@/app/utils/formatDuration';
 
 export default function VideoPage() {
     // 获取所有合集
-    const { data: collections = [], isLoading: collectionsLoading } =
+    const { data: collectionResponse, isLoading: collectionsLoading } =
         api.collection.list.useQuery(undefined, {
             refetchOnMount: 'always',
             refetchOnWindowFocus: true,
             staleTime: 1000 * 60, // 1分钟缓存
             gcTime: 1000 * 60 * 5, // 5分钟垃圾回收
         });
+    const collections = collectionResponse?.data ?? [];
+
     // 当前选中的合集ID，"all" 表示全部
     const [activeCollectionId, setActiveCollectionId] = useState<string>('all');
     // 获取课程，按合集过滤
-    const { data: courses = [], isLoading: coursesLoading } =
+    const { data: courseResponse, isLoading: coursesLoading } =
         api.course.list.useQuery({
             ...(activeCollectionId !== 'all'
                 ? { collectionId: activeCollectionId }
                 : undefined),
             isPublished: true,
         });
+    const courses = courseResponse?.data ?? [];
     const router = useRouter();
 
     if (collectionsLoading) {
