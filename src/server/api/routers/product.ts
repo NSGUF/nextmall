@@ -5,6 +5,7 @@ import {
     superAdminProcedure,
     protectedProcedure,
 } from '@/server/api/trpc';
+import { logger } from '@/server/api/utils/logger';
 
 export const productRouter = createTRPCRouter({
     // 获取所有商品，支持排序、搜索和分页
@@ -334,6 +335,11 @@ export const productRouter = createTRPCRouter({
                         },
                     });
                 }
+
+                // 记录商品浏览日志
+                if (product) {
+                    await logger.productView(ctx, product.id, product.title);
+                }
             }
 
             // 查询是否已收藏
@@ -359,6 +365,16 @@ export const productRouter = createTRPCRouter({
             const userId = ctx.session.user.id;
             const { productId } = input;
 
+            // 获取商品信息用于日志记录
+            const product = await ctx.db.product.findUnique({
+                where: { id: productId },
+                select: { id: true, title: true },
+            });
+
+            if (!product) {
+                throw new Error('商品不存在');
+            }
+
             // 检查是否已收藏
             const existingFavorite = await ctx.db.productFavorite.findUnique({
                 where: {
@@ -379,6 +395,15 @@ export const productRouter = createTRPCRouter({
                         },
                     },
                 });
+
+                // 记录取消收藏日志
+                await logger.productFavorite(
+                    ctx,
+                    product.id,
+                    product.title,
+                    false
+                );
+
                 return { isFavorited: false, message: '取消收藏' };
             } else {
                 // 添加收藏
@@ -388,6 +413,15 @@ export const productRouter = createTRPCRouter({
                         productId,
                     },
                 });
+
+                // 记录收藏日志
+                await logger.productFavorite(
+                    ctx,
+                    product.id,
+                    product.title,
+                    true
+                );
+
                 return { isFavorited: true, message: '收藏成功' };
             }
         }),

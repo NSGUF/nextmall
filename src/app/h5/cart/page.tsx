@@ -9,6 +9,9 @@ import {
     Grid,
     Badge,
     Input,
+    Center,
+    EmptyState,
+    VStack,
 } from '@chakra-ui/react';
 import { Checkbox } from '@chakra-ui/react';
 import {
@@ -345,6 +348,42 @@ export default function CartPage() {
 
     if (cartLoading) {
         return <ContentLoading text="购物车加载中..." />;
+    }
+
+    if (cartData.length === 0) {
+        return (
+            <Box bg="#f5f5f7" h="calc(100vh - 64px)" pb="80px">
+                <Flex
+                    align="center"
+                    justify="space-between"
+                    px={4}
+                    py={3}
+                    bg="#fff"
+                >
+                    <Flex
+                        align="center"
+                        fontSize="md"
+                        fontWeight="medium"
+                        gap={1}
+                    >
+                        购物车
+                        <Text fontSize="xs">（0）</Text>
+                    </Flex>
+                </Flex>
+                <Center h="90vh">
+                    <EmptyState.Root>
+                        <EmptyState.Content>
+                            <VStack textAlign="center">
+                                <EmptyState.Title>暂无商品</EmptyState.Title>
+                                <EmptyState.Description>
+                                    快去添加你喜欢的商品吧
+                                </EmptyState.Description>
+                            </VStack>
+                        </EmptyState.Content>
+                    </EmptyState.Root>
+                </Center>
+            </Box>
+        );
     }
 
     return (

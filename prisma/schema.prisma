@@ -59,7 +59,7 @@ model User {
     name          String?   // 用户名
     email         String?   @unique // 邮箱
     phone         String?   // 手机号
-    status        Int       @default(1) // 用户状态 1正常 0禁用
+    status        Boolean   @default(true) // 用户状态 1正常 0禁用
     gender        String?   // 性别
     birthday      DateTime? // 生日
     emailVerified DateTime? // 邮箱验证时间
@@ -82,6 +82,7 @@ model User {
     createdCourses Course[] // 自动修复：反向关系，用户创建的课程
     coursePlayRecords CoursePlayRecord[] // 自动修复：反向关系，用户的课程播放记录
     courseFavorites CourseFavorite[] // 用户收藏课程（新表）
+    operationLogs OperationLog[] // 用户操作日志
 }
 
 enum UserRole {
@@ -318,6 +319,40 @@ model Payment {
   originalName String   // 原始文件名
   createdAt    DateTime @default(now()) // 创建时间
   updatedAt    DateTime @updatedAt @default(now()) // 更新时间
+}
+
+// 操作日志表
+model OperationLog {
+  id          String   @id @default(cuid()) // 日志ID
+  action      String   // 操作类型 (LOGIN, LOGOUT, CREATE, UPDATE, DELETE, VIEW, etc.)
+  module      String   // 操作模块 (USER, PRODUCT, ORDER, etc.)
+  description String   // 操作描述
+  targetId    String?  // 操作目标ID (商品ID、订单ID等)
+  targetType  String?  // 操作目标类型 (Product, Order, User等)
+  userId      String?  // 操作用户ID
+  user        User?    @relation(fields: [userId], references: [id]) // 关联用户
+  userInfo    String?  // 用户信息快照 (用户名、邮箱等，防止用户删除后无法追溯)
+  ipAddress   String?  // 操作IP地址
+  userAgent   String?  // 用户代理信息
+  requestData String?  // 请求数据 (JSON格式)
+  responseData String? // 响应数据 (JSON格式)
+  status      LogStatus @default(SUCCESS) // 操作状态
+  errorMessage String? // 错误信息
+  duration    Int?     // 操作耗时 (毫秒)
+  createdAt   DateTime @default(now()) // 操作时间
+
+  @@index([userId])
+  @@index([action])
+  @@index([module])
+  @@index([createdAt])
+  @@index([status])
+}
+
+// 日志状态枚举
+enum LogStatus {
+  SUCCESS   // 成功
+  FAILED    // 失败
+  WARNING   // 警告
 }
 
 

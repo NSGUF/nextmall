@@ -239,31 +239,32 @@ export default function OrderDetailPage() {
                     )}
 
                     {/* 确认收货按钮 */}
+                    <Box
+                        position="fixed"
+                        left={0}
+                        right={0}
+                        bottom={0}
+                        bg="transparent"
+                        zIndex={10}
+                        p={4}
+                    >
+                        <Button
+                            w="100%"
+                            borderRadius="md"
+                            bg="#fa2222"
+                            color="#fff"
+                            size="xl"
+                            colorScheme="blue"
+                            variant="solid"
+                            onClick={handleConfirmReceived}
+                            loading={confirmReceived.isPending}
+                        >
+                            确认收货
+                        </Button>
+                    </Box>
                 </Box>
             )}
-            <Box
-                position="fixed"
-                left={0}
-                right={0}
-                bottom={0}
-                bg="transparent"
-                zIndex={10}
-                p={4}
-            >
-                <Button
-                    w="100%"
-                    borderRadius="md"
-                    bg="#fa2222"
-                    color="#fff"
-                    size="xl"
-                    colorScheme="blue"
-                    variant="solid"
-                    onClick={handleConfirmReceived}
-                    loading={confirmReceived.isPending}
-                >
-                    确认收货
-                </Button>
-            </Box>
+
             {/* 确认收货对话框 */}
             {ConfirmReceivedDialog}
         </Box>

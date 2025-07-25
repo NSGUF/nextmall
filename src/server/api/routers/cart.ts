@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
+import { logger } from '@/server/api/utils/logger';
 
 export const cartRouter = createTRPCRouter({
     // 获取购物车列表
@@ -31,6 +32,16 @@ export const cartRouter = createTRPCRouter({
         .mutation(async ({ ctx, input }) => {
             const userId = ctx.session.user.id;
 
+            // 获取商品信息用于日志记录
+            const product = await ctx.db.product.findUnique({
+                where: { id: input.productId },
+                select: { id: true, title: true },
+            });
+
+            if (!product) {
+                throw new Error('商品不存在');
+            }
+
             // 检查是否已存在相同商品和规格
             const existing = await ctx.db.cart.findFirst({
                 where: {
@@ -40,15 +51,16 @@ export const cartRouter = createTRPCRouter({
                 },
             });
 
+            let result;
             if (existing) {
                 // 如果已存在，更新数量
-                return ctx.db.cart.update({
+                result = await ctx.db.cart.update({
                     where: { id: existing.id },
                     data: { quantity: existing.quantity + input.quantity },
                 });
             } else {
                 // 如果不存在，创建新的购物车项
-                return ctx.db.cart.create({
+                result = await ctx.db.cart.create({
                     data: {
                         userId,
                         productId: input.productId,
@@ -57,6 +69,16 @@ export const cartRouter = createTRPCRouter({
                     },
                 });
             }
+
+            // 记录添加购物车日志
+            await logger.cartAdd(
+                ctx,
+                product.id,
+                product.title,
+                input.quantity
+            );
+
+            return result;
         }),
 
     // 更新购物车商品数量

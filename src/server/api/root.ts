@@ -10,6 +10,7 @@ import { addressRouter } from '@/server/api/routers/address';
 import { cartRouter } from '@/server/api/routers/cart';
 import { orderRouter } from '@/server/api/routers/order';
 import { paymentRouter } from '@/server/api/routers/payment';
+import { logRouter } from '@/server/api/routers/log';
 import { utilRouter } from '@/server/api/util';
 
 /**
@@ -29,6 +30,7 @@ export const appRouter = createTRPCRouter({
     cart: cartRouter,
     order: orderRouter,
     payment: paymentRouter,
+    log: logRouter,
     util: utilRouter,
 });
 

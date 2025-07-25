@@ -15,6 +15,7 @@ import {
     FiBookOpen,
     FiCreditCard,
     FiShoppingBag,
+    FiFileText,
 } from 'react-icons/fi';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -39,6 +40,11 @@ const Sidebar = () => {
             title: 'banner管理',
             url: '/admin/banner',
             icon: FiBookOpen,
+        },
+        {
+            title: '用户管理',
+            url: '/admin/user',
+            icon: FiUsers,
         },
         {
             title: '商品分类',
@@ -69,6 +75,11 @@ const Sidebar = () => {
             title: '支付码管理',
             url: '/admin/payment',
             icon: FiCreditCard,
+        },
+        {
+            title: '操作日志',
+            url: '/admin/log',
+            icon: FiFileText,
         },
         // {
         //   title: "Business",

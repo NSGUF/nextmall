@@ -53,15 +53,51 @@ export const authConfig = {
                 },
             },
             async authorize(credentials, req) {
-                const { email, password } = credentials ?? {};
-                if (!email || !password) return null;
-                const user = await db.user.findUnique({
-                    where: { email } as any,
-                });
-                if (!user || !user.password) return null;
-                const isValid = await compare(password as any, user.password);
-                if (!isValid) return null;
-                return { id: user.id, email: user.email, name: user.name };
+                try {
+                    const { email, password } = credentials ?? {};
+
+                    if (!email || !password) {
+                        console.log('Missing email or password');
+                        return null;
+                    }
+
+                    console.log('Attempting login for:', email);
+
+                    const user = await db.user.findUnique({
+                        where: { email: email as string },
+                    });
+
+                    if (!user) {
+                        console.log('User not found:', email);
+                        return null;
+                    }
+
+                    if (!user.password) {
+                        console.log('User has no password:', email);
+                        return null;
+                    }
+
+                    console.log('Comparing passwords...');
+                    const isValid = await compare(
+                        password as string,
+                        user.password
+                    );
+
+                    if (!isValid) {
+                        console.log('Invalid password for:', email);
+                        return null;
+                    }
+
+                    console.log('Login successful for:', email);
+                    return {
+                        id: user.id,
+                        email: user.email,
+                        name: user.name,
+                    };
+                } catch (error) {
+                    console.error('Auth error:', error);
+                    return null;
+                }
             },
         }),
         /**
@@ -84,8 +120,8 @@ export const authConfig = {
                 user: {
                     ...session.user,
                     id: (token?.id as string) ?? session.user?.id,
-                    email: (token?.email as string) ?? session.user?.email,
-                    name: (token?.name as string) ?? session.user?.name,
+                    email: token?.email ?? session.user?.email,
+                    name: token?.name ?? session.user?.name,
                 },
             };
         },

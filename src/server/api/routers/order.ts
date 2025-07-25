@@ -4,6 +4,7 @@ import {
     protectedProcedure,
     superAdminProcedure,
 } from '@/server/api/trpc';
+import { logger } from '@/server/api/utils/logger';
 
 export const orderRouter = createTRPCRouter({
     // 获取订单列表
@@ -296,6 +297,19 @@ export const orderRouter = createTRPCRouter({
                     },
                 });
 
+                // 增加销量
+                await ctx.db.product.update({
+                    where: { id: item.productId },
+                    data: {
+                        sales: {
+                            increment: item.quantity,
+                        },
+                    },
+                });
+
+                // 记录订单创建日志
+                await logger.orderCreate(ctx, order.id, totalAmount);
+
                 orders.push(order);
             }
 
@@ -415,6 +429,17 @@ export const orderRouter = createTRPCRouter({
                     data: {
                         stock: {
                             increment: item.quantity,
+                        },
+                    },
+                });
+            }
+            // 恢复销量
+            for (const item of order.items) {
+                await ctx.db.product.update({
+                    where: { id: item.productId },
+                    data: {
+                        sales: {
+                            decrement: item.quantity,
                         },
                     },
                 });
