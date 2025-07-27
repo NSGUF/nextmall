@@ -294,7 +294,7 @@ model Banner {
 enum OrderStatus {
   PAID    // 已支付
   CHECKED // 已审核 
-  DELIVERED //已发货
+  DELIVERED //待收货
   COMPLETED // 完成
   CANCELLED // 取消
 }

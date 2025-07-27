@@ -239,7 +239,7 @@ export default function VendorDataPage() {
                                                 </Text>
                                             </Table.Cell>
                                             <Table.Cell>
-                                            {vendor.totalOrders} 单
+                                                {vendor.totalOrders} 单
                                             </Table.Cell>
                                             <Table.Cell>
                                                 <Text
@@ -287,13 +287,16 @@ export default function VendorDataPage() {
                                                                     {
                                                                         monthData.orderCount
                                                                     }
-                                                                    单 / <Text color="red.500">¥
-                                                                    {monthData.totalAmount.toLocaleString(
-                                                                        'zh-CN',
-                                                                        {
-                                                                            maximumFractionDigits: 0,
-                                                                        }
-                                                                    )}</Text>
+                                                                    单 /{' '}
+                                                                    <Text color="red.500">
+                                                                        ¥
+                                                                        {monthData.totalAmount.toLocaleString(
+                                                                            'zh-CN',
+                                                                            {
+                                                                                maximumFractionDigits: 0,
+                                                                            }
+                                                                        )}
+                                                                    </Text>
                                                                 </Badge>
                                                             )
                                                         )

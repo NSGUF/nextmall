@@ -240,7 +240,7 @@ export default function OrderManagePage() {
                 case 'DELIVERED':
                     return (
                         <Badge colorScheme="purple" variant="subtle">
-                            已发货
+                            待收货
                         </Badge>
                     );
                 case 'COMPLETED':
@@ -424,7 +424,7 @@ export default function OrderManagePage() {
                             color="blue.600"
                             fontWeight="medium"
                         >
-                            已发货
+                            待收货
                         </Text>
                         <Text fontSize="2xl" fontWeight="bold" color="blue.700">
                             {orderStats.delivered}
@@ -451,12 +451,13 @@ export default function OrderManagePage() {
 
             {/* 搜索和筛选 */}
             <Flex gap={4} mb={4} align="center">
-                <Box position="relative" maxW="300px">
+                <Box position="relative" maxW="500px">
                     <Input
-                        placeholder="搜索订单编号、用户名或邮箱..."
+                        placeholder="搜索订单编号、用户名"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         pl={10}
+                        minW="300px"
                     />
                     <Box
                         position="absolute"
@@ -515,7 +516,7 @@ export default function OrderManagePage() {
                     <DialogBody>
                         <VStack gap={4} align="stretch">
                             <Text fontSize="sm" color="gray.600">
-                                请输入物流单号，确认发货后订单状态将变更为&ldquo;已发货&rdquo;
+                                请输入物流单号，确认发货后订单状态将变更为&ldquo;待收货&rdquo;
                             </Text>
                             <Field label="物流单号" required>
                                 <Input

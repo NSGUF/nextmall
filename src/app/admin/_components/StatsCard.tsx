@@ -1,6 +1,15 @@
 'use client';
 
-import { Box, Text, Grid, Flex, Icon, VStack, HStack, Separator } from '@chakra-ui/react';
+import {
+    Box,
+    Text,
+    Grid,
+    Flex,
+    Icon,
+    VStack,
+    HStack,
+    Separator,
+} from '@chakra-ui/react';
 import type { IconType } from 'react-icons';
 
 interface UserStatsData {
@@ -41,26 +50,25 @@ export default function UserStatsCard({ data }: UserStatsCardProps) {
                 {data.total.toLocaleString()}
             </Text>
 
-           <Flex justify="space-between">
-                    <Text fontSize="xs" color="gray.500" mb={1}>
-                        今日： {data.todayActive}
-                    </Text>
-                    <Text fontSize="xs" color="gray.500" mb={1}>
-                        昨日： {data.yesterdayActive}
-                    </Text>
-                </Flex>
+            <Flex justify="space-between">
+                <Text fontSize="xs" color="gray.500" mb={1}>
+                    今日： {data.todayActive}
+                </Text>
+                <Text fontSize="xs" color="gray.500" mb={1}>
+                    昨日： {data.yesterdayActive}
+                </Text>
+            </Flex>
 
-<Separator my={2}/>
+            <Separator my={2} />
 
-                <Flex justify="space-between">
-                    <Text fontSize="xs" color="gray.500" mb={1}>
-                        当月：{data.currentMonthActive}
-                    </Text>
-                    <Text fontSize="xs" color="gray.500" mb={1}>
-                        上月：{data.lastMonthActive}
-                    </Text>
-                    </Flex>
-
+            <Flex justify="space-between">
+                <Text fontSize="xs" color="gray.500" mb={1}>
+                    当月：{data.currentMonthActive}
+                </Text>
+                <Text fontSize="xs" color="gray.500" mb={1}>
+                    上月：{data.lastMonthActive}
+                </Text>
+            </Flex>
         </Box>
     );
 }

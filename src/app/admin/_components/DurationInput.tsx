@@ -16,7 +16,7 @@ interface DurationInputProps {
 export default function DurationInput({
     value = 0,
     onChange,
-    placeholder = "00:00:00",
+    placeholder = '00:00:00',
     disabled = false,
     name,
     onBlur,
@@ -54,10 +54,22 @@ export default function DurationInput({
         const isColon = char === ':';
         const isBackspace = char === 'Backspace';
         const isDelete = char === 'Delete';
-        const isArrow = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(char);
+        const isArrow = [
+            'ArrowLeft',
+            'ArrowRight',
+            'ArrowUp',
+            'ArrowDown',
+        ].includes(char);
         const isTab = char === 'Tab';
 
-        if (!isNumber && !isColon && !isBackspace && !isDelete && !isArrow && !isTab) {
+        if (
+            !isNumber &&
+            !isColon &&
+            !isBackspace &&
+            !isDelete &&
+            !isArrow &&
+            !isTab
+        ) {
             event.preventDefault();
         }
     };

@@ -108,9 +108,25 @@ export default function OrderPage() {
 
     if (orderLoading) {
         return (
-            <Box bg="#f5f5f7" minH="100vh" pb="100px">
+            <Box bg="#f5f5f7" minH="100vh">
                 <TopNav title="订单列表" onBack={() => router.push('/h5/me')} />
                 <ContentLoading text="订单加载中..." />
+            </Box>
+        );
+    }
+    if (!order.length) {
+        return (
+            <Box bg="#f5f5f7" minH="100vh">
+                <TopNav title="订单列表" onBack={() => router.push('/h5/me')} />
+                <Flex
+                    justify="center"
+                    align="center"
+                    h="calc(100vh - 64px)"
+                    color="gray.400"
+                    fontSize="lg"
+                >
+                    暂无内容
+                </Flex>
             </Box>
         );
     }

@@ -20,10 +20,10 @@ interface ProductListProps {
     emptyText?: string;
 }
 
-export default function ProductList({ 
-    products, 
-    isLoading = false, 
-    emptyText = "暂无商品" 
+export default function ProductList({
+    products,
+    isLoading = false,
+    emptyText = '暂无商品',
 }: ProductListProps) {
     if (isLoading) {
         return <ContentLoading text="商品加载中..." />;
@@ -43,10 +43,7 @@ export default function ProductList({
         <Box px={4} py={4}>
             <SimpleGrid columns={2} gap={2}>
                 {products.map((item) => (
-                    <Link
-                        href={`/full/product?id=${item.id}`}
-                        key={item.id}
-                    >
+                    <Link href={`/full/product?id=${item.id}`} key={item.id}>
                         <Box
                             bg="white"
                             borderRadius="sm"

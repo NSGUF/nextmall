@@ -21,11 +21,7 @@ export default function StockAlert() {
 
     if (isLoading) {
         return (
-            <Box
-                bg="white"
-                p={6}
-                borderRadius="lg"
-            >
+            <Box bg="white" p={6} borderRadius="lg">
                 <Text fontSize="lg" fontWeight="bold" mb={4}>
                     库存预警
                 </Text>
@@ -140,11 +136,13 @@ export default function StockAlert() {
                                                 '未知'}
                                         </Text>
                                     </Table.Cell>
+                                    <Table.Cell>{alert.stock}</Table.Cell>
                                     <Table.Cell>
-                                    {alert.stock}
-                                    </Table.Cell>
-                                    <Table.Cell>
-                                        <Text fontSize="sm" color="red.500" fontWeight="medium">
+                                        <Text
+                                            fontSize="sm"
+                                            color="red.500"
+                                            fontWeight="medium"
+                                        >
                                             ¥{alert.price.toFixed(2)}
                                         </Text>
                                     </Table.Cell>
