@@ -16,6 +16,7 @@ import {
     FiCreditCard,
     FiShoppingBag,
     FiFileText,
+    FiBarChart,
 } from 'react-icons/fi';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -80,6 +81,11 @@ const Sidebar = () => {
             title: '操作日志',
             url: '/admin/log',
             icon: FiFileText,
+        },
+        {
+            title: '供应商数据',
+            url: '/admin/vendor-data',
+            icon: FiBarChart,
         },
         // {
         //   title: "Business",
