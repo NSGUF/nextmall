@@ -138,14 +138,14 @@ export default function LogPage() {
                         <FiRefreshCw style={{ marginRight: '8px' }} />
                         刷新
                     </Button>
-                    <Button
+                    {/* <Button
                         colorScheme="red"
                         variant="outline"
                         onClick={openCleanConfirm}
                     >
                         <FiTrash2 style={{ marginRight: '8px' }} />
                         清理旧日志
-                    </Button>
+                    </Button> */}
                 </Flex>
             </Flex>
 
@@ -249,7 +249,7 @@ export default function LogPage() {
                             <Table.ColumnHeader>描述</Table.ColumnHeader>
                             <Table.ColumnHeader>用户</Table.ColumnHeader>
                             <Table.ColumnHeader>状态</Table.ColumnHeader>
-                            <Table.ColumnHeader>耗时</Table.ColumnHeader>
+                            {/* <Table.ColumnHeader>耗时</Table.ColumnHeader> */}
                         </Table.Row>
                     </Table.Header>
                     <Table.Body>
@@ -293,11 +293,11 @@ export default function LogPage() {
                                         {LOG_STATUS_LABELS[log.status]}
                                     </Badge>
                                 </Table.Cell>
-                                <Table.Cell>
+                                {/* <Table.Cell>
                                     <Text fontSize="sm">
                                         {formatDuration(log.duration)}
                                     </Text>
-                                </Table.Cell>
+                                </Table.Cell> */}
                             </Table.Row>
                         ))}
                     </Table.Body>

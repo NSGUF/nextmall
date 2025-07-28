@@ -5,7 +5,7 @@ import {
     superAdminProcedure,
     protectedProcedure,
 } from '@/server/api/trpc';
-import { logger } from '@/server/api/utils/logger';
+import { logger, logOperation } from '@/server/api/utils/logger';
 
 export const productRouter = createTRPCRouter({
     // 获取所有商品，支持排序、搜索和分页
@@ -23,6 +23,11 @@ export const productRouter = createTRPCRouter({
                 .optional()
         )
         .query(async ({ ctx, input }) => {
+            // 记录商品列表查询日志
+            if (input?.search) {
+                await logger.productSearch(ctx, input.search, 0); // 先记录搜索，结果数量稍后更新
+            }
+
             // 构建where条件
             const where: any = {};
 
@@ -98,6 +103,11 @@ export const productRouter = createTRPCRouter({
                 skip,
                 take: pageSize,
             });
+
+            // 如果是搜索操作，记录搜索结果
+            if (input?.search) {
+                await logger.productSearch(ctx, input.search, total);
+            }
 
             return {
                 data,
@@ -345,6 +355,11 @@ export const productRouter = createTRPCRouter({
                 },
             });
 
+            // 如果未登录，直接返回商品信息
+            if (!ctx.session?.user) {
+                return product;
+            }
+
             // 如果是页面访问，自动添加或更新足迹
             if (input.isPage) {
                 const userId = ctx.session.user.id;
@@ -472,8 +487,19 @@ export const productRouter = createTRPCRouter({
 
     // 获取用户收藏列表
     getFavorites: protectedProcedure.query(async ({ ctx }) => {
+        const userId = ctx.session.user.id;
+
+        // 记录查看收藏列表日志
+        await logOperation(ctx, {
+            action: 'LIST',
+            module: 'PRODUCT',
+            description: '查看收藏列表',
+            targetId: userId,
+            targetType: 'User',
+        });
+
         const favorites = await ctx.db.productFavorite.findMany({
-            where: { userId: ctx.session.user.id },
+            where: { userId },
             include: {
                 product: {
                     include: { specs: true },
@@ -481,6 +507,7 @@ export const productRouter = createTRPCRouter({
             },
             orderBy: { createdAt: 'desc' },
         });
+
         // 返回商品信息列表
         return favorites.map((fav) => ({
             ...fav.product,
@@ -491,8 +518,19 @@ export const productRouter = createTRPCRouter({
 
     // 获取用户足迹列表
     getFootprints: protectedProcedure.query(async ({ ctx }) => {
+        const userId = ctx.session.user.id;
+
+        // 记录查看足迹列表日志
+        await logOperation(ctx, {
+            action: 'LIST',
+            module: 'PRODUCT',
+            description: '查看浏览足迹',
+            targetId: userId,
+            targetType: 'User',
+        });
+
         const footprints = await ctx.db.footprint.findMany({
-            where: { userId: ctx.session.user.id },
+            where: { userId },
             include: {
                 product: {
                     include: { specs: true },
@@ -500,6 +538,7 @@ export const productRouter = createTRPCRouter({
             },
             orderBy: { viewedAt: 'desc' },
         });
+
         // 返回商品信息列表
         return footprints.map((fav) => ({
             ...fav.product,

@@ -4,6 +4,7 @@ import {
     publicProcedure,
     superAdminProcedure,
 } from '@/server/api/trpc';
+import { logger } from '@/server/api/utils/logger';
 
 export const bannerRouter = createTRPCRouter({
     // 获取所有banner，支持排序和分页
@@ -63,7 +64,11 @@ export const bannerRouter = createTRPCRouter({
             })
         )
         .mutation(async ({ ctx, input }) => {
-            await ctx.db.banner.create({ data: input } as any);
+            const banner = await ctx.db.banner.create({ data: input } as any);
+
+            // 记录创建banner日志
+            await logger.adminCreate(ctx, 'banner', banner.id, input.title);
+
             return {
                 message: '创建成功',
             };
@@ -83,20 +88,44 @@ export const bannerRouter = createTRPCRouter({
         )
         .mutation(async ({ ctx, input }) => {
             const { id, ...data } = input;
-            return ctx.db.banner.update({ where: { id }, data });
+            const result = await ctx.db.banner.update({ where: { id }, data });
+
+            // 记录更新banner日志
+            await logger.adminUpdate(ctx, 'banner', id, input.title);
+
+            return result;
         }),
 
     delete: superAdminProcedure
         .input(z.object({ id: z.string() }))
         .mutation(async ({ ctx, input }) => {
-            return ctx.db.banner.delete({ where: { id: input.id } });
+            // 先获取banner信息用于日志记录
+            const banner = await ctx.db.banner.findUnique({
+                where: { id: input.id },
+            });
+
+            const result = await ctx.db.banner.delete({
+                where: { id: input.id },
+            });
+
+            // 记录删除banner日志
+            if (banner) {
+                await logger.adminDelete(ctx, 'banner', input.id, banner.title);
+            }
+
+            return result;
         }),
 
     deleteMany: superAdminProcedure
         .input(z.object({ ids: z.array(z.string()) }))
         .mutation(async ({ ctx, input }) => {
-            return ctx.db.banner.deleteMany({
+            const result = await ctx.db.banner.deleteMany({
                 where: { id: { in: input.ids } },
             });
+
+            // 记录批量删除banner日志
+            await logger.adminBatchDelete(ctx, 'banner', input.ids.length);
+
+            return result;
         }),
 });

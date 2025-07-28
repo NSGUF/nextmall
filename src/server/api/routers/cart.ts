@@ -1,12 +1,23 @@
 import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
-import { logger } from '@/server/api/utils/logger';
+import { logger, logOperation } from '@/server/api/utils/logger';
 
 export const cartRouter = createTRPCRouter({
     // 获取购物车列表
     list: protectedProcedure.query(async ({ ctx }) => {
+        const userId = ctx.session.user.id;
+
+        // 记录查看购物车日志
+        await logOperation(ctx, {
+            action: 'LIST',
+            module: 'CART',
+            description: '查看购物车',
+            targetId: userId,
+            targetType: 'User',
+        });
+
         return ctx.db.cart.findMany({
-            where: { userId: ctx.session.user.id },
+            where: { userId },
             include: {
                 product: {
                     include: {
@@ -98,6 +109,7 @@ export const cartRouter = createTRPCRouter({
                 },
                 include: {
                     spec: true,
+                    product: true,
                 },
             });
 
@@ -110,25 +122,59 @@ export const cartRouter = createTRPCRouter({
                 throw new Error(`库存不足，当前库存：${cartItem.spec.stock}`);
             }
 
-            return ctx.db.cart.update({
+            const result = await ctx.db.cart.update({
                 where: {
                     id: input.id,
                     userId: ctx.session.user.id,
                 },
                 data: { quantity: input.quantity },
             });
+
+            // 记录更新购物车日志
+            await logger.cartUpdate(
+                ctx,
+                cartItem.productId,
+                cartItem.product.title,
+                input.quantity
+            );
+
+            return result;
         }),
 
     // 删除购物车商品
     remove: protectedProcedure
         .input(z.object({ id: z.string() }))
         .mutation(async ({ ctx, input }) => {
-            return ctx.db.cart.delete({
+            // 先获取购物车项信息用于日志记录
+            const cartItem = await ctx.db.cart.findFirst({
+                where: {
+                    id: input.id,
+                    userId: ctx.session.user.id,
+                },
+                include: {
+                    product: true,
+                },
+            });
+
+            if (!cartItem) {
+                throw new Error('购物车商品不存在');
+            }
+
+            const result = await ctx.db.cart.delete({
                 where: {
                     id: input.id,
                     userId: ctx.session.user.id,
                 },
             });
+
+            // 记录删除购物车商品日志
+            await logger.cartRemove(
+                ctx,
+                cartItem.productId,
+                cartItem.product.title
+            );
+
+            return result;
         }),
 
     // 批量删除购物车商品
@@ -145,8 +191,13 @@ export const cartRouter = createTRPCRouter({
 
     // 清空购物车
     clear: protectedProcedure.mutation(async ({ ctx }) => {
+        const userId = ctx.session.user.id;
+
+        // 记录清空购物车日志
+        await logger.cartClear(ctx);
+
         return ctx.db.cart.deleteMany({
-            where: { userId: ctx.session.user.id },
+            where: { userId },
         });
     }),
 

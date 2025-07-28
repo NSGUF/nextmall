@@ -19,8 +19,10 @@ import {
 } from '@chakra-ui/react';
 import { FaStar } from 'react-icons/fa';
 import { STORE_GOOD_DATA_KEY, STORE_LAUNCH_INFO_KEY } from '@/app/const';
+import { useSession } from 'next-auth/react';
 
 export default function ProductPage() {
+    const { data: session } = useSession();
     const searchParams = useSearchParams();
     const router = useRouter();
     const id = searchParams.get('id');
@@ -73,11 +75,21 @@ export default function ProductPage() {
     const [actionType, setActionType] = useState<'cart' | 'buy' | null>(null);
 
     const handlerToCart = () => {
+        if (!session) {
+            showErrorToast('请先登录');
+            router.push('/login');
+            return;
+        }
         setActionType('cart');
         setIsDrawerOpen(true);
     };
 
     const handlerToBuy = () => {
+        if (!session) {
+            showErrorToast('请先登录');
+            router.push('/login');
+            return;
+        }
         setActionType('buy');
         setIsDrawerOpen(true);
     };

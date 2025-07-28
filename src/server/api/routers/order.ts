@@ -6,7 +6,7 @@ import {
 } from '@/server/api/trpc';
 
 import { TRPCError } from '@trpc/server';
-import { logger } from '@/server/api/utils/logger';
+import { logger, logOperation } from '@/server/api/utils/logger';
 import { ROLES } from '@/app/const/status';
 
 export const orderRouter = createTRPCRouter({
@@ -401,7 +401,7 @@ export const orderRouter = createTRPCRouter({
                 updateData.refundInfo = refundInfo;
             }
 
-            return ctx.db.order.update({
+            const result = await ctx.db.order.update({
                 where: { id },
                 data: updateData,
                 include: {
@@ -414,6 +414,23 @@ export const orderRouter = createTRPCRouter({
                     address: true,
                 },
             });
+
+            // 记录订单状态更新日志
+            await logOperation(ctx, {
+                action: 'UPDATE',
+                module: 'ORDER',
+                description: `订单状态更新为: ${status}`,
+                targetId: id,
+                targetType: 'Order',
+                requestData: {
+                    status,
+                    trackingNumber,
+                    shippingInfo,
+                    refundInfo,
+                },
+            });
+
+            return result;
         }),
 
     // 确认收货
@@ -433,7 +450,7 @@ export const orderRouter = createTRPCRouter({
                 throw new Error('订单不存在或无法确认收货');
             }
 
-            return ctx.db.order.update({
+            const result = await ctx.db.order.update({
                 where: { id: input.id },
                 data: {
                     status: 'COMPLETED',
@@ -449,6 +466,17 @@ export const orderRouter = createTRPCRouter({
                     address: true,
                 },
             });
+
+            // 记录确认收货日志
+            await logOperation(ctx, {
+                action: 'ORDER_COMPLETE',
+                module: 'ORDER',
+                description: '用户确认收货',
+                targetId: input.id,
+                targetType: 'Order',
+            });
+
+            return result;
         }),
 
     // 取消订单
@@ -491,10 +519,15 @@ export const orderRouter = createTRPCRouter({
                 });
             }
 
-            return ctx.db.order.update({
+            const result = await ctx.db.order.update({
                 where: { id: input.id },
                 data: { status: 'CANCELLED' },
             });
+
+            // 记录取消订单日志
+            await logger.orderCancel(ctx, input.id);
+
+            return result;
         }),
 
     // 删除订单

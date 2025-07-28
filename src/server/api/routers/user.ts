@@ -8,7 +8,7 @@ import {
 import { hash } from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer';
-import { logger } from '@/server/api/utils/logger';
+import { logger, logOperation } from '@/server/api/utils/logger';
 import { ROLES } from '@/app/const/status';
 
 export const userRouter = createTRPCRouter({
@@ -22,52 +22,68 @@ export const userRouter = createTRPCRouter({
             })
         )
         .mutation(async ({ ctx, input }) => {
-            // 验证手机验证码
-            const smsCode = await ctx.db.smsCode.findFirst({
-                where: {
-                    phone: input.phone,
-                    code: input.code,
-                    type: 'REGISTER',
-                    used: false,
-                    expiresAt: {
-                        gt: new Date(),
+            try {
+                // 验证手机验证码
+                const smsCode = await ctx.db.smsCode.findFirst({
+                    where: {
+                        phone: input.phone,
+                        code: input.code,
+                        type: 'REGISTER',
+                        used: false,
+                        expiresAt: {
+                            gt: new Date(),
+                        },
                     },
-                },
-                orderBy: { createdAt: 'desc' },
-            });
+                    orderBy: { createdAt: 'desc' },
+                });
 
-            if (!smsCode) {
-                throw new Error('验证码无效或已过期');
+                if (!smsCode) {
+                    // 记录验证码验证失败日志
+                    await logger.smsVerify(ctx, input.phone, 'REGISTER', false);
+                    throw new Error('验证码无效或已过期');
+                }
+
+                // 检查手机号是否已被注册
+                const existing = await ctx.db.user.findFirst({
+                    where: { phone: input.phone },
+                });
+                if (existing) {
+                    throw new Error('手机号已被注册');
+                }
+
+                // 标记验证码为已使用
+                await ctx.db.smsCode.update({
+                    where: { id: smsCode.id },
+                    data: { used: true },
+                });
+
+                const hashed = await hash(input.password, 10);
+                const user = await ctx.db.user.create({
+                    data: {
+                        phone: input.phone,
+                        password: hashed,
+                        name: input.name,
+                        phoneVerified: new Date(),
+                    },
+                });
+
+                // 记录用户注册成功日志
+                await logger.userRegister(ctx, user.id, user.phone || '');
+
+                return { id: user.id, phone: user.phone, name: user.name };
+            } catch (error) {
+                // 记录注册失败日志
+                await logOperation(ctx, {
+                    action: 'REGISTER',
+                    module: 'USER',
+                    description: `用户注册失败: ${input.phone}`,
+                    status: 'FAILED',
+                    errorMessage:
+                        error instanceof Error ? error.message : String(error),
+                    requestData: { phone: input.phone, name: input.name },
+                });
+                throw error;
             }
-
-            // 检查手机号是否已被注册
-            const existing = await ctx.db.user.findFirst({
-                where: { phone: input.phone },
-            });
-            if (existing) {
-                throw new Error('手机号已被注册');
-            }
-
-            // 标记验证码为已使用
-            await ctx.db.smsCode.update({
-                where: { id: smsCode.id },
-                data: { used: true },
-            });
-
-            const hashed = await hash(input.password, 10);
-            const user = await ctx.db.user.create({
-                data: {
-                    phone: input.phone,
-                    password: hashed,
-                    name: input.name,
-                    phoneVerified: new Date(),
-                },
-            });
-
-            // 记录用户注册日志
-            await logger.userRegister(ctx, user.id, user.phone);
-
-            return { id: user.id, phone: user.phone, name: user.name };
         }),
     registerFormConfig: publicProcedure.query(() => {
         return [
@@ -391,6 +407,15 @@ export const userRouter = createTRPCRouter({
     getStats: protectedProcedure.query(async ({ ctx }) => {
         const userId = ctx.session.user.id;
 
+        // 记录查看统计信息日志
+        await logOperation(ctx, {
+            action: 'VIEW',
+            module: 'USER',
+            description: '查看用户统计信息',
+            targetId: userId,
+            targetType: 'User',
+        });
+
         const [
             favoritesCount,
             footprintsCount,
@@ -423,7 +448,7 @@ export const userRouter = createTRPCRouter({
             }),
         ]);
 
-        return {
+        const result = {
             favoritesCount,
             footprintsCount,
             orderCounts: {
@@ -434,5 +459,17 @@ export const userRouter = createTRPCRouter({
                 cancelled: cancelledOrdersCount,
             },
         };
+
+        // 记录统计结果
+        await logOperation(ctx, {
+            action: 'VIEW',
+            module: 'USER',
+            description: '获取用户统计信息成功',
+            targetId: userId,
+            targetType: 'User',
+            responseData: result,
+        });
+
+        return result;
     }),
 });

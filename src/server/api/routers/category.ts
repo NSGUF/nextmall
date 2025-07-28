@@ -4,6 +4,7 @@ import {
     publicProcedure,
     superAdminProcedure,
 } from '@/server/api/trpc';
+import { logger } from '@/server/api/utils/logger';
 
 export const categoryRouter = createTRPCRouter({
     // 获取所有分类，支持排序和分页
@@ -55,7 +56,13 @@ export const categoryRouter = createTRPCRouter({
             })
         )
         .mutation(async ({ ctx, input }) => {
-            await ctx.db.category.create({ data: input } as any);
+            const category = await ctx.db.category.create({
+                data: input,
+            } as any);
+
+            // 记录创建分类日志
+            await logger.adminCreate(ctx, 'category', category.id, input.name);
+
             return {
                 message: '创建成功',
             };

@@ -168,6 +168,9 @@ export const LOG_ACTIONS = {
     REGISTER: 'REGISTER',
     UPDATE_PROFILE: 'UPDATE_PROFILE',
     CHANGE_PASSWORD: 'CHANGE_PASSWORD',
+    RESET_PASSWORD: 'RESET_PASSWORD',
+    VERIFY_EMAIL: 'VERIFY_EMAIL',
+    VERIFY_PHONE: 'VERIFY_PHONE',
 
     // 通用CRUD
     CREATE: 'CREATE',
@@ -175,10 +178,17 @@ export const LOG_ACTIONS = {
     DELETE: 'DELETE',
     VIEW: 'VIEW',
     LIST: 'LIST',
+    SEARCH: 'SEARCH',
+    EXPORT: 'EXPORT',
+    IMPORT: 'IMPORT',
+    BATCH_DELETE: 'BATCH_DELETE',
+    BATCH_UPDATE: 'BATCH_UPDATE',
 
     // 商品相关
     PRODUCT_FAVORITE: 'PRODUCT_FAVORITE',
     PRODUCT_UNFAVORITE: 'PRODUCT_UNFAVORITE',
+    PRODUCT_SEARCH: 'PRODUCT_SEARCH',
+    PRODUCT_VIEW_DETAIL: 'PRODUCT_VIEW_DETAIL',
 
     // 订单相关
     ORDER_CREATE: 'ORDER_CREATE',
@@ -186,16 +196,38 @@ export const LOG_ACTIONS = {
     ORDER_SHIP: 'ORDER_SHIP',
     ORDER_COMPLETE: 'ORDER_COMPLETE',
     ORDER_CANCEL: 'ORDER_CANCEL',
+    ORDER_REFUND: 'ORDER_REFUND',
 
     // 购物车相关
     CART_ADD: 'CART_ADD',
     CART_UPDATE: 'CART_UPDATE',
     CART_REMOVE: 'CART_REMOVE',
+    CART_CLEAR: 'CART_CLEAR',
+
+    // 地址相关
+    ADDRESS_CREATE: 'ADDRESS_CREATE',
+    ADDRESS_UPDATE: 'ADDRESS_UPDATE',
+    ADDRESS_DELETE: 'ADDRESS_DELETE',
+    ADDRESS_SET_DEFAULT: 'ADDRESS_SET_DEFAULT',
+
+    // 短信验证码相关
+    SMS_SEND: 'SMS_SEND',
+    SMS_VERIFY: 'SMS_VERIFY',
 
     // 管理员相关
     ADMIN_LOGIN: 'ADMIN_LOGIN',
     ADMIN_EXPORT: 'ADMIN_EXPORT',
     ADMIN_IMPORT: 'ADMIN_IMPORT',
+    ADMIN_BACKUP: 'ADMIN_BACKUP',
+    ADMIN_RESTORE: 'ADMIN_RESTORE',
+
+    // 文件相关
+    FILE_UPLOAD: 'FILE_UPLOAD',
+    FILE_DELETE: 'FILE_DELETE',
+
+    // 系统相关
+    SYSTEM_CONFIG: 'SYSTEM_CONFIG',
+    SYSTEM_MAINTENANCE: 'SYSTEM_MAINTENANCE',
 } as const;
 
 /**
@@ -214,6 +246,9 @@ export const LOG_MODULES = {
     PAYMENT: 'PAYMENT',
     ADMIN: 'ADMIN',
     SYSTEM: 'SYSTEM',
+    SMS: 'SMS',
+    FILE: 'FILE',
+    AUTH: 'AUTH',
 } as const;
 
 /**
@@ -239,11 +274,11 @@ export const logger = {
             targetType: 'User',
         }),
 
-    userRegister: (ctx: LogContext, userId: string, email: string) =>
+    userRegister: (ctx: LogContext, userId: string, identifier: string) =>
         logOperation(ctx, {
             action: LOG_ACTIONS.REGISTER,
             module: LOG_MODULES.USER,
-            description: `用户注册 (${email})`,
+            description: `用户注册 (${identifier})`,
             targetId: userId,
             targetType: 'User',
         }),
@@ -333,5 +368,191 @@ export const logger = {
             description: `添加商品到购物车: ${productTitle} x${quantity}`,
             targetId: productId,
             targetType: 'Product',
+        }),
+
+    cartUpdate: (
+        ctx: LogContext,
+        productId: string,
+        productTitle: string,
+        quantity: number
+    ) =>
+        logOperation(ctx, {
+            action: LOG_ACTIONS.CART_UPDATE,
+            module: LOG_MODULES.CART,
+            description: `更新购物车商品数量: ${productTitle} x${quantity}`,
+            targetId: productId,
+            targetType: 'Product',
+        }),
+
+    cartRemove: (ctx: LogContext, productId: string, productTitle: string) =>
+        logOperation(ctx, {
+            action: LOG_ACTIONS.CART_REMOVE,
+            module: LOG_MODULES.CART,
+            description: `从购物车移除商品: ${productTitle}`,
+            targetId: productId,
+            targetType: 'Product',
+        }),
+
+    cartClear: (ctx: LogContext) =>
+        logOperation(ctx, {
+            action: LOG_ACTIONS.CART_CLEAR,
+            module: LOG_MODULES.CART,
+            description: '清空购物车',
+        }),
+
+    // 地址操作
+    addressCreate: (ctx: LogContext, addressId: string, name: string) =>
+        logOperation(ctx, {
+            action: LOG_ACTIONS.ADDRESS_CREATE,
+            module: LOG_MODULES.ADDRESS,
+            description: `创建收货地址: ${name}`,
+            targetId: addressId,
+            targetType: 'Address',
+        }),
+
+    addressUpdate: (ctx: LogContext, addressId: string, name: string) =>
+        logOperation(ctx, {
+            action: LOG_ACTIONS.ADDRESS_UPDATE,
+            module: LOG_MODULES.ADDRESS,
+            description: `更新收货地址: ${name}`,
+            targetId: addressId,
+            targetType: 'Address',
+        }),
+
+    addressDelete: (ctx: LogContext, addressId: string, name: string) =>
+        logOperation(ctx, {
+            action: LOG_ACTIONS.ADDRESS_DELETE,
+            module: LOG_MODULES.ADDRESS,
+            description: `删除收货地址: ${name}`,
+            targetId: addressId,
+            targetType: 'Address',
+        }),
+
+    addressSetDefault: (ctx: LogContext, addressId: string, name: string) =>
+        logOperation(ctx, {
+            action: LOG_ACTIONS.ADDRESS_SET_DEFAULT,
+            module: LOG_MODULES.ADDRESS,
+            description: `设置默认收货地址: ${name}`,
+            targetId: addressId,
+            targetType: 'Address',
+        }),
+
+    // 短信验证码操作
+    smsSend: (ctx: LogContext, phone: string, type: string) =>
+        logOperation(ctx, {
+            action: LOG_ACTIONS.SMS_SEND,
+            module: LOG_MODULES.SMS,
+            description: `发送短信验证码: ${phone} (${type})`,
+            requestData: { phone, type },
+        }),
+
+    smsVerify: (
+        ctx: LogContext,
+        phone: string,
+        type: string,
+        success: boolean
+    ) =>
+        logOperation(ctx, {
+            action: LOG_ACTIONS.SMS_VERIFY,
+            module: LOG_MODULES.SMS,
+            description: `验证短信验证码: ${phone} (${type}) - ${success ? '成功' : '失败'}`,
+            status: success ? 'SUCCESS' : 'FAILED',
+            requestData: { phone, type },
+        }),
+
+    // 商品操作扩展
+    productSearch: (ctx: LogContext, keyword: string, resultCount: number) =>
+        logOperation(ctx, {
+            action: LOG_ACTIONS.PRODUCT_SEARCH,
+            module: LOG_MODULES.PRODUCT,
+            description: `搜索商品: "${keyword}" (${resultCount}个结果)`,
+            requestData: { keyword },
+            responseData: { resultCount },
+        }),
+
+    // 订单操作扩展
+    orderPay: (ctx: LogContext, orderId: string, amount: number) =>
+        logOperation(ctx, {
+            action: LOG_ACTIONS.ORDER_PAY,
+            module: LOG_MODULES.ORDER,
+            description: `订单支付: ¥${amount}`,
+            targetId: orderId,
+            targetType: 'Order',
+        }),
+
+    orderCancel: (ctx: LogContext, orderId: string, reason?: string) =>
+        logOperation(ctx, {
+            action: LOG_ACTIONS.ORDER_CANCEL,
+            module: LOG_MODULES.ORDER,
+            description: `取消订单${reason ? `: ${reason}` : ''}`,
+            targetId: orderId,
+            targetType: 'Order',
+        }),
+
+    // 管理员操作
+    adminCreate: (
+        ctx: LogContext,
+        module: string,
+        targetId: string,
+        name: string
+    ) =>
+        logOperation(ctx, {
+            action: LOG_ACTIONS.CREATE,
+            module: module.toUpperCase(),
+            description: `管理员创建${module}: ${name}`,
+            targetId,
+            targetType: module,
+        }),
+
+    adminUpdate: (
+        ctx: LogContext,
+        module: string,
+        targetId: string,
+        name: string
+    ) =>
+        logOperation(ctx, {
+            action: LOG_ACTIONS.UPDATE,
+            module: module.toUpperCase(),
+            description: `管理员更新${module}: ${name}`,
+            targetId,
+            targetType: module,
+        }),
+
+    adminDelete: (
+        ctx: LogContext,
+        module: string,
+        targetId: string,
+        name: string
+    ) =>
+        logOperation(ctx, {
+            action: LOG_ACTIONS.DELETE,
+            module: module.toUpperCase(),
+            description: `管理员删除${module}: ${name}`,
+            targetId,
+            targetType: module,
+        }),
+
+    adminBatchDelete: (ctx: LogContext, module: string, count: number) =>
+        logOperation(ctx, {
+            action: LOG_ACTIONS.BATCH_DELETE,
+            module: module.toUpperCase(),
+            description: `管理员批量删除${module} (${count}个)`,
+        }),
+
+    // 文件操作
+    fileUpload: (ctx: LogContext, fileName: string, fileSize: number) =>
+        logOperation(ctx, {
+            action: LOG_ACTIONS.FILE_UPLOAD,
+            module: LOG_MODULES.FILE,
+            description: `上传文件: ${fileName} (${fileSize} bytes)`,
+            requestData: { fileName, fileSize },
+        }),
+
+    fileDelete: (ctx: LogContext, fileName: string) =>
+        logOperation(ctx, {
+            action: LOG_ACTIONS.FILE_DELETE,
+            module: LOG_MODULES.FILE,
+            description: `删除文件: ${fileName}`,
+            requestData: { fileName },
         }),
 };

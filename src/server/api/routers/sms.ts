@@ -1,8 +1,6 @@
 import { z } from 'zod';
-import {
-    createTRPCRouter,
-    publicProcedure,
-} from '@/server/api/trpc';
+import { createTRPCRouter, publicProcedure } from '@/server/api/trpc';
+import { logger } from '@/server/api/utils/logger';
 
 export const smsRouter = createTRPCRouter({
     // 发送验证码
@@ -50,6 +48,9 @@ export const smsRouter = createTRPCRouter({
                 },
             });
 
+            // 记录发送验证码日志
+            await logger.smsSend(ctx, phone, type);
+
             // TODO: 这里应该调用真实的短信服务API发送验证码
             // 目前为了开发方便，我们在控制台输出验证码
             console.log(`发送验证码到 ${phone}: ${code}`);
@@ -96,6 +97,8 @@ export const smsRouter = createTRPCRouter({
             });
 
             if (!smsCode) {
+                // 记录验证失败日志
+                await logger.smsVerify(ctx, phone, type, false);
                 throw new Error('验证码无效或已过期');
             }
 
@@ -104,6 +107,9 @@ export const smsRouter = createTRPCRouter({
                 where: { id: smsCode.id },
                 data: { used: true },
             });
+
+            // 记录验证成功日志
+            await logger.smsVerify(ctx, phone, type, true);
 
             return {
                 message: '验证码验证成功',

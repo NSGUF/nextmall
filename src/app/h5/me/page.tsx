@@ -77,14 +77,16 @@ export default function MePage() {
     const router = useRouter();
     const [showLogoutDialog, setShowLogoutDialog] = useState(false);
     const { data: userStats, isLoading: statsLoading } =
-        api.user.getStats.useQuery();
+        api.user.getStats.useQuery(undefined, {
+            enabled: !!session, // 只在登录状态下请求
+        });
 
     const handleLogout = async () => {
         await logout();
         router.push('/');
     };
 
-    if (statsLoading) {
+    if (session && statsLoading) {
         return <ContentLoading text="个人信息加载中..." />;
     }
 
@@ -99,18 +101,36 @@ export default function MePage() {
             {/* 头部用户信息 */}
             <Box px={4} pt={6} pb={2}>
                 <Flex align="center" justify="space-between">
-                    <Flex align="center" gap={3}>
-                        <Avatar.Root>
-                            <Avatar.Fallback
-                                name={session?.user?.name || 'User'}
-                            />
-                        </Avatar.Root>
-                        <Box>
-                            <Text fontWeight="bold" fontSize="xl">
-                                {session?.user?.name || '用户'}
-                            </Text>
-                        </Box>
-                    </Flex>
+                    {session ? (
+                        <Flex align="center" gap={3}>
+                            <Avatar.Root>
+                                <Avatar.Fallback
+                                    name={session?.user?.name || 'User'}
+                                />
+                            </Avatar.Root>
+                            <Box>
+                                <Text fontWeight="bold" fontSize="xl">
+                                    {session?.user?.name || '用户'}
+                                </Text>
+                            </Box>
+                        </Flex>
+                    ) : (
+                        <Flex
+                            align="center"
+                            gap={3}
+                            cursor="pointer"
+                            onClick={() => router.push('/login')}
+                        >
+                            <Avatar.Root>
+                                <Avatar.Fallback name="N" />
+                            </Avatar.Root>
+                            <Box>
+                                <Text fontWeight="bold" fontSize="md">
+                                    点击登录账户
+                                </Text>
+                            </Box>
+                        </Flex>
+                    )}
                 </Flex>
                 {/* 资产栏 */}
                 <Flex mt={6} justify="space-between" align="center" px={8}>
@@ -168,7 +188,7 @@ export default function MePage() {
                         </Flex>
                     </Link>
                 </Flex>
-                <Grid templateColumns="repeat(5, 1fr)" gap={2} mt={4}>
+                <Grid templateColumns="repeat(4, 1fr)" gap={2} mt={4}>
                     <Link href="/full/order?status=PAID">
                         <Flex
                             direction="column"
@@ -233,7 +253,7 @@ export default function MePage() {
                             </Text>
                         </Flex>
                     </Link>
-                    <Link href="/full/order?status=CANCELLED">
+                    {/* <Link href="/full/order?status=CANCELLED">
                         <Flex
                             direction="column"
                             align="center"
@@ -248,7 +268,7 @@ export default function MePage() {
                                 退款退货
                             </Text>
                         </Flex>
-                    </Link>
+                    </Link> */}
                 </Grid>
             </Box>
 
@@ -309,46 +329,50 @@ export default function MePage() {
                 </Grid>
             </Box>
 
-            {/* 退出登录按钮 */}
-            <Box
-                bg="white"
-                mx={4}
-                borderRadius="xl"
-                p={4}
-                mb={4}
-                boxShadow="2xs"
-            >
-                <Button
-                    w="100%"
-                    colorScheme="red"
-                    variant="outline"
-                    onClick={() => setShowLogoutDialog(true)}
+            {/* 退出登录按钮 - 只在登录状态下显示 */}
+            {session && (
+                <Box
+                    bg="white"
+                    mx={4}
+                    borderRadius="xl"
+                    p={4}
+                    mb={4}
+                    boxShadow="2xs"
                 >
-                    <FiLogOut />
-                    退出登录
-                </Button>
-            </Box>
+                    <Button
+                        w="100%"
+                        colorScheme="red"
+                        variant="outline"
+                        onClick={() => setShowLogoutDialog(true)}
+                    >
+                        <FiLogOut />
+                        退出登录
+                    </Button>
+                </Box>
+            )}
 
-            {/* 退出登录确认对话框 */}
-            <DialogRoot
-                open={showLogoutDialog}
-                onOpenChange={(e) => setShowLogoutDialog(e.open)}
-            >
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>确认退出</DialogTitle>
-                    </DialogHeader>
-                    <DialogBody>
-                        您确定要退出登录吗？退出后需要重新登录才能使用完整功能。
-                    </DialogBody>
-                    <DialogFooter>
-                        <Button colorScheme="red" onClick={handleLogout}>
-                            确认退出
-                        </Button>
-                    </DialogFooter>
-                    <DialogCloseTrigger />
-                </DialogContent>
-            </DialogRoot>
+            {/* 退出登录确认对话框 - 只在登录状态下显示 */}
+            {session && (
+                <DialogRoot
+                    open={showLogoutDialog}
+                    onOpenChange={(e) => setShowLogoutDialog(e.open)}
+                >
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>确认退出</DialogTitle>
+                        </DialogHeader>
+                        <DialogBody>
+                            您确定要退出登录吗？退出后需要重新登录才能使用完整功能。
+                        </DialogBody>
+                        <DialogFooter>
+                            <Button colorScheme="red" onClick={handleLogout}>
+                                确认退出
+                            </Button>
+                        </DialogFooter>
+                        <DialogCloseTrigger />
+                    </DialogContent>
+                </DialogRoot>
+            )}
         </Box>
     );
 }
