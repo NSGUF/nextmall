@@ -31,7 +31,8 @@ services:
             - NODE_ENV=production
             - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@db:5432/nextmall
             - AUTH_SECRET=${AUTH_SECRET}
-            - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
+            - AUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
+            - AUTH_TRUST_HOST=true
             - FIRST_SUPERUSER=${FIRST_SUPERUSER:-admin}
             - FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD:-admin123}
         depends_on:

@@ -40,8 +40,9 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+
+# 复制整个 node_modules（包含 Prisma 客户端）
+COPY --from=builder /app/node_modules ./node_modules
 
 # 创建上传目录
 RUN mkdir -p /app/public/uploads && chown -R nextjs:nodejs /app/public/uploads
@@ -60,6 +61,7 @@ RUN chmod +x ./docker-entrypoint.sh
 USER nextjs
 
 CMD ["./docker-entrypoint.sh"]
+
 
 
 

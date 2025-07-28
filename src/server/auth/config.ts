@@ -36,7 +36,8 @@ declare module 'next-auth' {
  * @see https://next-auth.js.org/configuration/options
  */
 export const authConfig = {
-    secret: process.env.NEXTAUTH_SECRET,
+    secret: process.env.AUTH_SECRET,
+    trustHost: true,
     session: {
         strategy: 'jwt', // 显式指定
         maxAge: 30 * 24 * 60 * 60, // 30天
