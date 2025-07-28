@@ -13,6 +13,7 @@ import { ZodError } from 'zod';
 
 import { auth } from '@/server/auth';
 import { db } from '@/server/db';
+import { ROLES } from '@/app/const/status';
 
 /**
  * 1. CONTEXT
@@ -148,7 +149,7 @@ export const superAdminProcedure = t.procedure
         const user = await ctx.db.user.findUnique({
             where: { id: ctx.session.user.id },
         });
-        if (!user || user.role !== 'SUPERADMIN') {
+        if (!user || user.role !== ROLES.SUPERADMIN) {
             throw new TRPCError({
                 code: 'FORBIDDEN',
                 message: '仅超级管理员可操作',

@@ -2,9 +2,11 @@ import { z } from 'zod';
 import {
     createTRPCRouter,
     protectedProcedure,
+    superAdminProcedure,
     publicProcedure,
 } from '@/server/api/trpc';
 import { LogStatus } from '@prisma/client';
+import { ROLES } from '@/app/const/status';
 
 export const logRouter = createTRPCRouter({
     // 创建操作日志
@@ -34,7 +36,7 @@ export const logRouter = createTRPCRouter({
         }),
 
     // 获取操作日志列表（分页）
-    getList: protectedProcedure
+    getList: superAdminProcedure
         .input(
             z.object({
                 page: z.number().min(1).default(1),
@@ -116,7 +118,7 @@ export const logRouter = createTRPCRouter({
         }),
 
     // 获取操作统计
-    getStats: protectedProcedure
+    getStats: superAdminProcedure
         .input(
             z.object({
                 startDate: z.date().optional(),
@@ -214,7 +216,7 @@ export const logRouter = createTRPCRouter({
         }),
 
     // 获取单个日志详情
-    getById: protectedProcedure
+    getById: superAdminProcedure
         .input(
             z.object({
                 id: z.string(),
@@ -237,7 +239,7 @@ export const logRouter = createTRPCRouter({
         }),
 
     // 批量删除日志（管理员功能）
-    deleteMany: protectedProcedure
+    deleteMany: superAdminProcedure
         .input(
             z.object({
                 ids: z.array(z.string()),
@@ -245,7 +247,7 @@ export const logRouter = createTRPCRouter({
         )
         .mutation(async ({ ctx, input }) => {
             // 检查用户权限
-            if (ctx.session.user.role !== 'SUPERADMIN') {
+            if (ctx.session.user.role !== ROLES.SUPERADMIN) {
                 throw new Error('权限不足');
             }
 
@@ -264,7 +266,7 @@ export const logRouter = createTRPCRouter({
         }),
 
     // 清理旧日志（管理员功能）
-    cleanOldLogs: protectedProcedure
+    cleanOldLogs: superAdminProcedure
         .input(
             z.object({
                 daysToKeep: z.number().min(1).default(90), // 保留天数，默认90天
@@ -272,7 +274,7 @@ export const logRouter = createTRPCRouter({
         )
         .mutation(async ({ ctx, input }) => {
             // 检查用户权限
-            if (ctx.session.user.role !== 'SUPERADMIN') {
+            if (ctx.session.user.role !== ROLES.SUPERADMIN) {
                 throw new Error('权限不足');
             }
 

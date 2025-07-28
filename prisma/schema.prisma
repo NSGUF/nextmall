@@ -58,11 +58,12 @@ model User {
     id            String    @id @default(cuid()) // 用户ID
     name          String?   // 用户名
     email         String?   @unique // 邮箱
-    phone         String?   // 手机号
+    phone         String?   @unique // 手机号
     status        Boolean   @default(true) // 用户状态 1正常 0禁用
     gender        String?   // 性别
     birthday      DateTime? // 生日
     emailVerified DateTime? // 邮箱验证时间
+    phoneVerified DateTime? // 手机号验证时间
     image         String?   // 头像
     password      String?   // 密码，需加密存储
     accounts      Account[] // 账号列表
@@ -90,6 +91,24 @@ enum UserRole {
     VENDOR     // 供应商
     STORE      // 普通门店
     NORMAL     // 普通用户
+}
+
+model SmsCode {
+    id        String   @id @default(cuid()) // 验证码ID
+    phone     String   // 手机号
+    code      String   // 验证码
+    type      SmsType  // 验证码类型
+    used      Boolean  @default(false) // 是否已使用
+    expiresAt DateTime // 过期时间
+    createdAt DateTime @default(now()) // 创建时间
+
+    @@index([phone, type])
+}
+
+enum SmsType {
+    REGISTER // 注册验证码
+    LOGIN    // 登录验证码
+    RESET    // 重置密码验证码
 }
 
 model Address {

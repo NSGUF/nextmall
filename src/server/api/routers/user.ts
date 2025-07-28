@@ -9,36 +9,65 @@ import { hash } from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer';
 import { logger } from '@/server/api/utils/logger';
+import { ROLES } from '@/app/const/status';
 
 export const userRouter = createTRPCRouter({
     register: publicProcedure
         .input(
             z.object({
-                email: z.string().email(),
+                phone: z.string().regex(/^1[3-9]\d{9}$/, '手机号格式不正确'),
+                code: z.string().length(6, '验证码必须是6位数字'),
                 password: z.string().min(6, '密码至少6位'),
                 name: z.string().min(3, '用户名至少3位'),
             })
         )
         .mutation(async ({ ctx, input }) => {
-            const existing = await ctx.db.user.findUnique({
-                where: { email: input.email },
+            // 验证手机验证码
+            const smsCode = await ctx.db.smsCode.findFirst({
+                where: {
+                    phone: input.phone,
+                    code: input.code,
+                    type: 'REGISTER',
+                    used: false,
+                    expiresAt: {
+                        gt: new Date(),
+                    },
+                },
+                orderBy: { createdAt: 'desc' },
+            });
+
+            if (!smsCode) {
+                throw new Error('验证码无效或已过期');
+            }
+
+            // 检查手机号是否已被注册
+            const existing = await ctx.db.user.findFirst({
+                where: { phone: input.phone },
             });
             if (existing) {
-                throw new Error('邮箱已被注册');
+                throw new Error('手机号已被注册');
             }
+
+            // 标记验证码为已使用
+            await ctx.db.smsCode.update({
+                where: { id: smsCode.id },
+                data: { used: true },
+            });
+
             const hashed = await hash(input.password, 10);
             const user = await ctx.db.user.create({
                 data: {
-                    email: input.email,
+                    phone: input.phone,
                     password: hashed,
                     name: input.name,
+                    phoneVerified: new Date(),
                 },
             });
 
             // 记录用户注册日志
-            await logger.userRegister(ctx, user.id, user.email);
+            await logger.userRegister(ctx, user.id, user.phone);
 
-            return { id: user.id, email: user.email, name: user.name };
+            return { id: user.id, phone: user.phone, name: user.name };
         }),
     registerFormConfig: publicProcedure.query(() => {
         return [
@@ -105,7 +134,7 @@ export const userRouter = createTRPCRouter({
     getAllVendors: superAdminProcedure.query(async ({ ctx }) => {
         // UserRole.VENDOR
         const vendors = await ctx.db.user.findMany({
-            where: { role: 'VENDOR' },
+            where: { role: ROLES.VENDOR },
             orderBy: { createdAt: 'desc' },
         });
         return vendors;
@@ -121,7 +150,12 @@ export const userRouter = createTRPCRouter({
                     page: z.number().min(1).optional().default(1),
                     pageSize: z.number().min(1).max(100).optional().default(10),
                     role: z
-                        .enum(['SUPERADMIN', 'VENDOR', 'STORE', 'NORMAL'])
+                        .enum([
+                            ROLES.SUPERADMIN,
+                            ROLES.VENDOR,
+                            'STORE',
+                            ROLES.NORMAL,
+                        ])
                         .optional(),
                     status: z.boolean().optional(),
                 })
@@ -186,8 +220,13 @@ export const userRouter = createTRPCRouter({
                 phone: z.string().optional(),
                 status: z.boolean().optional(),
                 role: z
-                    .enum(['SUPERADMIN', 'VENDOR', 'STORE', 'NORMAL'])
-                    .default('NORMAL'),
+                    .enum([
+                        ROLES.SUPERADMIN,
+                        ROLES.VENDOR,
+                        'STORE',
+                        ROLES.NORMAL,
+                    ])
+                    .default(ROLES.NORMAL),
                 password: z.string().min(6, '密码至少6位').optional(),
             })
         )
@@ -213,7 +252,7 @@ export const userRouter = createTRPCRouter({
                     name: input.name,
                     email: input.email,
                     phone: input.phone,
-                    status: input.status,
+                    status: input.status ?? true,
                     role: input.role,
                     password: hashedPassword,
                 },
@@ -236,7 +275,12 @@ export const userRouter = createTRPCRouter({
                 email: z.string().email('邮箱格式不正确').optional(),
                 phone: z.string().optional(),
                 status: z.boolean().optional(),
-                role: z.enum(['SUPERADMIN', 'VENDOR', 'STORE', 'NORMAL']),
+                role: z.enum([
+                    ROLES.SUPERADMIN,
+                    ROLES.VENDOR,
+                    'STORE',
+                    ROLES.NORMAL,
+                ]),
                 password: z.string().min(6, '密码至少6位').optional(),
             })
         )
@@ -292,6 +336,11 @@ export const userRouter = createTRPCRouter({
                 throw new Error('用户不存在');
             }
 
+            // 检查是否为超级管理员
+            if (existingUser.role === ROLES.SUPERADMIN) {
+                throw new Error('不能删除超级管理员');
+            }
+
             // 软删除：设置 isDeleted 为 true
             await ctx.db.user.update({
                 where: { id: input.id },
@@ -310,6 +359,20 @@ export const userRouter = createTRPCRouter({
     deleteMany: superAdminProcedure
         .input(z.object({ ids: z.array(z.string()) }))
         .mutation(async ({ ctx, input }) => {
+            // 检查是否包含超级管理员
+            const users = await ctx.db.user.findMany({
+                where: { id: { in: input.ids } },
+                select: { id: true, role: true },
+            });
+
+            const superAdminIds = users
+                .filter((user) => user.role === ROLES.SUPERADMIN)
+                .map((user) => user.id);
+
+            if (superAdminIds.length > 0) {
+                throw new Error('不能删除超级管理员');
+            }
+
             // 软删除：设置 isDeleted 为 true
             await ctx.db.user.updateMany({
                 where: { id: { in: input.ids } },

@@ -1,5 +1,10 @@
 import { z } from 'zod';
-import { createTRPCRouter, superAdminProcedure } from '@/server/api/trpc';
+import {
+    createTRPCRouter,
+    protectedProcedure,
+    superAdminProcedure,
+} from '@/server/api/trpc';
+import { ROLES } from '@/app/const/status';
 
 export const dashboardRouter = createTRPCRouter({
     // 获取用户统计数据
@@ -322,7 +327,7 @@ export const dashboardRouter = createTRPCRouter({
     }),
 
     // 获取供应商数据查看
-    getVendorData: superAdminProcedure
+    getVendorData: protectedProcedure
         .input(
             z.object({
                 vendorId: z.string().optional(),
@@ -332,8 +337,30 @@ export const dashboardRouter = createTRPCRouter({
             })
         )
         .query(async ({ ctx, input }) => {
-            const { vendorId, year, page, pageSize } = input;
+            const { year, page, pageSize } = input;
             const skip = (page - 1) * pageSize;
+
+            // 获取当前用户信息
+            const currentUser = await ctx.db.user.findUnique({
+                where: { id: ctx.session.user.id },
+            });
+
+            if (!currentUser) {
+                throw new Error('用户不存在');
+            }
+
+            // 确定要查询的供应商ID
+            let targetVendorId: string;
+
+            if (currentUser.role === ROLES.SUPERADMIN) {
+                // 超级管理员可以查看指定供应商或所有供应商的数据
+                targetVendorId = input.vendorId || '';
+            } else if (currentUser.role === ROLES.VENDOR) {
+                // 供应商只能查看自己的数据
+                targetVendorId = currentUser.id;
+            } else {
+                throw new Error('无权限访问');
+            }
 
             // 构建查询条件
             const where: any = {
@@ -353,9 +380,9 @@ export const dashboardRouter = createTRPCRouter({
             const orderItems = await ctx.db.orderItem.findMany({
                 where: {
                     order: where,
-                    ...(vendorId && {
+                    ...(targetVendorId && {
                         product: {
-                            vendorId: vendorId,
+                            vendorId: targetVendorId,
                         },
                     }),
                 },
@@ -461,7 +488,7 @@ export const dashboardRouter = createTRPCRouter({
     getVendorList: superAdminProcedure.query(async ({ ctx }) => {
         const vendors = await ctx.db.user.findMany({
             where: {
-                role: 'VENDOR',
+                role: ROLES.VENDOR,
                 isDeleted: false,
             },
             select: {

@@ -4,6 +4,7 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import { compare } from 'bcryptjs';
 
 import { db } from '@/server/db';
+import type { ROLES } from '@/app/const/status';
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -15,15 +16,18 @@ declare module 'next-auth' {
     interface Session extends DefaultSession {
         user: {
             id: string;
+            phone?: string;
+            role?: ROLES;
             // ...other properties
-            // role: UserRole;
         } & DefaultSession['user'];
     }
 
-    // interface User {
-    //   // ...other properties
-    //   // role: UserRole;
-    // }
+    interface User {
+        email?: string | null;
+        name?: string | null;
+        phone?: string | null;
+        role?: string;
+    }
 }
 
 /**
@@ -41,10 +45,10 @@ export const authConfig = {
         CredentialsProvider({
             name: 'Credentials',
             credentials: {
-                email: {
-                    label: 'Email',
-                    type: 'email',
-                    placeholder: '请输入邮箱',
+                phone: {
+                    label: 'Phone',
+                    type: 'tel',
+                    placeholder: '请输入手机号',
                 },
                 password: {
                     label: 'Password',
@@ -52,28 +56,29 @@ export const authConfig = {
                     placeholder: '请输入密码',
                 },
             },
-            async authorize(credentials, req) {
+            async authorize(credentials) {
                 try {
-                    const { email, password } = credentials ?? {};
+                    const { phone, password } = credentials ?? {};
 
-                    if (!email || !password) {
-                        console.log('Missing email or password');
+                    if (!phone || !password) {
+                        console.log('Missing phone or password');
                         return null;
                     }
 
-                    console.log('Attempting login for:', email);
+                    console.log('Attempting login for:', phone);
 
-                    const user = await db.user.findUnique({
-                        where: { email: email as string },
+                    // 支持手机号登录
+                    const user = await db.user.findFirst({
+                        where: { phone: phone as string },
                     });
 
                     if (!user) {
-                        console.log('User not found:', email);
+                        console.log('User not found:', phone);
                         return null;
                     }
 
                     if (!user.password) {
-                        console.log('User has no password:', email);
+                        console.log('User has no password:', phone);
                         return null;
                     }
 
@@ -84,15 +89,17 @@ export const authConfig = {
                     );
 
                     if (!isValid) {
-                        console.log('Invalid password for:', email);
+                        console.log('Invalid password for:', phone);
                         return null;
                     }
 
-                    console.log('Login successful for:', email);
+                    console.log('Login successful for:', phone);
                     return {
                         id: user.id,
                         email: user.email,
                         name: user.name,
+                        phone: user.phone,
+                        role: user.role,
                     };
                 } catch (error) {
                     console.error('Auth error:', error);
@@ -122,6 +129,8 @@ export const authConfig = {
                     id: (token?.id as string) ?? session.user?.id,
                     email: token?.email ?? session.user?.email,
                     name: token?.name ?? session.user?.name,
+                    phone: token?.phone as string,
+                    role: token?.role as string,
                 },
             };
         },
@@ -131,6 +140,8 @@ export const authConfig = {
                 token.id = user.id;
                 token.email = user.email;
                 token.name = user.name;
+                token.phone = (user as any).phone;
+                token.role = (user as any).role;
             }
             return token;
         },

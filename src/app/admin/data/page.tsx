@@ -100,17 +100,8 @@ export default function VendorDataPage() {
                 borderColor="gray.200"
             >
                 <Flex gap={4} wrap="wrap" align="end">
-                    <Box>
-                        <Text
-                            fontSize="sm"
-                            mb={2}
-                            color="gray.600"
-                            fontWeight="medium"
-                        >
-                            选择供应商
-                        </Text>
-
-                        <NativeSelect.Root size="sm" width="240px">
+                    <Flex align="center">
+                        <NativeSelect.Root width="240px">
                             <NativeSelect.Field
                                 placeholder="全部供应商"
                                 value={selectedVendor}
@@ -128,19 +119,10 @@ export default function VendorDataPage() {
                             </NativeSelect.Field>
                             <NativeSelect.Indicator />
                         </NativeSelect.Root>
-                    </Box>
+                    </Flex>
 
-                    <Box>
-                        <Text
-                            fontSize="sm"
-                            mb={2}
-                            color="gray.600"
-                            fontWeight="medium"
-                        >
-                            选择年份
-                        </Text>
-
-                        <NativeSelect.Root size="sm">
+                    <Flex align="center">
+                        <NativeSelect.Root width="200px">
                             <NativeSelect.Field
                                 value={selectedYear}
                                 onChange={(e) =>
@@ -148,7 +130,6 @@ export default function VendorDataPage() {
                                         Number(e.currentTarget.value)
                                     )
                                 }
-                                w="150px"
                             >
                                 {yearOptions.map((year) => (
                                     <option key={year} value={year}>
@@ -158,7 +139,7 @@ export default function VendorDataPage() {
                             </NativeSelect.Field>
                             <NativeSelect.Indicator />
                         </NativeSelect.Root>
-                    </Box>
+                    </Flex>
 
                     <Button
                         colorScheme="blue"
@@ -327,7 +308,7 @@ export default function VendorDataPage() {
                                     <Button
                                         size="sm"
                                         onClick={() => setPage(1)}
-                                        isDisabled={page <= 1}
+                                        disabled={page <= 1}
                                         variant="outline"
                                     >
                                         首页

@@ -1,9 +1,5 @@
 import { z } from 'zod';
-import {
-    createTRPCRouter,
-    protectedProcedure,
-    superAdminProcedure,
-} from '@/server/api/trpc';
+import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
 
 export const addressRouter = createTRPCRouter({
     // 获取所有地址，支持排序

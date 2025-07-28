@@ -7,6 +7,9 @@ import { createSystem, defaultConfig } from '@chakra-ui/react';
 import { buttonRecipe } from './theme/button.recipe';
 import { SessionProvider } from 'next-auth/react';
 import { Toaster } from '@/app/_components/ui/toaster';
+import RouteGuard from '@/app/_components/RouteGuard';
+import { useState, useEffect } from 'react';
+
 export const system = createSystem(defaultConfig, {
     globalCss: {
         html: {
@@ -38,18 +41,28 @@ export const system = createSystem(defaultConfig, {
 });
 
 export function Provider({ children }: { children: React.ReactNode }) {
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    if (!mounted) {
+        return null;
+    }
+
     return (
         <SessionProvider>
             <ChakraProvider value={system}>
                 <ThemeProvider
                     attribute="class"
-                    defaultTheme="system"
-                    enableSystem
-                    suppressHydrationWarning
+                    disableTransitionOnChange
+                    defaultTheme="light"
+                    enableSystem={false}
                 >
-                    {children}
+                    <RouteGuard>{children}</RouteGuard>
+                    <Toaster />
                 </ThemeProvider>
-                <Toaster />
             </ChakraProvider>
         </SessionProvider>
     );

@@ -2,7 +2,7 @@ import { z } from 'zod';
 import {
     createTRPCRouter,
     superAdminProcedure,
-    publicProcedure,
+    protectedProcedure,
 } from '@/server/api/trpc';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
@@ -10,7 +10,7 @@ import { existsSync } from 'fs';
 
 export const paymentRouter = createTRPCRouter({
     // 获取支付码
-    get: superAdminProcedure.query(async ({ ctx }) => {
+    get: protectedProcedure.query(async ({ ctx }) => {
         const payment = await ctx.db.payment.findFirst({
             orderBy: { createdAt: 'desc' },
         });

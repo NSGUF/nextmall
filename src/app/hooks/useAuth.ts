@@ -5,9 +5,9 @@ export function useAuth() {
     const { data: session, status, update } = useSession();
     const router = useRouter();
 
-    const login = async (email: string, password: string) => {
+    const login = async (phone: string, password: string) => {
         const res = await signIn('credentials', {
-            email,
+            phone,
             password,
             redirect: false,
         });

@@ -16,13 +16,25 @@ import {
     FiMapPin,
     FiList,
     FiDollarSign,
+    FiLogOut,
 } from 'react-icons/fi';
 import { LuCrown, LuLanguages } from 'react-icons/lu';
 import * as React from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/app/hooks/useAuth';
 import { api } from '@/trpc/react';
 import { ContentLoading } from '@/app/_components/LoadingSpinner';
+import {
+    DialogRoot,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogBody,
+    DialogFooter,
+    DialogCloseTrigger,
+} from '@/app/_components/ui/dialog';
+import { useRouter } from 'next/navigation';
 
 function IconWithBadge({
     icon,
@@ -61,9 +73,16 @@ function IconWithBadge({
 }
 
 export default function MePage() {
-    const { session } = useAuth();
+    const { session, logout } = useAuth();
+    const router = useRouter();
+    const [showLogoutDialog, setShowLogoutDialog] = useState(false);
     const { data: userStats, isLoading: statsLoading } =
         api.user.getStats.useQuery();
+
+    const handleLogout = async () => {
+        await logout();
+        router.push('/');
+    };
 
     if (statsLoading) {
         return <ContentLoading text="个人信息加载中..." />;
@@ -289,6 +308,47 @@ export default function MePage() {
                     </Flex> */}
                 </Grid>
             </Box>
+
+            {/* 退出登录按钮 */}
+            <Box
+                bg="white"
+                mx={4}
+                borderRadius="xl"
+                p={4}
+                mb={4}
+                boxShadow="2xs"
+            >
+                <Button
+                    w="100%"
+                    colorScheme="red"
+                    variant="outline"
+                    onClick={() => setShowLogoutDialog(true)}
+                >
+                    <FiLogOut />
+                    退出登录
+                </Button>
+            </Box>
+
+            {/* 退出登录确认对话框 */}
+            <DialogRoot
+                open={showLogoutDialog}
+                onOpenChange={(e) => setShowLogoutDialog(e.open)}
+            >
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>确认退出</DialogTitle>
+                    </DialogHeader>
+                    <DialogBody>
+                        您确定要退出登录吗？退出后需要重新登录才能使用完整功能。
+                    </DialogBody>
+                    <DialogFooter>
+                        <Button colorScheme="red" onClick={handleLogout}>
+                            确认退出
+                        </Button>
+                    </DialogFooter>
+                    <DialogCloseTrigger />
+                </DialogContent>
+            </DialogRoot>
         </Box>
     );
 }

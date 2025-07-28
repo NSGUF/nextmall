@@ -2,7 +2,7 @@
 
 import { Container, Flex, Image, Input, Text, Link } from '@chakra-ui/react';
 import { useForm } from 'react-hook-form';
-import { FiLock, FiUser } from 'react-icons/fi';
+import { FiLock, FiUser, FiPhone } from 'react-icons/fi';
 import { useRef, useState } from 'react';
 import {
     Button,
@@ -11,7 +11,7 @@ import {
     PasswordInput,
     InputGroup,
 } from '@/app/_components/ui';
-import { confirmPasswordRules, emailPattern, passwordRules } from '@/app/utils';
+import { confirmPasswordRules, passwordRules } from '@/app/utils';
 import { useRouter } from 'next/navigation';
 import useCustomToast from '@/app/hooks/useCustomToast';
 
@@ -26,23 +26,47 @@ import {
 import { api } from '@/trpc/react';
 
 interface RegisterForm {
-    email: string;
+    phone: string;
+    code: string;
     password: string;
     name: string;
     confirm_password: string;
 }
 
 export default function SignUp() {
-    const { showErrorToast } = useCustomToast();
+    const { showErrorToast, showSuccessToast } = useCustomToast();
     const [agree, setAgree] = useState(true);
     const [showDialog, setShowDialog] = useState(false);
+    const [countdown, setCountdown] = useState(0);
     const cancelRef = useRef<HTMLButtonElement | null>(null);
     const [pendingSubmit, setPendingSubmit] = useState<null | RegisterForm>(
         null
     );
     const router = useRouter();
+
+    const sendCodeMutation = api.sms.sendCode.useMutation({
+        onSuccess: (data) => {
+            // TODO
+            showSuccessToast('验证码发送成功，测试环境，验证码为' + data.code);
+            setCountdown(60);
+            const timer = setInterval(() => {
+                setCountdown((prev) => {
+                    if (prev <= 1) {
+                        clearInterval(timer);
+                        return 0;
+                    }
+                    return prev - 1;
+                });
+            }, 1000);
+        },
+        onError: (err: any) => {
+            showErrorToast(err?.message ?? '验证码发送失败');
+        },
+    });
+
     const signUpMutation = api.user.register.useMutation({
         onSuccess: () => {
+            showSuccessToast('注册成功，请登录');
             router.replace('/login');
         },
         onError: (err: any) => {
@@ -53,17 +77,32 @@ export default function SignUp() {
         register,
         handleSubmit,
         getValues,
+        watch,
         formState: { errors, isSubmitting },
     } = useForm<RegisterForm>({
         mode: 'onBlur',
         criteriaMode: 'all',
         defaultValues: {
-            email: '',
+            phone: '',
+            code: '',
             password: '',
             name: '',
             confirm_password: '',
         },
     });
+
+    const phoneValue = watch('phone');
+
+    const handleSendCode = async () => {
+        if (!phoneValue || !/^1[3-9]\d{9}$/.test(phoneValue)) {
+            showErrorToast('请输入正确的手机号');
+            return;
+        }
+        await sendCodeMutation.mutateAsync({
+            phone: phoneValue,
+            type: 'REGISTER',
+        });
+    };
 
     const onSubmit = async (data: RegisterForm) => {
         if (!agree) {
@@ -113,20 +152,54 @@ export default function SignUp() {
                     </InputGroup>
                 </Field>
                 <Field
-                    invalid={!!errors.email}
-                    errorText={errors.email?.message}
+                    invalid={!!errors.phone}
+                    errorText={errors.phone?.message}
                 >
-                    <InputGroup w="100%" startElement={<FiUser />}>
+                    <InputGroup w="100%" startElement={<FiPhone />}>
                         <Input
-                            id="email"
-                            {...register('email', {
-                                required: '请输入邮箱',
-                                pattern: emailPattern,
+                            id="phone"
+                            {...register('phone', {
+                                required: '请输入手机号',
+                                pattern: {
+                                    value: /^1[3-9]\d{9}$/,
+                                    message: '手机号格式不正确',
+                                },
                             })}
-                            placeholder="请输入邮箱"
-                            type="email"
+                            placeholder="请输入手机号"
+                            type="tel"
                         />
                     </InputGroup>
+                </Field>
+                <Field invalid={!!errors.code} errorText={errors.code?.message}>
+                    <Flex gap={2} w="100%">
+                        <InputGroup flex="1" startElement={<FiLock />}>
+                            <Input
+                                id="code"
+                                {...register('code', {
+                                    required: '请输入验证码',
+                                    pattern: {
+                                        value: /^\d{6}$/,
+                                        message: '验证码必须是6位数字',
+                                    },
+                                })}
+                                placeholder="请输入验证码"
+                                type="text"
+                                maxLength={6}
+                            />
+                        </InputGroup>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={handleSendCode}
+                            disabled={
+                                countdown > 0 || sendCodeMutation.isPending
+                            }
+                            loading={sendCodeMutation.isPending}
+                            minW="100px"
+                        >
+                            {countdown > 0 ? `${countdown}s` : '发送验证码'}
+                        </Button>
+                    </Flex>
                 </Field>
                 <PasswordInput
                     type="password"

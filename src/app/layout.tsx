@@ -12,10 +12,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
     children,
-}: Readonly<{ children: React.ReactNode }>) {
+}: {
+    children: React.ReactNode;
+}) {
     return (
-        // 这里是为了解决chakra-ui的color-scheme问题 请勿删
-        <html lang="en" style={{ colorScheme: 'light' }} className="light">
+        <html lang="zh">
             <body>
                 <Provider>
                     <TRPCReactProvider>{children}</TRPCReactProvider>

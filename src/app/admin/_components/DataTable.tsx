@@ -13,6 +13,8 @@ import {
     Pagination,
     ButtonGroup,
     Separator,
+    VStack,
+    Text,
 } from '@chakra-ui/react';
 import {
     useReactTable,
@@ -34,6 +36,7 @@ import {
     FiCornerUpLeft,
     FiCornerUpRight,
     FiMoreVertical,
+    FiInbox,
 } from 'react-icons/fi';
 
 interface DataTableProps<T extends object> {
@@ -154,7 +157,7 @@ const DataTable = <T extends object>({
                 minWidth={0}
             /> */}
             {renderBulkActions?.(selectedRows)}
-            <ColumnVisibilityMenu table={table} />
+            {/* <ColumnVisibilityMenu table={table} /> */}
         </Box>
     );
 
@@ -423,49 +426,101 @@ const DataTable = <T extends object>({
                         ))}
                     </Table.Header>
                     <Table.Body>
-                        {table.getRowModel().rows.map((row) => (
-                            <Table.Row
-                                key={row.id}
-                                onClick={
-                                    selectable
-                                        ? () => row.toggleSelected()
-                                        : undefined
-                                }
-                                cursor={selectable ? 'pointer' : 'default'}
-                                _hover={
-                                    selectable ? { bg: 'gray.50' } : undefined
-                                }
-                                bg={row.getIsSelected() ? 'blue.50' : undefined}
-                            >
-                                {selectable && (
-                                    <Table.Cell
-                                        onClick={(e) => e.stopPropagation()} // 防止双重触发
-                                    >
-                                        <input
-                                            type="checkbox"
-                                            checked={row.getIsSelected()}
-                                            onChange={row.getToggleSelectedHandler()}
-                                        />
-                                    </Table.Cell>
-                                )}
-                                {row.getVisibleCells().map((cell) => (
-                                    <Table.Cell
-                                        key={cell.id}
-                                        onClick={(e) => {
-                                            // 如果点击的是操作按钮区域，阻止行选择
-                                            if (cell.column.id === 'action') {
-                                                e.stopPropagation();
-                                            }
-                                        }}
-                                    >
-                                        {flexRender(
-                                            cell.column.columnDef.cell,
-                                            cell.getContext()
-                                        )}
-                                    </Table.Cell>
-                                ))}
+                        {table.getRowModel().rows.length ? (
+                            table.getRowModel().rows.map((row) => (
+                                <Table.Row
+                                    key={row.id}
+                                    onClick={
+                                        selectable
+                                            ? () => row.toggleSelected()
+                                            : undefined
+                                    }
+                                    cursor={selectable ? 'pointer' : 'default'}
+                                    _hover={
+                                        selectable
+                                            ? { bg: 'gray.50' }
+                                            : undefined
+                                    }
+                                    bg={
+                                        row.getIsSelected()
+                                            ? 'blue.50'
+                                            : undefined
+                                    }
+                                >
+                                    {selectable && (
+                                        <Table.Cell
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                checked={row.getIsSelected()}
+                                                onChange={row.getToggleSelectedHandler()}
+                                            />
+                                        </Table.Cell>
+                                    )}
+                                    {row.getVisibleCells().map((cell) => (
+                                        <Table.Cell
+                                            key={cell.id}
+                                            onClick={(e) => {
+                                                if (
+                                                    cell.column.id === 'action'
+                                                ) {
+                                                    e.stopPropagation();
+                                                }
+                                            }}
+                                        >
+                                            {flexRender(
+                                                cell.column.columnDef.cell,
+                                                cell.getContext()
+                                            )}
+                                        </Table.Cell>
+                                    ))}
+                                </Table.Row>
+                            ))
+                        ) : (
+                            <Table.Row>
+                                <Table.Cell
+                                    colSpan={
+                                        table.getAllColumns().length +
+                                        (selectable ? 1 : 0)
+                                    }
+                                    textAlign="center"
+                                    py={12}
+                                >
+                                    <VStack gap={3}>
+                                        <Box
+                                            w={12}
+                                            h={12}
+                                            bg="gray.100"
+                                            borderRadius="full"
+                                            display="flex"
+                                            alignItems="center"
+                                            justifyContent="center"
+                                        >
+                                            <FiInbox
+                                                size={24}
+                                                color="gray.400"
+                                            />
+                                        </Box>
+                                        <VStack gap={1}>
+                                            <Text
+                                                fontSize="md"
+                                                fontWeight="medium"
+                                                color="gray.600"
+                                            >
+                                                暂无数据
+                                            </Text>
+                                            <Text
+                                                fontSize="sm"
+                                                color="gray.400"
+                                            >
+                                                当前没有可显示的内容
+                                            </Text>
+                                        </VStack>
+                                    </VStack>
+                                </Table.Cell>
                             </Table.Row>
-                        ))}
+                        )}
                     </Table.Body>
                 </Table.Root>
             </Box>

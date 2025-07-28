@@ -13,6 +13,7 @@ import { paymentRouter } from '@/server/api/routers/payment';
 import { logRouter } from '@/server/api/routers/log';
 import { dashboardRouter } from '@/server/api/routers/dashboard';
 import { utilRouter } from '@/server/api/util';
+import { smsRouter } from '@/server/api/routers/sms';
 
 /**
  * This is the primary router for your server.
@@ -34,6 +35,7 @@ export const appRouter = createTRPCRouter({
     log: logRouter,
     dashboard: dashboardRouter,
     util: utilRouter,
+    sms: smsRouter,
 });
 
 // export type definition of API

@@ -175,12 +175,12 @@ export default function ConfirmPage() {
             <TopNav title="确认订单" />
 
             {/* 收货人信息 */}
-            <Box bg="white" borderRadius="xs" m={2} px={4} pt={1} pb={4}>
+            <Box bg="white" borderRadius="md" m={2} p={0}>
                 {defaultAddress ? (
                     <Link
                         href={`/full/address?is_choose=1&${searchParams.toString()}`}
                     >
-                        <Box mt={3}>
+                        <Box mt={3} px={4} py={2}>
                             <Flex justify="space-between" fontSize="md" mb={1}>
                                 <Text fontWeight="medium">
                                     {defaultAddress.name}

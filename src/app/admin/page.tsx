@@ -12,18 +12,9 @@ import {
     HStack,
     Flex,
 } from '@chakra-ui/react';
-import {
-    FiUsers,
-    FiShoppingBag,
-    FiDollarSign,
-    FiTrendingUp,
-    FiActivity,
-    FiCalendar,
-    FiClock,
-} from 'react-icons/fi';
+import { FiUsers, FiShoppingBag, FiDollarSign, FiClock } from 'react-icons/fi';
 import { api } from '@/trpc/react';
 import StockAlert from './_components/StockAlert';
-import VendorDataView from './_components/VendorDataView';
 import StatCard from './_components/StatsCard';
 
 export default function AdminPage() {

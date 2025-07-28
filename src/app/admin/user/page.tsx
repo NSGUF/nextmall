@@ -21,6 +21,7 @@ import { useForm } from 'react-hook-form';
 import { Controller } from 'react-hook-form';
 import { useConfirmDialog } from '@/app/hooks/useConfirmDialog';
 import { ContentLoading } from '@/app/_components/LoadingSpinner';
+import { ROLES } from '@/app/const/status';
 
 // react-hook-form
 type User = {
@@ -29,7 +30,7 @@ type User = {
     email: string;
     phone: string;
     status: number;
-    role: 'SUPERADMIN' | 'VENDOR' | 'STORE' | 'NORMAL';
+    role: ROLES;
     createdAt: Date;
     updatedAt: Date;
 };
@@ -39,30 +40,14 @@ type UserForm = {
     email?: string;
     phone?: string;
     status: number;
-    role: 'SUPERADMIN' | 'VENDOR' | 'STORE' | 'NORMAL';
+    role: ROLES;
     password?: string;
 };
-
-{
-    /* <Select.Item value="NORMAL">
-                                                        普通用户
-                                                    </Select.Item>
-                                                    <Select.Item value="STORE">
-                                                        门店
-                                                    </Select.Item>
-                                                    <Select.Item value="VENDOR">
-                                                        供应商
-                                                    </Select.Item>
-                                                    <Select.Item value="SUPERADMIN">
-                                                        超级管理员
-                                                    </Select.Item> */
-}
-
 const frameworks = createListCollection({
     items: [
-        { label: '普通用户', value: 'NORMAL' },
-        { label: '供应商', value: 'VENDOR' },
-        { label: '超级管理员', value: 'SUPERADMIN' },
+        { label: '普通用户', value: ROLES.NORMAL },
+        { label: '供应商', value: ROLES.VENDOR },
+        { label: '超级管理员', value: ROLES.SUPERADMIN },
     ],
 });
 export default function UserManagePage() {
@@ -129,7 +114,7 @@ export default function UserManagePage() {
             email: '',
             phone: '',
             status: 1,
-            role: 'NORMAL',
+            role: ROLES.NORMAL,
             password: '',
         },
     });
@@ -142,7 +127,7 @@ export default function UserManagePage() {
                 email: user.email ?? '',
                 phone: user.phone ?? '',
                 status: user.status ?? 1,
-                role: user.role ?? 'NORMAL',
+                role: user.role ?? ROLES.NORMAL,
                 password: '', // 编辑时密码为空，表示不修改
             });
         } else {
@@ -151,7 +136,7 @@ export default function UserManagePage() {
                 email: '',
                 phone: '',
                 status: 1,
-                role: 'NORMAL',
+                role: ROLES.NORMAL,
                 password: '',
             });
         }
@@ -336,6 +321,10 @@ export default function UserManagePage() {
                                               handleDeleteWithConfirm(
                                                   row.original.id
                                               )
+                                          }
+                                          disabled={
+                                              row.original.role ===
+                                              ROLES.SUPERADMIN
                                           }
                                       >
                                           删除

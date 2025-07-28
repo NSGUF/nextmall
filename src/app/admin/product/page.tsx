@@ -630,14 +630,18 @@ export default function AdminPage() {
                                                             '请上传规格图片',
                                                     }}
                                                     render={({ field }) => (
-                                                        <ImageUpload
-                                                            value={field.value}
-                                                            onChange={
-                                                                field.onChange
-                                                            }
-                                                            folder="product-specs"
-                                                            placeholder="上传规格图片"
-                                                        />
+                                                        <Box minW="100px">
+                                                            <ImageUpload
+                                                                value={
+                                                                    field.value
+                                                                }
+                                                                onChange={
+                                                                    field.onChange
+                                                                }
+                                                                folder="product-specs"
+                                                                placeholder="上传规格图片"
+                                                            />
+                                                        </Box>
                                                     )}
                                                 />
                                             </Box>

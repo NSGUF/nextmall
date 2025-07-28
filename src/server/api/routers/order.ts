@@ -4,7 +4,10 @@ import {
     protectedProcedure,
     superAdminProcedure,
 } from '@/server/api/trpc';
+
+import { TRPCError } from '@trpc/server';
 import { logger } from '@/server/api/utils/logger';
+import { ROLES } from '@/app/const/status';
 
 export const orderRouter = createTRPCRouter({
     // 获取订单列表
@@ -317,7 +320,7 @@ export const orderRouter = createTRPCRouter({
         }),
 
     // 更新订单状态
-    updateStatus: superAdminProcedure
+    updateStatus: protectedProcedure
         .input(
             z.object({
                 id: z.string(),
@@ -336,6 +339,49 @@ export const orderRouter = createTRPCRouter({
         .mutation(async ({ ctx, input }) => {
             const { id, status, trackingNumber, shippingInfo, refundInfo } =
                 input;
+
+            // 获取用户角色
+            const user = await ctx.db.user.findUnique({
+                where: { id: ctx.session.user.id },
+            });
+
+            // 构建查询条件
+            const orderWhere: any = { id, isDeleted: false };
+
+            // 如果是供应商，只能处理包含自己商品的订单
+            if (user.role === ROLES.VENDOR) {
+                orderWhere.items = {
+                    some: {
+                        product: {
+                            vendorId: ctx.session.user.id,
+                        },
+                    },
+                };
+            } else if (user.role !== ROLES.SUPERADMIN) {
+                throw new TRPCError({
+                    code: 'FORBIDDEN',
+                    message: '权限不足',
+                });
+            }
+
+            // 检查订单是否存在且有权限操作
+            const order = await ctx.db.order.findFirst({
+                where: orderWhere,
+                include: {
+                    items: {
+                        include: {
+                            product: true,
+                        },
+                    },
+                },
+            });
+
+            if (!order) {
+                throw new TRPCError({
+                    code: 'NOT_FOUND',
+                    message: '订单不存在或无权限操作',
+                });
+            }
 
             const updateData: any = { status };
 
@@ -502,4 +548,110 @@ export const orderRouter = createTRPCRouter({
             cancelled,
         };
     }),
+
+    // 供应商获取自己商品的订单
+    vendorList: protectedProcedure
+        .input(
+            z
+                .object({
+                    orderBy: z.string().optional(),
+                    order: z.enum(['asc', 'desc']).optional(),
+                    status: z
+                        .enum([
+                            'PAID',
+                            'CHECKED',
+                            'DELIVERED',
+                            'COMPLETED',
+                            'CANCELLED',
+                        ])
+                        .optional(),
+                    search: z.string().optional(),
+                    page: z.number().min(1).optional().default(1),
+                    pageSize: z.number().min(1).max(100).optional().default(10),
+                })
+                .optional()
+        )
+        .query(async ({ ctx, input }) => {
+            const page = input?.page ?? 1;
+            const pageSize = input?.pageSize ?? 10;
+            const skip = (page - 1) * pageSize;
+
+            // 构建查询条件 - 只查询包含当前供应商商品的订单
+            const where: any = {
+                isDeleted: false,
+                items: {
+                    some: {
+                        product: {
+                            vendorId: ctx.session.user.id,
+                        },
+                    },
+                },
+                ...(input?.status && { status: input.status }),
+            };
+
+            // 搜索功能
+            if (input?.search) {
+                where.OR = [
+                    {
+                        id: {
+                            contains: input.search,
+                            mode: 'insensitive',
+                        },
+                    },
+                    {
+                        user: {
+                            name: {
+                                contains: input.search,
+                                mode: 'insensitive',
+                            },
+                        },
+                    },
+                ];
+            }
+
+            // 获取总数
+            const total = await ctx.db.order.count({ where });
+
+            // 获取分页数据
+            const data = await ctx.db.order.findMany({
+                where,
+                include: {
+                    items: {
+                        where: {
+                            product: {
+                                vendorId: ctx.session.user.id,
+                            },
+                        },
+                        include: {
+                            product: true,
+                            spec: true,
+                        },
+                    },
+                    address: true,
+                    user: {
+                        select: {
+                            id: true,
+                            name: true,
+                            email: true,
+                            phone: true,
+                        },
+                    },
+                },
+                orderBy: input?.orderBy
+                    ? { [input.orderBy]: input.order ?? 'desc' }
+                    : { createdAt: 'desc' },
+                skip,
+                take: pageSize,
+            });
+
+            return {
+                data,
+                pagination: {
+                    page,
+                    pageSize,
+                    total,
+                    totalPages: Math.ceil(total / pageSize),
+                },
+            };
+        }),
 });

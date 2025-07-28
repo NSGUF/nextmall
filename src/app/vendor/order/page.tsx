@@ -26,7 +26,7 @@ import {
     DialogActionTrigger,
     DialogCloseTrigger,
 } from '@/app/_components/ui/dialog';
-import DataTable from '../_components/DataTable';
+import DataTable from '@/app/admin/_components/DataTable';
 import { api } from '@/trpc/react';
 import { useConfirmDialog } from '@/app/hooks/useConfirmDialog';
 import { ContentLoading } from '@/app/_components/LoadingSpinner';
@@ -66,7 +66,7 @@ export default function OrderManagePage() {
         data: orderResponse,
         refetch,
         isLoading,
-    } = api.order.adminList.useQuery({
+    } = api.order.vendorList.useQuery({
         ...(orderBy ? { orderBy, order } : {}),
         ...(statusFilter !== 'ALL' ? { status: statusFilter } : {}),
         ...(searchTerm ? { search: searchTerm } : {}),
@@ -85,36 +85,11 @@ export default function OrderManagePage() {
         setPagination(newPagination);
     };
 
-    // 获取订单统计
-    const { data: orderStats } = api.order.getStats.useQuery();
-
     // 更新订单状态
     const updateOrderStatus = api.order.updateStatus.useMutation({
         onSuccess: () => {
             refetch();
         },
-    });
-
-    // 确认对话框
-    const [approveOrderId, setApproveOrderId] = useState<string | null>(null);
-    const {
-        ConfirmDialog: ApproveConfirmDialog,
-        open: openApproveConfirm,
-        close: closeApproveConfirm,
-    } = useConfirmDialog({
-        title: '确认审核',
-        content: '确定要审核通过该订单吗？',
-        buttonProps: { style: { display: 'none' } },
-        onConfirm: async () => {
-            if (approveOrderId) {
-                updateOrderStatus.mutate({
-                    id: approveOrderId,
-                    status: 'CHECKED',
-                });
-                setApproveOrderId(null);
-            }
-        },
-        onCancel: () => setApproveOrderId(null),
     });
 
     // 发货弹窗状态
@@ -210,20 +185,6 @@ export default function OrderManagePage() {
             const status = order.status as OrderStatus;
 
             switch (status) {
-                case 'PAID':
-                    return (
-                        <Button
-                            size="2xs"
-                            colorScheme="green"
-                            onClick={() => {
-                                setApproveOrderId(order.id);
-                                openApproveConfirm();
-                            }}
-                            loading={updateOrderStatus.isPending}
-                        >
-                            审核通过
-                        </Button>
-                    );
                 case 'CHECKED':
                     return (
                         <Button
@@ -238,35 +199,12 @@ export default function OrderManagePage() {
                             发货
                         </Button>
                     );
-                case 'DELIVERED':
-                    return (
-                        <Badge colorScheme="purple" variant="subtle">
-                            待收货
-                        </Badge>
-                    );
-                case 'COMPLETED':
-                    return (
-                        <Badge colorScheme="green" variant="subtle">
-                            已完成
-                        </Badge>
-                    );
-                case 'CANCELLED':
-                    return (
-                        <Badge colorScheme="red" variant="subtle">
-                            已取消
-                        </Badge>
-                    );
+
                 default:
-                    return null;
+                    return '无';
             }
         },
-        [
-            updateOrderStatus.isPending,
-            openApproveConfirm,
-            setApproveOrderId,
-            setShipOrderId,
-            setIsShipDialogOpen,
-        ]
+        [updateOrderStatus.isPending, setShipOrderId, setIsShipDialogOpen]
     );
 
     // 表格列定义
@@ -372,84 +310,6 @@ export default function OrderManagePage() {
                 <Heading size="lg">订单管理</Heading>
             </Box>
 
-            {/* 统计卡片 */}
-            {orderStats && (
-                <Flex gap={4} mb={6} wrap="wrap">
-                    <Box bg="blue.50" p={4} borderRadius="md" minW="120px">
-                        <Text
-                            fontSize="sm"
-                            color="blue.600"
-                            fontWeight="medium"
-                        >
-                            总订单
-                        </Text>
-                        <Text fontSize="2xl" fontWeight="bold" color="blue.700">
-                            {orderStats.total}
-                        </Text>
-                    </Box>
-                    <Box bg="orange.50" p={4} borderRadius="md" minW="120px">
-                        <Text
-                            fontSize="sm"
-                            color="orange.600"
-                            fontWeight="medium"
-                        >
-                            待审核
-                        </Text>
-                        <Text
-                            fontSize="2xl"
-                            fontWeight="bold"
-                            color="orange.700"
-                        >
-                            {orderStats.paid}
-                        </Text>
-                    </Box>
-                    <Box bg="purple.50" p={4} borderRadius="md" minW="120px">
-                        <Text
-                            fontSize="sm"
-                            color="purple.600"
-                            fontWeight="medium"
-                        >
-                            待发货
-                        </Text>
-                        <Text
-                            fontSize="2xl"
-                            fontWeight="bold"
-                            color="purple.700"
-                        >
-                            {orderStats.checked}
-                        </Text>
-                    </Box>
-                    <Box bg="blue.50" p={4} borderRadius="md" minW="120px">
-                        <Text
-                            fontSize="sm"
-                            color="blue.600"
-                            fontWeight="medium"
-                        >
-                            待收货
-                        </Text>
-                        <Text fontSize="2xl" fontWeight="bold" color="blue.700">
-                            {orderStats.delivered}
-                        </Text>
-                    </Box>
-                    <Box bg="green.50" p={4} borderRadius="md" minW="120px">
-                        <Text
-                            fontSize="sm"
-                            color="green.600"
-                            fontWeight="medium"
-                        >
-                            已完成
-                        </Text>
-                        <Text
-                            fontSize="2xl"
-                            fontWeight="bold"
-                            color="green.700"
-                        >
-                            {orderStats.completed}
-                        </Text>
-                    </Box>
-                </Flex>
-            )}
-
             {/* 搜索和筛选 */}
             <Flex gap={4} mb={4} align="center">
                 <Box position="relative" maxW="500px">
@@ -500,9 +360,6 @@ export default function OrderManagePage() {
                 pageCount={pageCount}
                 onPaginationChange={handlePaginationChange}
             />
-
-            {ApproveConfirmDialog}
-
             {/* 发货弹窗 */}
             <DialogRoot
                 open={isShipDialogOpen}

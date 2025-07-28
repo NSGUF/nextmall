@@ -22,84 +22,114 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Box, Heading, Image, Text, Wrap } from '@chakra-ui/react';
 import { Button } from '@/app/_components/ui';
+import { useSession } from 'next-auth/react';
+import { ROLES } from '@/app/const/status';
 
 const Sidebar = () => {
+    const { data: session } = useSession();
+    const userRole = session?.user?.role;
+
     type NavTreeType = {
         title: string;
         url: string;
         icon?: React.ComponentType<any>;
         subMenu?: NavTreeType[];
+        roles?: string[]; // 允许访问的角色
     };
 
-    const navTree: NavTreeType[] = [
+    // 所有菜单项
+    const allNavItems: NavTreeType[] = [
         {
             title: '首页',
             url: '/admin',
             icon: FiHome,
+            roles: [ROLES.SUPERADMIN], // 所有管理员都能看到
         },
         {
             title: 'banner管理',
             url: '/admin/banner',
             icon: FiBookOpen,
+            roles: [ROLES.SUPERADMIN], // 只有超级管理员能看到
         },
         {
             title: '用户管理',
             url: '/admin/user',
             icon: FiUsers,
+            roles: [ROLES.SUPERADMIN], // 只有超级管理员能看到
         },
         {
             title: '商品分类',
             url: '/admin/category',
             icon: FiMonitor,
+            roles: [ROLES.SUPERADMIN], // 只有超级管理员能看到
         },
         {
             title: '商品管理',
             url: '/admin/product',
             icon: FiBook,
+            roles: [ROLES.SUPERADMIN], // 只有超级管理员能看到
         },
         {
             title: '课程分类',
             url: '/admin/video/collection',
             icon: FiActivity,
+            roles: [ROLES.SUPERADMIN], // 只有超级管理员能看到
         },
         {
             title: '课程管理',
             url: '/admin/video/course',
             icon: FiDollarSign,
+            roles: [ROLES.SUPERADMIN], // 只有超级管理员能看到
         },
         {
             title: '订单管理',
             url: '/admin/order',
             icon: FiShoppingBag,
+            roles: [ROLES.SUPERADMIN], // 商户和超级管理员都能看到
         },
         {
             title: '支付码管理',
             url: '/admin/payment',
             icon: FiCreditCard,
+            roles: [ROLES.SUPERADMIN], // 只有超级管理员能看到
         },
         {
             title: '操作日志',
             url: '/admin/log',
             icon: FiFileText,
+            roles: [ROLES.SUPERADMIN], // 只有超级管理员能看到
         },
         {
             title: '供应商数据',
-            url: '/admin/vendor-data',
+            url: '/admin/data',
             icon: FiBarChart,
+            roles: [ROLES.SUPERADMIN], // 商户和超级管理员都能看到
         },
-        // {
-        //   title: "Business",
-        //   url: "/business-entities",
-        //   icon: Landmark,
-        //   subMenu: [
-        //     { title: "Companies", url: "/companies" },
-        //     { title: "Members", url: "/members" },
-        //     { title: "Partners", url: "/partners" },
-        //     { title: "Inquiries", url: "/inquiries" },
-        //     { title: "All Documents", url: "/all-documents" },
-        //   ],
-        // },
+        {
+            title: '首页',
+            url: '/vendor',
+            icon: FiHome,
+            roles: [ROLES.VENDOR], // 所有管理员都能看到
+        },
+        {
+            title: '订单管理',
+            url: '/vendor/order',
+            icon: FiShoppingBag,
+            roles: [ROLES.VENDOR], // 商户和超级管理员都能看到
+        },
+        {
+            title: '供应商数据',
+            url: '/vendor/data',
+            icon: FiBarChart,
+            roles: [ROLES.VENDOR], // 商户和超级管理员都能看到
+        },
     ];
+
+    // 根据用户角色过滤菜单项
+    const navTree = allNavItems.filter((item) => {
+        if (!item.roles) return true; // 如果没有指定角色，默认所有人都能看到
+        return userRole && item.roles.includes(userRole);
+    });
 
     // Sidebar Items
     const SidebarItem = ({ title, url, icon: Icon, subMenu }: NavTreeType) => {
@@ -111,7 +141,7 @@ const Sidebar = () => {
             if (activeLinkPath?.includes(url)) setSubMenuOpen(true);
         }, [activeLinkPath, url]);
         return (
-            <Box position="relative" minW="240px">
+            <Box position="relative" minW="160px">
                 {/* If there is no submenu  */}
                 {!subMenu ? (
                     <Link href={url ? url : '#'}>

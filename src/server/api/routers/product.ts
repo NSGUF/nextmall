@@ -233,7 +233,51 @@ export const productRouter = createTRPCRouter({
     delete: superAdminProcedure
         .input(z.object({ id: z.string() }))
         .mutation(async ({ ctx, input }) => {
-            return ctx.db.product.delete({ where: { id: input.id } });
+            try {
+                // 检查是否有商品被购物车或订单引用
+                const cartItems = await ctx.db.cart.findMany({
+                    where: { productId: input.id },
+                });
+
+                const orderItems = await ctx.db.orderItem.findMany({
+                    where: { productId: input.id },
+                });
+
+                if (cartItems.length > 0 || orderItems.length > 0) {
+                    throw new Error('无法删除：商品已被购物车或订单引用');
+                }
+
+                // 先删除相关的规格
+                await ctx.db.productSpec.deleteMany({
+                    where: { productId: input.id },
+                });
+
+                // 删除收藏记录
+                await ctx.db.productFavorite.deleteMany({
+                    where: { productId: input.id },
+                });
+
+                // 删除足迹记录
+                await ctx.db.footprint.deleteMany({
+                    where: { productId: input.id },
+                });
+
+                // 最后删除商品
+                const result = await ctx.db.product.delete({
+                    where: { id: input.id },
+                });
+
+                return {
+                    success: true,
+                    message: '删除成功',
+                    product: result,
+                };
+            } catch (error) {
+                console.error('删除商品失败:', error);
+                throw new Error(
+                    error instanceof Error ? error.message : '删除失败'
+                );
+            }
         }),
 
     deleteMany: superAdminProcedure
@@ -290,7 +334,7 @@ export const productRouter = createTRPCRouter({
             }
         }),
     // 商品详情，带是否已收藏
-    get: protectedProcedure
+    get: publicProcedure
         .input(z.object({ id: z.string(), isPage: z.boolean() }))
         .query(async ({ ctx, input }) => {
             const product = await ctx.db.product.findUnique({
@@ -445,7 +489,7 @@ export const productRouter = createTRPCRouter({
         }));
     }),
 
-    // 获取用户收藏列表
+    // 获取用户足迹列表
     getFootprints: protectedProcedure.query(async ({ ctx }) => {
         const footprints = await ctx.db.footprint.findMany({
             where: { userId: ctx.session.user.id },

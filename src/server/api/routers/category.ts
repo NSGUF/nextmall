@@ -78,12 +78,46 @@ export const categoryRouter = createTRPCRouter({
     delete: superAdminProcedure
         .input(z.object({ id: z.string() }))
         .mutation(async ({ ctx, input }) => {
+            // 检查分类下是否有商品
+            const productCount = await ctx.db.product.count({
+                where: {
+                    categoryId: input.id,
+                    isDeleted: false,
+                },
+            });
+
+            if (productCount > 0) {
+                throw new Error(
+                    `无法删除：该分类下还有 ${productCount} 个商品`
+                );
+            }
+
             return ctx.db.category.delete({ where: { id: input.id } });
         }),
 
     deleteMany: superAdminProcedure
         .input(z.object({ ids: z.array(z.string()) }))
         .mutation(async ({ ctx, input }) => {
+            // 检查这些分类下是否有商品
+            const categoriesWithProducts = await ctx.db.category.findMany({
+                where: {
+                    id: { in: input.ids },
+                    products: {
+                        some: {
+                            isDeleted: false,
+                        },
+                    },
+                },
+                select: { id: true, name: true },
+            });
+
+            if (categoriesWithProducts.length > 0) {
+                const categoryNames = categoriesWithProducts
+                    .map((c) => c.name)
+                    .join('、');
+                throw new Error(`无法删除：分类 ${categoryNames} 下还有商品`);
+            }
+
             return ctx.db.category.deleteMany({
                 where: { id: { in: input.ids } },
             });
