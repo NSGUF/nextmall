@@ -153,9 +153,9 @@ export default function UserManagePage() {
             password: data.password || undefined,
         };
         if (editing) {
-            await updateUser.mutateAsync({ ...payload, id: editing.id });
+            await updateUser.mutateAsync({ ...payload, id: editing.id } as any);
         } else {
-            await createUser.mutateAsync(payload);
+            await createUser.mutateAsync(payload as any);
         }
         onClose();
     };
@@ -334,15 +334,8 @@ export default function UserManagePage() {
                           }
                         : col
                 )}
-                data={memoizedData}
-                sorting={sorting}
-                setSorting={setSorting}
-                pagination={pagination}
-                setPagination={handlePaginationChange}
+                data={memoizedData as any}
                 pageCount={pageCount}
-                onAdd={() => openEdit()}
-                onBatchDelete={handleBatchDeleteWithConfirm}
-                addButtonText="新增用户"
             />
 
             {/* 新增/编辑弹窗 */}
@@ -526,7 +519,7 @@ export default function UserManagePage() {
                                             <>
                                                 <Switch.Root
                                                     name={field.name}
-                                                    checked={field.value}
+                                                    checked={!!field.value}
                                                     onCheckedChange={({
                                                         checked,
                                                     }) =>

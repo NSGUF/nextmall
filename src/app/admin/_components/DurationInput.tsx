@@ -75,7 +75,7 @@ export default function DurationInput({
     };
 
     return (
-        <HStack spacing={2} align="center">
+        <HStack align="center">
             <Input
                 value={displayValue}
                 onChange={handleInputChange}

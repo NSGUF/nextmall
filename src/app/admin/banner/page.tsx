@@ -324,7 +324,7 @@ export default function AdminPage() {
                           }
                         : col
                 )}
-                data={memoizedData}
+                data={memoizedData as any}
                 selectable
                 manualSorting
                 onSortingChange={setSorting}

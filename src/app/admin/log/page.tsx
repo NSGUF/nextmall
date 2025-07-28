@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { debounce } from 'lodash';
 import {
     Box,
     Flex,
@@ -271,11 +270,7 @@ export default function LogPage() {
                                     </Badge>
                                 </Table.Cell>
                                 <Table.Cell>
-                                    <Text
-                                        fontSize="sm"
-                                        maxW="300px"
-                                        isTruncated
-                                    >
+                                    <Text fontSize="sm" maxW="300px">
                                         {log.description}
                                     </Text>
                                 </Table.Cell>

@@ -357,7 +357,10 @@ export const productRouter = createTRPCRouter({
 
             // 如果未登录，直接返回商品信息
             if (!ctx.session?.user) {
-                return product;
+                return {
+                    ...product,
+                    isFavorited: false,
+                };
             }
 
             // 如果是页面访问，自动添加或更新足迹

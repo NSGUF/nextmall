@@ -41,7 +41,7 @@ import {
 
 interface DataTableProps<T extends object> {
     columns: ColumnDef<T, any>[];
-    data: T[];
+    data: any;
     selectable?: boolean;
     pageCount?: number;
     manualPagination?: boolean;

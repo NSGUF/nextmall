@@ -5,6 +5,7 @@ import {
     superAdminProcedure,
 } from '@/server/api/trpc';
 import { ROLES } from '@/app/const/status';
+import { OrderStatus } from '@prisma/client';
 
 export const dashboardRouter = createTRPCRouter({
     // 获取用户统计数据
@@ -189,7 +190,7 @@ export const dashboardRouter = createTRPCRouter({
             59
         );
 
-        const completedStatus = ['COMPLETED'];
+        const completedStatus: OrderStatus[] = [OrderStatus.COMPLETED];
 
         // 成交总量和总金额
         const totalTransactions = await ctx.db.order.aggregate({

@@ -13,6 +13,8 @@ const config = {
         // 在构建时忽略 ESLint 错误
         ignoreDuringBuilds: true,
     },
+    // Docker 部署配置
+    output: 'standalone',
 };
 
 export default config;

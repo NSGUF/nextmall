@@ -31,7 +31,22 @@ export const logRouter = createTRPCRouter({
         )
         .mutation(async ({ ctx, input }) => {
             return ctx.db.operationLog.create({
-                data: input,
+                data: {
+                    action: input.action,
+                    module: input.module,
+                    description: input.description,
+                    targetId: input.targetId,
+                    targetType: input.targetType,
+                    userId: input.userId,
+                    userInfo: input.userInfo,
+                    ipAddress: input.ipAddress,
+                    userAgent: input.userAgent,
+                    requestData: input.requestData,
+                    responseData: input.responseData,
+                    status: input.status,
+                    errorMessage: input.errorMessage,
+                    duration: input.duration,
+                },
             });
         }),
 

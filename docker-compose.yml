@@ -1,0 +1,48 @@
+services:
+    # PostgreSQL 数据库
+    db:
+        image: postgres:17
+        container_name: nextmall-postgres
+        restart: always
+        environment:
+            POSTGRES_DB: nextmall
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+        ports:
+            - '5432:5432'
+        healthcheck:
+            test: ['CMD-SHELL', 'pg_isready -U postgres']
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+    # Next.js 应用
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: nextmall-app
+        restart: always
+        ports:
+            - '3000:3000'
+        environment:
+            - NODE_ENV=production
+            - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@db:5432/nextmall
+            - AUTH_SECRET=${AUTH_SECRET}
+            - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
+            - FIRST_SUPERUSER=${FIRST_SUPERUSER:-admin}
+            - FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD:-admin123}
+        depends_on:
+            db:
+                condition: service_healthy
+        volumes:
+            - ./public/uploads:/app/public/uploads
+
+volumes:
+    postgres_data:
+
+networks:
+    default:
+        driver: bridge

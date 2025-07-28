@@ -15,7 +15,7 @@ interface Product {
 }
 
 interface ProductListProps {
-    products: Product[];
+    products: any;
     isLoading?: boolean;
     emptyText?: string;
 }

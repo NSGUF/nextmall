@@ -39,11 +39,6 @@ export default function VendorDataPage() {
     const currentYear = new Date().getFullYear();
     const yearOptions = Array.from({ length: 5 }, (_, i) => currentYear - i);
 
-    const handleVendorChange = (vendorId: string) => {
-        setSelectedVendor(vendorId);
-        setPage(1);
-    };
-
     const handleYearChange = (year: number) => {
         setSelectedYear(year);
         setPage(1);

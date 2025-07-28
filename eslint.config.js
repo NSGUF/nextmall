@@ -18,6 +18,7 @@ export default tseslint.config(
             ...tseslint.configs.stylisticTypeChecked,
         ],
         rules: {
+            '@typescript-eslint/no-floating-promises': 'off',
             '@typescript-eslint/prefer-optional-chain': 'off',
             '@typescript-eslint/prefer-nullish-coalescing': 'off',
             '@typescript-eslint/non-nullable-type-assertion-style': 'off',

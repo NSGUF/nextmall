@@ -235,15 +235,13 @@ export default function ImageUpload({
                         onClick={triggerFileSelect}
                         loading={uploading}
                         variant="outline"
-                        leftIcon={
-                            multiple && imageList.length > 0 ? (
-                                <FiPlus />
-                            ) : (
-                                <FiUpload />
-                            )
-                        }
                         w="fit-content"
                     >
+                        {multiple && imageList.length > 0 ? (
+                            <FiPlus />
+                        ) : (
+                            <FiUpload />
+                        )}
                         {multiple && imageList.length > 0
                             ? '添加更多图片'
                             : placeholder}

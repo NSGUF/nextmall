@@ -17,13 +17,7 @@ export default function LoadingSpinner({
 }: LoadingSpinnerProps) {
     const content = (
         <Flex direction="column" align="center" justify="center" gap={3} p={8}>
-            <Spinner
-                size={size}
-                color={color}
-                thickness="4px"
-                speed="0.65s"
-                emptyColor="gray.200"
-            />
+            <Spinner size={size} color={color} />
             {text && (
                 <Text fontSize="sm" color="gray.600" textAlign="center">
                     {text}
