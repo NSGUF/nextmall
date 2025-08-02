@@ -10,8 +10,6 @@ services:
             POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
         volumes:
             - postgres_data:/var/lib/postgresql/data
-        ports:
-            - '5432:5432'
         healthcheck:
             test: ['CMD-SHELL', 'pg_isready -U postgres']
             interval: 10s
@@ -29,7 +27,8 @@ services:
             - '3000:3000'
         environment:
             - NODE_ENV=production
-            - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@db:5432/nextmall
+            # 优先使用.env文件中的DATABASE_URL，如果.env中没有则使用默认值
+            - DATABASE_URL=${DATABASE_URL:-postgresql://postgres:${POSTGRES_PASSWORD}@db:5432/nextmall}
             - AUTH_SECRET=${AUTH_SECRET}
             - AUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
             - AUTH_TRUST_HOST=true

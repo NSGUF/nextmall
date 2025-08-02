@@ -254,7 +254,7 @@ export const orderRouter = createTRPCRouter({
 
                 if (spec.stock < item.quantity) {
                     throw new Error(
-                        `商品库存不足: ${product.title} - ${spec.name}`
+                        `商品库存不足: ${product.title} - ${spec.value}`
                     );
                 }
 
@@ -275,7 +275,7 @@ export const orderRouter = createTRPCRouter({
                                 price: spec.price,
                                 remark: item.remark,
                                 logiPrice: product.logiPrice,
-                                specInfo: `${spec.value} * ${spec.name}`,
+                                specInfo: spec.value,
                             },
                         },
                     },

@@ -104,8 +104,22 @@ export default function ConfirmPage() {
         }
     }, [address, selectedAddressId]);
 
+    // 删除选中的购物车商品
+    const removeManyCartItems = api.cart.removeMany.useMutation();
+
     const createOrderMutation = api.order.create.useMutation({
-        onSuccess: (data) => {
+        onSuccess: async (data) => {
+            // 清空选中的购物车商品
+            try {
+                const selectedCartIds = JSON.parse(localStorage.getItem('selectedCartIds') || '[]');
+                if (selectedCartIds.length > 0) {
+                    await removeManyCartItems.mutateAsync({ ids: selectedCartIds });
+                    localStorage.removeItem('selectedCartIds'); // 清除存储的ID
+                }
+            } catch (error) {
+                console.error('清空购物车失败:', error);
+            }
+            
             showSuccessToast('订单创建成功');
             router.push(`/full/order?type=paid`);
         },
@@ -241,7 +255,7 @@ export default function ConfirmPage() {
                                 {product?.title}
                             </Text>
                             <Text color="gray.400" mb={2}>
-                                {selectedSpec?.value} * {selectedSpec?.name}
+                                {selectedSpec?.value}
                             </Text>
                             <Flex align="center">
                                 <Text

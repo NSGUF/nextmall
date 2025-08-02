@@ -135,7 +135,6 @@ export const productRouter = createTRPCRouter({
                 specs: z
                     .array(
                         z.object({
-                            name: z.string(),
                             value: z.string(),
                             price: z.number(),
                             stock: z.number(),
@@ -184,7 +183,6 @@ export const productRouter = createTRPCRouter({
                     .array(
                         z.object({
                             id: z.string().optional(),
-                            name: z.string(),
                             value: z.string(),
                             price: z.number(),
                             stock: z.number(),
@@ -207,7 +205,6 @@ export const productRouter = createTRPCRouter({
                     await ctx.db.productSpec.update({
                         where: { id: spec.id },
                         data: {
-                            name: spec.name,
                             value: spec.value,
                             price: spec.price,
                             stock: spec.stock,
@@ -221,7 +218,6 @@ export const productRouter = createTRPCRouter({
                     await ctx.db.productSpec.createMany({
                         data: specsToCreate.map((spec) => ({
                             productId: id,
-                            name: spec.name,
                             value: spec.value,
                             price: spec.price,
                             stock: spec.stock,

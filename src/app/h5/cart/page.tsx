@@ -49,7 +49,6 @@ interface CartItem {
     };
     spec?: {
         id: string;
-        name: string;
         value: string;
         price: number;
         image?: string;
@@ -127,7 +126,6 @@ export default function CartPage() {
                 spec: item.spec
                     ? {
                           id: item.spec.id,
-                          name: item.spec.name,
                           value: item.spec.value,
                           price: item.spec.price,
                           image: item.spec.image || undefined,
@@ -319,6 +317,8 @@ export default function CartPage() {
     // 结算
     const handleCheckout = () => {
         const selectedItems: any[] = [];
+        const selectedCartIds: string[] = [];
+        
         cartState.forEach((vendor) => {
             vendor.items.forEach((item) => {
                 if (item.checked) {
@@ -327,6 +327,7 @@ export default function CartPage() {
                         selectedSpec: item.spec,
                         quantity: item.quantity,
                     });
+                    selectedCartIds.push(item.id);
                 }
             });
         });
@@ -343,6 +344,8 @@ export default function CartPage() {
             STORE_GOOD_DATA_KEY,
             JSON.stringify(selectedItems)
         );
+        // 保存选中的购物车商品ID，用于后续清空
+        localStorage.setItem('selectedCartIds', JSON.stringify(selectedCartIds));
         router.push(`/full/confirm?data=${params}`);
     };
 
@@ -526,8 +529,7 @@ export default function CartPage() {
                                                     color="#222"
                                                     gap={1}
                                                 >
-                                                    {item.spec.value}{' '}
-                                                    {item.spec.name}
+                                                    {item.spec.value}
                                                     <Box
                                                         as="span"
                                                         ml={1}

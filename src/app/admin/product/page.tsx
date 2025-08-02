@@ -92,7 +92,6 @@ export default function AdminPage() {
         vendorId: '',
         specs: [
             {
-                name: '',
                 value: '',
                 price: undefined,
                 stock: undefined,
@@ -481,23 +480,34 @@ export default function AdminPage() {
                                     <Controller
                                         name="images"
                                         control={control}
-                                        rules={{ required: '请上传商品图片' }}
-                                        render={({ field }) => (
-                                            <ImageUpload
-                                                value={field.value}
-                                                onChange={field.onChange}
-                                                multiple={true}
-                                                maxFiles={10}
-                                                folder="products"
-                                                placeholder="点击上传商品图片"
-                                            />
+                                        rules={{
+                                            required: {
+                                                value: true,
+                                                message: '请上传商品图片',
+                                            },
+                                            validate: (value) =>
+                                                value && value.length > 0
+                                                    ? true
+                                                    : '请上传商品图片',
+                                        }}
+                                        render={({ field, fieldState }) => (
+                                            <>
+                                                <ImageUpload
+                                                    value={field.value}
+                                                    onChange={field.onChange}
+                                                    multiple={true}
+                                                    maxFiles={10}
+                                                    folder="products"
+                                                    placeholder="点击上传商品图片"
+                                                />
+                                                {(fieldState.error || errors.images) && (
+                                                    <Text color="red.500" fontSize="sm">
+                                                        {fieldState.error?.message || errors.images?.message}
+                                                    </Text>
+                                                )}
+                                            </>
                                         )}
                                     />
-                                    {errors.images && (
-                                        <Text color="red.500" fontSize="sm">
-                                            {errors.images.message}
-                                        </Text>
-                                    )}
                                 </Field.Root>
                                 <Flex gap={2}>
                                     <Field.Root invalid={!!errors.minAmount}>
@@ -576,20 +586,8 @@ export default function AdminPage() {
                                             key={field.id}
                                             gap={2}
                                             align="center"
-                                            border="1px solid #eee"
                                             borderRadius="md"
-                                            p={3}
-                                            mb={1}
                                         >
-                                            <Input
-                                                placeholder="单位"
-                                                {...register(
-                                                    `specs.${idx}.name` as const,
-                                                    {
-                                                        required: '必填',
-                                                    }
-                                                )}
-                                            />
                                             <Input
                                                 placeholder="规格描述"
                                                 {...register(
@@ -662,7 +660,6 @@ export default function AdminPage() {
                                         mt={2}
                                         onClick={() =>
                                             appendSpec({
-                                                name: '',
                                                 value: '',
                                                 price: undefined,
                                                 stock: undefined,

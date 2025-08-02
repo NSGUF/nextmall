@@ -161,7 +161,6 @@ export default function OrderManagePage() {
                             </Text>
                             <Text fontSize="xs" color="gray.500">
                                 {item.spec?.value} x{item.quantity}
-                                {item.spec?.name || '默认'}
                             </Text>
                             <HStack gap={2} fontSize="xs">
                                 单价：

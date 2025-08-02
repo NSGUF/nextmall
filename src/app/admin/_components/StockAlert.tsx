@@ -127,7 +127,7 @@ export default function StockAlert() {
                                     </Table.Cell>
                                     <Table.Cell>
                                         <Text fontSize="sm">
-                                            {alert.value} * {alert.name}
+                                            {alert.value}
                                         </Text>
                                     </Table.Cell>
                                     <Table.Cell>

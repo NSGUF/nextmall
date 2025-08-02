@@ -46,7 +46,6 @@ export default function ProductPage() {
     });
     const [selectedSpec, setSelectedSpec] = useState({
         id: '',
-        name: '',
         price: 1,
         productId: '',
         stock: 0,
@@ -123,13 +122,13 @@ export default function ProductPage() {
             router.push(`/full/confirm?data=${params}`);
         }
     };
+    console.log(product?.images?.map((item: string) => ({ image: item })))
     return (
         <Box bg="gray.50" minH="100vh" pb="80px">
             <TopNav title={product?.title} />
             <BannerCarousel
                 banners={
-                    product?.images?.map((item: string) => ({ image: item })) ??
-                    []
+                    [...(product?.images?.map((item: string) => ({ image: item })) || []),...(product?.specs?.map((item: any) => ({ image: item.image })) || [])]
                 }
                 height="380px"
             />
@@ -165,8 +164,8 @@ export default function ProductPage() {
                                     选择
                                 </Text>
                                 <Text color="gray.800">
-                                    {selectedSpec.value} * {selectedSpec.name}{' '}
-                                    {quantity}件
+                                    {selectedSpec.value} * 
+                                    {quantity}
                                 </Text>
                             </Flex>
                             <FiChevronRight />
@@ -182,8 +181,8 @@ export default function ProductPage() {
                                             <Box boxSize="80px" mr={4}>
                                                 <img
                                                     src={
-                                                        product?.images?.[0] ??
-                                                        '/default.jpg'
+                                                        selectedSpec?.image ??
+                                                         product?.images?.[0]
                                                     }
                                                     alt={title}
                                                     style={{
@@ -291,8 +290,7 @@ export default function ProductPage() {
                                                         }
                                                     >
                                                         <Tag.Label>
-                                                            {item.value} *{' '}
-                                                            {item.name}
+                                                            {item.value}
                                                         </Tag.Label>
                                                     </Tag.Root>
                                                 </Box>

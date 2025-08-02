@@ -314,7 +314,6 @@ export const dashboardRouter = createTRPCRouter({
 
         return lowStockSpecs.map((spec) => ({
             id: spec.id,
-            name: spec.name,
             value: spec.value,
             stock: spec.stock,
             price: spec.price,

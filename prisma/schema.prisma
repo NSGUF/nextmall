@@ -179,7 +179,6 @@ model ProductSpec {
   id        String   @id @default(cuid()) // 规格ID
   product   Product  @relation(fields: [productId], references: [id])
   productId String   // 商品ID
-  name      String   // 规格名
   value     String   // 规格值
   image     String   // 当前规格的图片
   price     Float   @default(0) // 该规格价格
