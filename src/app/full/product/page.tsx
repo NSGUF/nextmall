@@ -5,7 +5,7 @@ import TopNav from '../_components/TopNav';
 import BannerCarousel from '@/app/h5/_components/BannerCarousel';
 import { api } from '@/trpc/react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Box, Flex, Text, Tag, Center } from '@chakra-ui/react';
+import { Box, Flex, Text, Tag, Center, Image } from '@chakra-ui/react';
 import { Button } from '@/app/_components/ui';
 import useCustomToast from '@/app/hooks/useCustomToast';
 import { FiChevronRight, FiMinus, FiStar, FiPlus } from 'react-icons/fi';
@@ -50,6 +50,7 @@ export default function ProductPage() {
         productId: '',
         stock: 0,
         value: '',
+        image: '',
     });
     const [collected, setCollected] = useState(false);
     const handlerCollect = () => {
@@ -179,19 +180,13 @@ export default function ProductPage() {
                                     <Drawer.Title>
                                         <Flex align="center" w="100%">
                                             <Box boxSize="80px" mr={4}>
-                                                <img
-                                                    src={
-                                                        selectedSpec?.image ??
-                                                         product?.images?.[0]
-                                                    }
-                                                    alt={title}
-                                                    style={{
+                                                <Image src={selectedSpec?.image ?? product?.images?.[0]} alt={title} style={{
                                                         width: '100%',
                                                         height: '100%',
                                                         borderRadius: '8px',
                                                         objectFit: 'cover',
-                                                    }}
-                                                />
+                                                    }} />
+                                                
                                             </Box>
                                             <Box flex="1">
                                                 <Text
