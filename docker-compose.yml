@@ -9,7 +9,7 @@ services:
             POSTGRES_USER: postgres
             POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
         volumes:
-            - postgres_data:/var/lib/postgresql/data
+            - postgres:/var/lib/postgresql/data
         ports:
             - '5432:5432'
         healthcheck:
@@ -40,11 +40,11 @@ services:
             db:
                 condition: service_healthy
         volumes:
-            - output_data:/app/output
+            - output:/app/output
 
 volumes:
-    postgres_data:
-    output_data:
+    postgres:
+    output:
 
 networks:
     default:

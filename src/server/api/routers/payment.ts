@@ -47,7 +47,7 @@ export const paymentRouter = createTRPCRouter({
                 // 创建上传目录
                 const uploadDir = join(
                     process.cwd(),
-                    'public',
+                    'output',
                     'uploads',
                     'payment'
                 );
