@@ -45,7 +45,7 @@ COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules ./node_modules
 
 # 创建上传目录
-RUN mkdir -p /app/public/uploads && chown -R nextjs:nodejs /app/public/uploads
+RUN mkdir -p /app/output && chown -R nextjs:nodejs /app/output
 
 USER nextjs
 
@@ -61,10 +61,3 @@ RUN chmod +x ./docker-entrypoint.sh
 USER nextjs
 
 CMD ["./docker-entrypoint.sh"]
-
-
-
-
-
-
-

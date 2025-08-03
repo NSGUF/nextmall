@@ -15,6 +15,15 @@ const config = {
     },
     // Docker 部署配置
     output: 'standalone',
+    // 静态文件配置
+    async rewrites() {
+        return [
+            {
+                source: '/uploads/:path*',
+                destination: '/api/uploads/:path*',
+            },
+        ];
+    },
 };
 
 export default config;

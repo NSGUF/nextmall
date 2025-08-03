@@ -4,7 +4,6 @@ export default function ProductItem({
     products,
     isShowDelete = false,
     onDelete = (id) => {
-        console.log(id);
     },
 }) {
     return (

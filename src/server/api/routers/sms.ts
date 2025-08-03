@@ -65,6 +65,7 @@ export const smsRouter = createTRPCRouter({
 
             return {
                 message: '验证码发送成功',
+                code,
             };
         }),
 

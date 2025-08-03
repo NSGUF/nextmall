@@ -123,7 +123,6 @@ export default function ProductPage() {
             router.push(`/full/confirm?data=${params}`);
         }
     };
-    console.log(product?.images?.map((item: string) => ({ image: item })))
     return (
         <Box bg="gray.50" minH="100vh" pb="80px">
             <TopNav title={product?.title} />
