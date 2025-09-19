@@ -126,7 +126,7 @@ export const userRouter = createTRPCRouter({
             );
 
             // 发送邮件
-            const resetUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/reset-password?token=${token}`;
+            const resetUrl = `${process.env.AUTH_URL}/reset-password?token=${token}`;
             const options = {
                 host: process.env.SMTP_HOST, // SMTP 服务器地址，如 smtp.qq.com
                 port: Number(process.env.SMTP_PORT) || 465, // SMTP 端口，常用465(SSL)或587(TLS)

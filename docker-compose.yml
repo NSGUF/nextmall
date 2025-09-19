@@ -42,7 +42,7 @@ services:
             # 优先使用.env文件中的DATABASE_URL，如果.env中没有则使用默认值
             - DATABASE_URL=${DATABASE_URL:-postgresql://postgres:${POSTGRES_PASSWORD}@db:5432/nextmall}
             - AUTH_SECRET=${AUTH_SECRET}
-            - AUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
+            - AUTH_URL=${AUTH_URL:-http://localhost:3000}
             - AUTH_TRUST_HOST=true
             - FIRST_SUPERUSER=${FIRST_SUPERUSER:-admin}
             - FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD:-admin123}
