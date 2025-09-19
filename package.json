@@ -3,6 +3,11 @@
     "version": "0.1.0",
     "private": true,
     "type": "module",
+    "author": "nsguf <1968083780@qq.com>",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/nsguf/nextmall"
+    },
     "scripts": {
         "build": "next build",
         "check": "next lint && tsc --noEmit",

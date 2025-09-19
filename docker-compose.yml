@@ -46,6 +46,13 @@ services:
             - AUTH_TRUST_HOST=true
             - FIRST_SUPERUSER=${FIRST_SUPERUSER:-admin}
             - FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD:-admin123}
+            - SMTP_FROM_NAME=${SMTP_FROM_NAME:-nextmall}
+            - SMTP_HOST=${SMTP_HOST}
+            - SMTP_USER=${SMTP_USER}
+            - SMTP_PASS=${SMTP_PASS}
+            - SMTP_PORT=${SMTP_PORT}
+            - TITLE=${TITLE:-nextmall}
+            - DESCRIPTION=${DESCRIPTION:-nextmall description}
         depends_on:
             db:
                 condition: service_healthy
