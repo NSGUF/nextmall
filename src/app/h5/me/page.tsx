@@ -1,6 +1,15 @@
 'use client';
 
-import { Box, Flex, Grid, Button, Text, Badge, Avatar, Input } from '@chakra-ui/react';
+import {
+    Box,
+    Flex,
+    Grid,
+    Button,
+    Text,
+    Badge,
+    Avatar,
+    Input,
+} from '@chakra-ui/react';
 import {
     FiSettings,
     FiHeadphones,
@@ -395,7 +404,8 @@ export default function MePage() {
                         mb={0}
                         onClick={() => setShowChangePwdDialog(true)}
                     >
-                        <FiLock />修改密码
+                        <FiLock />
+                        修改密码
                     </Button>
                 </Box>
             )}
@@ -440,7 +450,9 @@ export default function MePage() {
                                 <Input
                                     type="password"
                                     value={oldPassword}
-                                    onChange={(e) => setOldPassword(e.target.value)}
+                                    onChange={(e) =>
+                                        setOldPassword(e.target.value)
+                                    }
                                     placeholder="请输入原始密码"
                                     autoComplete="current-password"
                                     mb={2}
@@ -451,7 +463,9 @@ export default function MePage() {
                                 <Input
                                     type="password"
                                     value={newPassword}
-                                    onChange={(e) => setNewPassword(e.target.value)}
+                                    onChange={(e) =>
+                                        setNewPassword(e.target.value)
+                                    }
                                     placeholder="请输入新密码（至少8位）"
                                     autoComplete="new-password"
                                     mb={1}

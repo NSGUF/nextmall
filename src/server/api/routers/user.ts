@@ -150,10 +150,10 @@ export const userRouter = createTRPCRouter({
     // 新增：修改密码接口
     /**
      * 为什么 hash(input.oldPassword, 10) 得到的 hash 跟 user.password 不一样？
-     * 
+     *
      * 因为 bcrypt 的 hash 加密在每次调用时都会生成一个随机的 salt，
      * 所以即使明文密码一样，每次 hash 出来的密文也都不一样。
-     * 
+     *
      * 正确的校验方式是用 bcrypt 的 compare(明文, 密文Hash)，
      * 它内部会取 hash 存储的 salt 重新 hash 明文，然后比较是否一致。
      */

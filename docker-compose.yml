@@ -40,7 +40,7 @@ services:
         environment:
             - NODE_ENV=production
             # 优先使用.env文件中的DATABASE_URL，如果.env中没有则使用默认值
-            - DATABASE_URL=postgresql://postgres:password@db:5432/nextmall
+            - DATABASE_URL=${DATABASE_URL}
             - AUTH_SECRET=${AUTH_SECRET}
             - AUTH_URL=${AUTH_URL:-http://localhost:3000}
             - AUTH_TRUST_HOST=true
