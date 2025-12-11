@@ -6,9 +6,9 @@ import { TRPCReactProvider } from '@/trpc/react';
 
 const SITE_URL = process.env.NEXTAUTH_URL || 'https://yunzhiqiao.site';
 const SITE_NAME = '云智乔';
-const DEFAULT_TITLE = process.env.TITLE || '云智乔 - 免费在线工具集合';
+const DEFAULT_TITLE = process.env.TITLE || '星禾屿';
 const DEFAULT_DESCRIPTION =
-    '云智乔提供丰富免费在线工具，涵盖图片处理（压缩 / 加水印 / 格式转换）、GIF 动画（生成 / 裁切 / 压缩）、二维码生成美化、编程工具、创意工具（奖状生成、ASCII 字符画）等，无需安装，浏览器直接使用，一站式解决图片、开发、娱乐等实用需求';
+    '是一款专为烘焙爱好者、家庭主厨和专业甜点师打造的智能烘焙助手。无论你是新手小白还是烘焙达人，这里都能为你提供精准的配方指导、智能化的烘焙工具、个性化的创意灵感，让你的每一份甜点都成为艺术品';
 export async function generateMetadata(): Promise<Metadata> {
     return {
         metadataBase: new URL(SITE_URL),
