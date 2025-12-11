@@ -29,7 +29,7 @@ type User = {
     name: string;
     email: string;
     phone: string;
-    status: number;
+    status: boolean;
     role: ROLES;
     createdAt: Date;
     updatedAt: Date;
@@ -39,7 +39,7 @@ type UserForm = {
     name: string;
     email?: string;
     phone?: string;
-    status: number;
+    status: boolean;
     role: ROLES;
     password?: string;
 };
@@ -113,7 +113,7 @@ export default function UserManagePage() {
             name: '',
             email: '',
             phone: '',
-            status: 1,
+            status: true,
             role: ROLES.NORMAL,
             password: '',
         },
@@ -126,7 +126,7 @@ export default function UserManagePage() {
                 name: user.name ?? '',
                 email: user.email ?? '',
                 phone: user.phone ?? '',
-                status: user.status ?? 1,
+                status: user.status ?? true,
                 role: user.role ?? ROLES.NORMAL,
                 password: '', // 编辑时密码为空，表示不修改
             });
@@ -135,7 +135,7 @@ export default function UserManagePage() {
                 name: '',
                 email: '',
                 phone: '',
-                status: 1,
+                status: true,
                 role: ROLES.NORMAL,
                 password: '',
             });
@@ -299,6 +299,10 @@ export default function UserManagePage() {
                 mb={4}
             >
                 <Heading size="lg">用户管理</Heading>
+                {/* 新增用户按钮 */}
+                <Button colorScheme="blue" onClick={() => openEdit(undefined)}>
+                    新增用户
+                </Button>
             </Box>
             <DataTable
                 columns={columns.map((col) =>
@@ -466,9 +470,7 @@ export default function UserManagePage() {
                                                 }
                                             >
                                                 <Select.HiddenSelect />
-                                                <Select.Label>
-                                                    Select framework
-                                                </Select.Label>
+
                                                 <Select.Control>
                                                     <Select.Trigger>
                                                         <Select.ValueText placeholder="Select framework" />

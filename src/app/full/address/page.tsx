@@ -181,7 +181,10 @@ export default function AddressPage() {
                 >
                     {/* 获取当前页面的查询参数并拼接到新增地址链接 */}
                     {(() => {
-                        const search = typeof window !== 'undefined' ? window.location.search : '';
+                        const search =
+                            typeof window !== 'undefined'
+                                ? window.location.search
+                                : '';
                         return (
                             <Link href={`/full/address/add${search}`}>
                                 <Button

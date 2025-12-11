@@ -88,7 +88,8 @@ export default function AddressAddPage() {
             }
             reset();
             // 跳转时带上当前页面的url参数
-            const search = typeof window !== 'undefined' ? window.location.search : '';
+            const search =
+                typeof window !== 'undefined' ? window.location.search : '';
             router.push(`/full/address${search}`);
         } catch (e: any) {
             // 错误由createAddress.error处理

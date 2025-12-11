@@ -126,9 +126,7 @@ export default function StockAlert() {
                                         </Flex>
                                     </Table.Cell>
                                     <Table.Cell>
-                                        <Text fontSize="sm">
-                                            {alert.value}
-                                        </Text>
+                                        <Text fontSize="sm">{alert.value}</Text>
                                     </Table.Cell>
                                     <Table.Cell>
                                         <Text fontSize="sm">

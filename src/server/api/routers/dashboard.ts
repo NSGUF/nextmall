@@ -376,7 +376,7 @@ export const dashboardRouter = createTRPCRouter({
                 };
             }
 
-            // 获取订单项数据
+            // 获取订单项数据，包含商品的供应商信息和需包含每一项的logiPrice(运费)
             const orderItems = await ctx.db.orderItem.findMany({
                 where: {
                     order: where,
@@ -406,7 +406,7 @@ export const dashboardRouter = createTRPCRouter({
                 },
             });
 
-            // 按供应商和月份统计数据
+            // 按供应商和月份统计数据（包含订单项的运费 logiPrice 字段）
             const vendorStats: Record<
                 string,
                 {
@@ -449,13 +449,14 @@ export const dashboardRouter = createTRPCRouter({
                     };
                 }
 
+                // 累加金额和运费（item.price * item.quantity + item.logiPrice）
                 vendorStats[vendor.id].monthlyData[monthKey].orderCount.add(
                     item.order.id
                 );
                 vendorStats[vendor.id].monthlyData[monthKey].totalAmount +=
-                    item.price * item.quantity;
+                    item.price * item.quantity + (item.logiPrice || 0);
                 vendorStats[vendor.id].totalAmount +=
-                    item.price * item.quantity;
+                    item.price * item.quantity + (item.logiPrice || 0);
                 vendorStats[vendor.id].totalOrders.add(item.order.id);
             });
 

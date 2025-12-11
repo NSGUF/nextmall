@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Flex, Grid, Button, Text, Badge, Avatar } from '@chakra-ui/react';
+import { Box, Flex, Grid, Button, Text, Badge, Avatar, Input } from '@chakra-ui/react';
 import {
     FiSettings,
     FiHeadphones,
@@ -17,6 +17,7 @@ import {
     FiList,
     FiDollarSign,
     FiLogOut,
+    FiLock,
 } from 'react-icons/fi';
 import { LuCrown, LuLanguages } from 'react-icons/lu';
 import * as React from 'react';
@@ -35,6 +36,7 @@ import {
     DialogCloseTrigger,
 } from '@/app/_components/ui/dialog';
 import { useRouter } from 'next/navigation';
+import useCustomToast from '@/app/hooks/useCustomToast';
 
 function IconWithBadge({
     icon,
@@ -76,10 +78,57 @@ export default function MePage() {
     const { session, logout } = useAuth();
     const router = useRouter();
     const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+
+    // 修改密码对话框状态
+    const [showChangePwdDialog, setShowChangePwdDialog] = useState(false);
+    const [oldPassword, setOldPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [changing, setChanging] = useState(false);
+    const [changePwdError, setChangePwdError] = useState<string | null>(null);
+
+    const { showSuccessToast, showErrorToast } = useCustomToast();
+
     const { data: userStats, isLoading: statsLoading } =
         api.user.getStats.useQuery(undefined, {
             enabled: !!session, // 只在登录状态下请求
         });
+
+    const changePwdMutation = api.user.changePassword.useMutation({
+        onSuccess() {
+            setChanging(false);
+            setShowChangePwdDialog(false);
+            setOldPassword('');
+            setNewPassword('');
+            setChangePwdError(null);
+            showSuccessToast('密码修改成功，请使用新密码登录！');
+            // 可以选择执行登出操作
+            logout().then(() => router.replace('/login'));
+        },
+        onError(err: any) {
+            setChanging(false);
+            setChangePwdError(err?.message || '修改失败');
+        },
+    });
+
+    const handleChangePwd = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setChangePwdError(null);
+
+        if (!oldPassword || !newPassword) {
+            setChangePwdError('请输入完整信息');
+            return;
+        }
+        if (newPassword.length < 8) {
+            setChangePwdError('新密码至少8位');
+            return;
+        }
+        setChanging(true);
+
+        changePwdMutation.mutate({
+            oldPassword,
+            newPassword,
+        });
+    };
 
     const handleLogout = async () => {
         await logout();
@@ -329,6 +378,28 @@ export default function MePage() {
                 </Grid>
             </Box>
 
+            {/* 修改密码按钮 - 只在登录状态下显示，放在退出登录上面 */}
+            {session && (
+                <Box
+                    bg="white"
+                    mx={4}
+                    borderRadius="xl"
+                    p={4}
+                    mb={2}
+                    boxShadow="2xs"
+                >
+                    <Button
+                        w="100%"
+                        colorScheme="blue"
+                        variant="outline"
+                        mb={0}
+                        onClick={() => setShowChangePwdDialog(true)}
+                    >
+                        <FiLock />修改密码
+                    </Button>
+                </Box>
+            )}
+
             {/* 退出登录按钮 - 只在登录状态下显示 */}
             {session && (
                 <Box
@@ -349,6 +420,62 @@ export default function MePage() {
                         退出登录
                     </Button>
                 </Box>
+            )}
+
+            {/* 修改密码对话框 */}
+            {session && (
+                <DialogRoot
+                    open={showChangePwdDialog}
+                    onOpenChange={(e) => setShowChangePwdDialog(e.open)}
+                >
+                    <DialogContent as="form" onSubmit={handleChangePwd}>
+                        <DialogHeader>
+                            <DialogTitle>修改密码</DialogTitle>
+                        </DialogHeader>
+                        <DialogBody>
+                            <Box mb={3}>
+                                <Text fontWeight="bold" mb={1}>
+                                    原始密码
+                                </Text>
+                                <Input
+                                    type="password"
+                                    value={oldPassword}
+                                    onChange={(e) => setOldPassword(e.target.value)}
+                                    placeholder="请输入原始密码"
+                                    autoComplete="current-password"
+                                    mb={2}
+                                />
+                                <Text fontWeight="bold" mb={1}>
+                                    新密码
+                                </Text>
+                                <Input
+                                    type="password"
+                                    value={newPassword}
+                                    onChange={(e) => setNewPassword(e.target.value)}
+                                    placeholder="请输入新密码（至少8位）"
+                                    autoComplete="new-password"
+                                    mb={1}
+                                />
+                                {changePwdError && (
+                                    <Text color="red.500" fontSize="sm" mt={2}>
+                                        {changePwdError}
+                                    </Text>
+                                )}
+                            </Box>
+                        </DialogBody>
+                        <DialogFooter>
+                            <Button
+                                colorScheme="blue"
+                                type="submit"
+                                loading={changing}
+                                disabled={changing}
+                            >
+                                确认修改
+                            </Button>
+                        </DialogFooter>
+                        <DialogCloseTrigger />
+                    </DialogContent>
+                </DialogRoot>
             )}
 
             {/* 退出登录确认对话框 - 只在登录状态下显示 */}

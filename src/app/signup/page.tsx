@@ -1,6 +1,14 @@
 'use client';
 
-import { Container, Flex, Image, Input, Text, Link } from '@chakra-ui/react';
+import {
+    Container,
+    Flex,
+    Image,
+    Input,
+    Text,
+    Link,
+    Box,
+} from '@chakra-ui/react';
 import { useForm } from 'react-hook-form';
 import { FiLock, FiUser, FiPhone } from 'react-icons/fi';
 import { useRef, useState } from 'react';
@@ -138,6 +146,10 @@ export default function SignUp() {
                     alignSelf="center"
                     mb={4}
                 />
+
+                <Text color="red" textAlign="center">
+                    当前不支持注册，请联系管理员为您添加账号。
+                </Text>
                 <Field invalid={!!errors.name} errorText={errors.name?.message}>
                     <InputGroup w="100%" startElement={<FiUser />}>
                         <Input
@@ -239,7 +251,12 @@ export default function SignUp() {
                         《隐私政策》
                     </Link>
                 </Checkbox>
-                <Button variant="solid" type="submit" loading={isSubmitting}>
+                <Button
+                    variant="solid"
+                    type="submit"
+                    disabled={true}
+                    loading={isSubmitting}
+                >
                     注册
                 </Button>
                 <Text color="gray">

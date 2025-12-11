@@ -57,7 +57,7 @@ export default function FavoritePage() {
 
     return (
         <>
-            <TopNav title="我的收藏" /> 
+            <TopNav title="我的收藏" />
             <Box p={2}>
                 {favorites.length > 0 ? (
                     <ProductItem

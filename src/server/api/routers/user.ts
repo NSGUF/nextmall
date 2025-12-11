@@ -5,7 +5,7 @@ import {
     protectedProcedure,
     superAdminProcedure,
 } from '@/server/api/trpc';
-import { hash } from 'bcryptjs';
+import { hash, compare } from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer';
 import { logger, logOperation } from '@/server/api/utils/logger';
@@ -146,6 +146,60 @@ export const userRouter = createTRPCRouter({
 
             return { message: '已发送密码找回邮件' };
         }),
+
+    // 新增：修改密码接口
+    /**
+     * 为什么 hash(input.oldPassword, 10) 得到的 hash 跟 user.password 不一样？
+     * 
+     * 因为 bcrypt 的 hash 加密在每次调用时都会生成一个随机的 salt，
+     * 所以即使明文密码一样，每次 hash 出来的密文也都不一样。
+     * 
+     * 正确的校验方式是用 bcrypt 的 compare(明文, 密文Hash)，
+     * 它内部会取 hash 存储的 salt 重新 hash 明文，然后比较是否一致。
+     */
+    changePassword: protectedProcedure
+        .input(
+            z.object({
+                oldPassword: z.string().min(6, '旧密码至少6位'),
+                newPassword: z.string().min(6, '新密码至少6位'),
+            })
+        )
+        .mutation(async ({ ctx, input }) => {
+            const userId = ctx.session.user.id;
+            const user = await ctx.db.user.findUnique({
+                where: { id: userId },
+                select: { password: true },
+            });
+
+            if (!user || !user.password) {
+                throw new Error('用户不存在或没有设置密码');
+            }
+
+            // bcrypt compare 才是比较密码的正确方式
+            const isCorrect = await compare(input.oldPassword, user.password);
+            if (!isCorrect) {
+                throw new Error('旧密码输入错误');
+            }
+
+            const hashedNew = await hash(input.newPassword, 10);
+
+            await ctx.db.user.update({
+                where: { id: userId },
+                data: { password: hashedNew },
+            });
+
+            // 记录操作日志
+            await logOperation(ctx, {
+                action: 'CHANGE_PASSWORD',
+                module: 'USER',
+                description: '用户修改密码成功',
+                targetId: userId,
+                targetType: 'User',
+            });
+
+            return { message: '密码修改成功' };
+        }),
+
     // 获取所有供应商接口
     getAllVendors: superAdminProcedure.query(async ({ ctx }) => {
         // UserRole.VENDOR
@@ -233,15 +287,10 @@ export const userRouter = createTRPCRouter({
             z.object({
                 name: z.string().min(1, '用户名不能为空'),
                 email: z.string().email('邮箱格式不正确').optional(),
-                phone: z.string().optional(),
+                phone: z.string(),
                 status: z.boolean().optional(),
                 role: z
-                    .enum([
-                        ROLES.SUPERADMIN,
-                        ROLES.VENDOR,
-                        'STORE',
-                        ROLES.NORMAL,
-                    ])
+                    .enum([ROLES.SUPERADMIN, ROLES.VENDOR, ROLES.NORMAL])
                     .default(ROLES.NORMAL),
                 password: z.string().min(6, '密码至少6位').optional(),
             })

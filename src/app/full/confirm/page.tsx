@@ -111,15 +111,19 @@ export default function ConfirmPage() {
         onSuccess: async (data) => {
             // 清空选中的购物车商品
             try {
-                const selectedCartIds = JSON.parse(localStorage.getItem('selectedCartIds') || '[]');
+                const selectedCartIds = JSON.parse(
+                    localStorage.getItem('selectedCartIds') || '[]'
+                );
                 if (selectedCartIds.length > 0) {
-                    await removeManyCartItems.mutateAsync({ ids: selectedCartIds });
+                    await removeManyCartItems.mutateAsync({
+                        ids: selectedCartIds,
+                    });
                     localStorage.removeItem('selectedCartIds'); // 清除存储的ID
                 }
             } catch (error) {
                 console.error('清空购物车失败:', error);
             }
-            
+
             showSuccessToast('订单创建成功');
             router.push(`/full/order?type=paid`);
         },

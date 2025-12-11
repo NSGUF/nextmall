@@ -388,7 +388,14 @@ export default function AdminPage() {
                     alignItems="center"
                     justifyContent="center"
                 >
-                    <Box bg="white" p={6} borderRadius="md" minW={600}>
+                    <Box
+                        bg="white"
+                        maxH="90vh"
+                        overflowY="auto"
+                        p={6}
+                        borderRadius="md"
+                        minW={600}
+                    >
                         <Heading size="md" mb={4}>
                             {editing ? '编辑' : '新增'}商品
                         </Heading>
@@ -500,9 +507,16 @@ export default function AdminPage() {
                                                     folder="products"
                                                     placeholder="点击上传商品图片"
                                                 />
-                                                {(fieldState.error || errors.images) && (
-                                                    <Text color="red.500" fontSize="sm">
-                                                        {fieldState.error?.message || errors.images?.message}
+                                                {(fieldState.error ||
+                                                    errors.images) && (
+                                                    <Text
+                                                        color="red.500"
+                                                        fontSize="sm"
+                                                    >
+                                                        {fieldState.error
+                                                            ?.message ||
+                                                            errors.images
+                                                                ?.message}
                                                     </Text>
                                                 )}
                                             </>

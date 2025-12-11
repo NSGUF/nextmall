@@ -321,7 +321,14 @@ export default function AdminPage() {
                     alignItems="center"
                     justifyContent="center"
                 >
-                    <Box bg="white" p={6} borderRadius="md" minW={400}>
+                    <Box
+                        bg="white"
+                        p={6}
+                        maxH="90vh"
+                        overflowY="auto"
+                        borderRadius="md"
+                        minW={400}
+                    >
                         <Heading size="md" mb={4}>
                             {editing ? '编辑' : '新增'}Collection
                         </Heading>

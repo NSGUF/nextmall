@@ -127,9 +127,14 @@ export default function ProductPage() {
         <Box bg="gray.50" minH="100vh" pb="80px">
             <TopNav title={product?.title} />
             <BannerCarousel
-                banners={
-                    [...(product?.images?.map((item: string) => ({ image: item })) || []),...(product?.specs?.map((item: any) => ({ image: item.image })) || [])]
-                }
+                banners={[
+                    ...(product?.images?.map((item: string) => ({
+                        image: item,
+                    })) || []),
+                    ...(product?.specs?.map((item: any) => ({
+                        image: item.image,
+                    })) || []),
+                ]}
                 height="380px"
             />
             <Box px={4} py={3} bg="white" boxShadow="2xs">
@@ -164,8 +169,7 @@ export default function ProductPage() {
                                     选择
                                 </Text>
                                 <Text color="gray.800">
-                                    {selectedSpec.value} * 
-                                    {quantity}
+                                    {selectedSpec.value} *{quantity}
                                 </Text>
                             </Flex>
                             <FiChevronRight />
@@ -179,13 +183,19 @@ export default function ProductPage() {
                                     <Drawer.Title>
                                         <Flex align="center" w="100%">
                                             <Box boxSize="80px" mr={4}>
-                                                <Image src={selectedSpec?.image ?? product?.images?.[0]} alt={title} style={{
+                                                <Image
+                                                    src={
+                                                        selectedSpec?.image ??
+                                                        product?.images?.[0]
+                                                    }
+                                                    alt={title}
+                                                    style={{
                                                         width: '100%',
                                                         height: '100%',
                                                         borderRadius: '8px',
                                                         objectFit: 'cover',
-                                                    }} />
-                                                
+                                                    }}
+                                                />
                                             </Box>
                                             <Box flex="1">
                                                 <Text

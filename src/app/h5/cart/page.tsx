@@ -318,7 +318,7 @@ export default function CartPage() {
     const handleCheckout = () => {
         const selectedItems: any[] = [];
         const selectedCartIds: string[] = [];
-        
+
         cartState.forEach((vendor) => {
             vendor.items.forEach((item) => {
                 if (item.checked) {
@@ -345,7 +345,10 @@ export default function CartPage() {
             JSON.stringify(selectedItems)
         );
         // 保存选中的购物车商品ID，用于后续清空
-        localStorage.setItem('selectedCartIds', JSON.stringify(selectedCartIds));
+        localStorage.setItem(
+            'selectedCartIds',
+            JSON.stringify(selectedCartIds)
+        );
         router.push(`/full/confirm?data=${params}`);
     };
 
@@ -486,13 +489,14 @@ export default function CartPage() {
                                     </Checkbox.Root>
                                     <Flex
                                         align="center"
+                                        flex="1"
+                                        minW="0"
                                         onClick={() =>
                                             router.push(
                                                 `/full/product?id=${item.productId}`
                                             )
                                         }
-                                        flex="1"
-                                        minW="0"
+                                        style={{ cursor: 'pointer' }}
                                     >
                                         <Image
                                             src={
@@ -561,24 +565,32 @@ export default function CartPage() {
                                                     borderRadius="full"
                                                     px={2}
                                                     gap={0}
+                                                    // 阻止点击加减按钮时事件冒泡，避免跳转
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                    }}
                                                 >
                                                     <Button
                                                         size="2xs"
                                                         variant="ghost"
                                                         p={0}
-                                                        onClick={() =>
+                                                        onClick={(event) => {
+                                                            event.stopPropagation();
                                                             handleCountChange(
                                                                 vendorIdx,
                                                                 itemIdx,
                                                                 -1
-                                                            )
-                                                        }
+                                                            );
+                                                        }}
                                                     >
                                                         <FiMinus />
                                                     </Button>
                                                     <Input
                                                         size="2xs"
                                                         value={item.quantity}
+                                                        onClick={(e) =>
+                                                            e.stopPropagation()
+                                                        }
                                                         onChange={(e) => {
                                                             const maxStock =
                                                                 item.spec
@@ -623,13 +635,14 @@ export default function CartPage() {
                                                             item.quantity >=
                                                             item.spec?.stock
                                                         }
-                                                        onClick={() =>
+                                                        onClick={(event) => {
+                                                            event.stopPropagation();
                                                             handleCountChange(
                                                                 vendorIdx,
                                                                 itemIdx,
                                                                 1
-                                                            )
-                                                        }
+                                                            );
+                                                        }}
                                                     >
                                                         <FiPlus />
                                                     </Button>

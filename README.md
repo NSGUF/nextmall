@@ -69,7 +69,7 @@ NextMall 是一个功能完整的现代化电商平台，专为追求高性能�
 2. 客户端加载小 几百kb的静态资源
 <img src="./docs/client.png" alt="订单详情" width="200" />
 
-## 🌐 在线演示
+<!-- ## 🌐 在线演示
 
 登录页：https://nsguf.cpolar.top/login  
 admin:16666666666 admin123  
@@ -77,7 +77,7 @@ admin:16666666666 admin123
 普通用户：18888888888 admin123  
 管理页：https://nsguf.cpolar.top/admin  
 供应商管理页：https://nsguf.cpolar.top/vendor  
-普通用户h5界面：https://nsguf.cpolar.top/h5  
+普通用户h5界面：https://nsguf.cpolar.top/h5   -->
 
 ## ✨ 核心特性
 
@@ -150,8 +150,8 @@ cp .env.example .env
 # 推送数据库结构
 pnpm db:push
 
-# (可选) 运行种子数据
-pnpm db:seed
+# 创建管理员账号
+npx prisma db seed
 ```
 
 3. **启动开发服务器**

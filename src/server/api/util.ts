@@ -66,20 +66,32 @@ export const utilRouter = createTRPCRouter({
                     'output/uploads/images',
                     folder
                 );
-                
+
                 // 确保目录存在，如果不存在则创建
                 if (!existsSync(uploadDir)) {
                     try {
-                        await mkdir(uploadDir, { recursive: true, mode: 0o777 });
+                        await mkdir(uploadDir, {
+                            recursive: true,
+                            mode: 0o777,
+                        });
                     } catch (error) {
                         console.error('创建目录失败:', error);
                         // 尝试创建父目录
-                        const parentDir = join(process.cwd(), 'output/uploads/images');
+                        const parentDir = join(
+                            process.cwd(),
+                            'output/uploads/images'
+                        );
                         if (!existsSync(parentDir)) {
-                            await mkdir(parentDir, { recursive: true, mode: 0o777 });
+                            await mkdir(parentDir, {
+                                recursive: true,
+                                mode: 0o777,
+                            });
                         }
                         // 再次尝试创建目标目录
-                        await mkdir(uploadDir, { recursive: true, mode: 0o777 });
+                        await mkdir(uploadDir, {
+                            recursive: true,
+                            mode: 0o777,
+                        });
                     }
                 }
 
@@ -127,7 +139,11 @@ export const utilRouter = createTRPCRouter({
                 const results = [];
 
                 // 创建上传目录
-                const uploadDir = join(process.cwd(), 'output/uploads/images', folder);
+                const uploadDir = join(
+                    process.cwd(),
+                    'output/uploads/images',
+                    folder
+                );
                 if (!existsSync(uploadDir)) {
                     try {
                         await mkdir(uploadDir, { recursive: true });

@@ -7,7 +7,7 @@ if [ -z "$commit_msg" ]; then
   echo "提交信息不能为空，请重新运行脚本并输入提交信息。"
   exit 1
 fi
-
+pnpm format:write
 git add .
 
 if [ $? -ne 0 ]; then

@@ -53,7 +53,7 @@ export const smsRouter = createTRPCRouter({
 
             // TODO: 这里应该调用真实的短信服务API发送验证码
             // 目前为了开发方便，我们在控制台输出验证码
-            console.log(`发送验证码到 ${phone}: ${code}`);
+            // console.log(`发送验证码到 ${phone}: ${code}`);
 
             // 在开发环境下，可以返回验证码用于测试
             if (process.env.NODE_ENV === 'development') {
@@ -65,7 +65,7 @@ export const smsRouter = createTRPCRouter({
 
             return {
                 message: '验证码发送成功',
-                code,
+                // code,
             };
         }),
 
