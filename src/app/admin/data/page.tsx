@@ -107,7 +107,6 @@ export default function VendorDataPage() {
                                 value={selectedVendor}
                                 onChange={(e) => {
                                     handleVendorChange(e.currentTarget.value);
-                                    debugger;
                                 }}
                                 w="250px"
                             >

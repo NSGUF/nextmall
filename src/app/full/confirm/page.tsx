@@ -140,7 +140,17 @@ export default function ConfirmPage() {
     }, 0);
     const finalPrice = totalPrice + shippingFee;
 
+
     const handleSubmitOrder = () => {
+
+        let errorText = goodData.map(item => {
+            return item.selectedSpec.price * item.quantity < item.product.minAmount ? item.product.title : '';
+        }).filter(item => !!item);
+
+        if (errorText.length > 0) {
+            showErrorToast(errorText.join('、') + '购买低于起送价');
+            return;
+        }
         openDeleteConfirm();
     };
 

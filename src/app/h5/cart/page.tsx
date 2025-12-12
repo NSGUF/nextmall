@@ -29,6 +29,7 @@ import useCustomToast from '@/app/hooks/useCustomToast';
 import { STORE_GOOD_DATA_KEY, STORE_LAUNCH_INFO_KEY } from '@/app/const';
 import { ContentLoading } from '@/app/_components/LoadingSpinner';
 import Link from 'next/link';
+import type { Product } from '@prisma/client';
 
 // 购物车商品接口
 interface CartItem {
@@ -37,16 +38,7 @@ interface CartItem {
     specId?: string;
     quantity: number;
     checked: boolean;
-    product: {
-        id: string;
-        title: string;
-        images: string[];
-        vendor: {
-            id: string;
-            name: string;
-        };
-        logiPrice: number;
-    };
+    product: any;
     spec?: {
         id: string;
         value: string;
@@ -113,16 +105,7 @@ export default function CartPage() {
                 specId: item.specId || undefined,
                 quantity: item.quantity,
                 checked: false, // 默认不选中
-                product: {
-                    id: item.product.id,
-                    title: item.product.title,
-                    images: item.product.images || [],
-                    vendor: {
-                        id: item.product.vendor.id,
-                        name: item.product.vendor.name,
-                    },
-                    logiPrice: item.product.logiPrice || 0,
-                },
+                product: item.product,
                 spec: item.spec
                     ? {
                           id: item.spec.id,
