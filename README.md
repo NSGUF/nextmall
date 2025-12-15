@@ -148,7 +148,7 @@ pnpm install
 cp .env.example .env
 
 # 推送数据库结构
-pnpm db:push
+c
 
 # 创建管理员账号
 npx prisma db seed

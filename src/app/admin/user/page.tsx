@@ -38,7 +38,7 @@ type User = {
 type UserForm = {
     name: string;
     email?: string;
-    phone?: string;
+    phone: string; // 变更为必填（去掉?）
     status: boolean;
     role: ROLES;
     password?: string;
@@ -112,7 +112,7 @@ export default function UserManagePage() {
         defaultValues: {
             name: '',
             email: '',
-            phone: '',
+            phone: '', // 变更
             status: true,
             role: ROLES.NORMAL,
             password: '',
@@ -125,7 +125,7 @@ export default function UserManagePage() {
             reset({
                 name: user.name ?? '',
                 email: user.email ?? '',
-                phone: user.phone ?? '',
+                phone: user.phone ?? '', // 变更
                 status: user.status ?? true,
                 role: user.role ?? ROLES.NORMAL,
                 password: '', // 编辑时密码为空，表示不修改
@@ -134,7 +134,7 @@ export default function UserManagePage() {
             reset({
                 name: '',
                 email: '',
-                phone: '',
+                phone: '', // 变更
                 status: true,
                 role: ROLES.NORMAL,
                 password: '',
@@ -149,7 +149,7 @@ export default function UserManagePage() {
             ...data,
             name: data.name ?? '',
             email: data.email || undefined,
-            phone: data.phone || undefined,
+            phone: data.phone, // 保证是必填
             password: data.password || undefined,
         };
         if (editing) {
@@ -413,10 +413,17 @@ export default function UserManagePage() {
                                 </Field.Root>
 
                                 <Field.Root invalid={!!errors.phone}>
-                                    <Field.Label>手机号</Field.Label>
+                                    <Field.Label>手机号 *</Field.Label>
                                     <Input
                                         placeholder="手机号"
-                                        {...register('phone')}
+                                        {...register('phone', {
+                                            required: '请输入手机号',
+                                            pattern: {
+                                                value: /^1[3-9]\d{9}$/,
+                                                message: '手机号格式不正确',
+                                            },
+                                            // 可以加入更多校验如手机号格式
+                                        })}
                                     />
                                     {errors.phone && (
                                         <Text color="red.500" fontSize="sm">

@@ -46,6 +46,7 @@ import {
 } from '@/app/_components/ui/dialog';
 import { useRouter } from 'next/navigation';
 import useCustomToast from '@/app/hooks/useCustomToast';
+import { ROLES } from '@/app/const/status';
 
 function IconWithBadge({
     icon,
@@ -170,6 +171,13 @@ export default function MePage() {
                                 <Text fontWeight="bold" fontSize="xl">
                                     {session?.user?.name || '用户'}
                                 </Text>
+                            </Box>
+                            <Box color="red" textDecoration="underline">
+                                {session?.user?.role === ROLES.SUPERADMIN ? (
+                                    <Link href="/admin">管理入口</Link>
+                                ) : session?.user?.role === ROLES.VENDOR ? (
+                                    <Link href="/vendor">管理入口</Link>
+                                ) : null}
                             </Box>
                         </Flex>
                     ) : (

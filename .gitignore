@@ -48,3 +48,5 @@ yarn-error.log*
 
 public/uploads/ 
 output/
+
+.claude/

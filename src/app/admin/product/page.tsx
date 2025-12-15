@@ -83,7 +83,6 @@ export default function AdminPage() {
     const defaultValues = {
         title: '',
         images: [],
-        inPrice: 0,
         minAmount: 0,
         logistics: '包邮',
         logiPrice: 0,
@@ -95,6 +94,7 @@ export default function AdminPage() {
             {
                 value: '',
                 price: undefined,
+                inPrice: undefined,
                 stock: undefined,
                 image: '',
             },
@@ -525,40 +525,6 @@ export default function AdminPage() {
                                     />
                                 </Field.Root>
                                 <Flex gap={2}>
-                                    <Field.Root invalid={!!errors.inPrice}>
-                                        <Field.Label>进货价</Field.Label>
-                                        <Input
-                                            placeholder="进货价"
-                                            type="number"
-                                            step="0.01"
-                                            {...register('inPrice', {
-                                                required: '请输入进货价',
-                                                valueAsNumber: true,
-                                                min: {
-                                                    value: 0,
-                                                    message: '价格不能小于0',
-                                                },
-                                                max: {
-                                                    value: 999999,
-                                                    message: '价格不能超过999999',
-                                                },
-                                                validate: value => {
-                                                    // 价格最多保留两位小数
-                                                    if (value === undefined || value === null) return true;
-                                                    if (isNaN(value)) return true;
-                                                    if (!/^\d+(\.\d{1,2})?$/.test(value.toString())) {
-                                                        return '价格最多保留两位小数';
-                                                    }
-                                                    return true;
-                                                },
-                                            })}
-                                        />
-                                        {errors.inPrice && (
-                                            <Text color="red.500" fontSize="sm">
-                                                {errors.inPrice.message}
-                                            </Text>
-                                        )}
-                                    </Field.Root>
                                     <Field.Root invalid={!!errors.minAmount}>
                                         <Field.Label>最低购买价</Field.Label>
                                         <Input
@@ -574,13 +540,23 @@ export default function AdminPage() {
                                                 },
                                                 max: {
                                                     value: 999999,
-                                                    message: '价格不能超过999999',
+                                                    message:
+                                                        '价格不能超过999999',
                                                 },
-                                                validate: value => {
+                                                validate: (value) => {
                                                     // 价格最多保留两位小数
-                                                    if (value === undefined || value === null) return true;
-                                                    if (isNaN(value)) return true;
-                                                    if (!/^\d+(\.\d{1,2})?$/.test(value.toString())) {
+                                                    if (
+                                                        value === undefined ||
+                                                        value === null
+                                                    )
+                                                        return true;
+                                                    if (isNaN(value))
+                                                        return true;
+                                                    if (
+                                                        !/^\d+(\.\d{1,2})?$/.test(
+                                                            value.toString()
+                                                        )
+                                                    ) {
                                                         return '价格最多保留两位小数';
                                                     }
                                                     return true;
@@ -617,23 +593,34 @@ export default function AdminPage() {
                                                 valueAsNumber: true,
                                                 min: {
                                                     value: 0,
-                                                    message: '物流价格不能小于0',
+                                                    message:
+                                                        '物流价格不能小于0',
                                                 },
                                                 max: {
                                                     value: 9999,
-                                                    message: '物流价格不能超过9999',
+                                                    message:
+                                                        '物流价格不能超过9999',
                                                 },
-                                                validate: value => {
+                                                validate: (value) => {
                                                     // 价格最多保留两位小数
-                                                    if (value === undefined || value === null) return true;
+                                                    if (
+                                                        value === undefined ||
+                                                        value === null
+                                                    )
+                                                        return true;
                                                     // 非法值直接跳过
-                                                    if (isNaN(value)) return true;
+                                                    if (isNaN(value))
+                                                        return true;
                                                     // 正则仅允许最多两位小数
-                                                    if (!/^\d+(\.\d{1,2})?$/.test(value.toString())) {
+                                                    if (
+                                                        !/^\d+(\.\d{1,2})?$/.test(
+                                                            value.toString()
+                                                        )
+                                                    ) {
                                                         return '物流价格最多保留两位小数';
                                                     }
                                                     return true;
-                                                }
+                                                },
                                             })}
                                         />
                                         {errors.logiPrice && (
@@ -655,6 +642,7 @@ export default function AdminPage() {
                                             gap={2}
                                             align="center"
                                             borderRadius="md"
+                                            mb={2}
                                         >
                                             <Input
                                                 placeholder="规格描述"
@@ -666,7 +654,7 @@ export default function AdminPage() {
                                                 )}
                                             />
                                             <Input
-                                                placeholder="价格"
+                                                placeholder="销售价"
                                                 type="number"
                                                 step="0.01"
                                                 {...register(
@@ -674,14 +662,16 @@ export default function AdminPage() {
                                                     {
                                                         required: '必填',
                                                         valueAsNumber: true,
-                                                        validate: value => {
+                                                        validate: (value) => {
                                                             if (
-                                                                value === undefined ||
+                                                                value ===
+                                                                    undefined ||
                                                                 value === null
                                                             )
                                                                 return true;
                                                             // 非法值直接跳过
-                                                            if (isNaN(value)) return true;
+                                                            if (isNaN(value))
+                                                                return true;
                                                             // 正则仅允许最多两位小数
                                                             if (
                                                                 !/^\d+(\.\d{1,2})?$/.test(
@@ -689,6 +679,36 @@ export default function AdminPage() {
                                                                 )
                                                             ) {
                                                                 return '价格最多保留两位小数';
+                                                            }
+                                                            return true;
+                                                        },
+                                                    }
+                                                )}
+                                            />
+                                            <Input
+                                                placeholder="进货价"
+                                                type="number"
+                                                step="0.01"
+                                                {...register(
+                                                    `specs.${idx}.inPrice` as const,
+                                                    {
+                                                        required: '必填',
+                                                        valueAsNumber: true,
+                                                        validate: (value) => {
+                                                            if (
+                                                                value ===
+                                                                    undefined ||
+                                                                value === null
+                                                            )
+                                                                return true;
+                                                            if (isNaN(value))
+                                                                return true;
+                                                            if (
+                                                                !/^\d+(\.\d{1,2})?$/.test(
+                                                                    value.toString()
+                                                                )
+                                                            ) {
+                                                                return '进货价最多保留两位小数';
                                                             }
                                                             return true;
                                                         },
@@ -714,7 +734,10 @@ export default function AdminPage() {
                                                         required:
                                                             '请上传规格图片',
                                                     }}
-                                                    render={({ field, fieldState }) => (
+                                                    render={({
+                                                        field,
+                                                        fieldState,
+                                                    }) => (
                                                         <Box minW="100px">
                                                             <ImageUpload
                                                                 value={
@@ -732,9 +755,11 @@ export default function AdminPage() {
                                                                     color="red.500"
                                                                     fontSize="sm"
                                                                 >
-                                                                    {fieldState.error
+                                                                    {fieldState
+                                                                        .error
                                                                         ?.message ||
-                                                                        errors.images
+                                                                        errors
+                                                                            .images
                                                                             ?.message}
                                                                 </Text>
                                                             )}
@@ -761,6 +786,7 @@ export default function AdminPage() {
                                             appendSpec({
                                                 value: '',
                                                 price: undefined,
+                                                inPrice: undefined,
                                                 stock: undefined,
                                                 image: '',
                                             })

@@ -332,12 +332,14 @@ export const dashboardRouter = createTRPCRouter({
             z.object({
                 vendorId: z.string().optional(),
                 year: z.number().optional(),
+                startDate: z.date().optional(),
+                endDate: z.date().optional(),
                 page: z.number().default(1),
                 pageSize: z.number().default(10),
             })
         )
         .query(async ({ ctx, input }) => {
-            const { year, page, pageSize } = input;
+            const { year, startDate, endDate, page, pageSize } = input;
             const skip = (page - 1) * pageSize;
 
             // 获取当前用户信息
@@ -367,7 +369,13 @@ export const dashboardRouter = createTRPCRouter({
                 isDeleted: false,
             };
 
-            if (year) {
+            // 日期范围优先使用 startDate 和 endDate，其次使用 year
+            if (startDate && endDate) {
+                where.createdAt = {
+                    gte: startDate,
+                    lte: endDate,
+                };
+            } else if (year) {
                 const startOfYear = new Date(year, 0, 1);
                 const endOfYear = new Date(year + 1, 0, 1);
                 where.createdAt = {
@@ -376,7 +384,7 @@ export const dashboardRouter = createTRPCRouter({
                 };
             }
 
-            // 获取订单项数据，包含商品的供应商信息和需包含每一项的logiPrice(运费)
+            // 获取订单项数据，包含商品的供应商信息、规格的进货价和需包含每一项的logiPrice(运费)
             const orderItems = await ctx.db.orderItem.findMany({
                 where: {
                     order: where,
@@ -394,7 +402,9 @@ export const dashboardRouter = createTRPCRouter({
                         },
                     },
                     product: {
-                        include: {
+                        select: {
+                            id: true,
+                            title: true,
                             vendor: {
                                 select: {
                                     id: true,
@@ -403,10 +413,16 @@ export const dashboardRouter = createTRPCRouter({
                             },
                         },
                     },
+                    spec: {
+                        select: {
+                            id: true,
+                            inPrice: true,
+                        },
+                    },
                 },
             });
 
-            // 按供应商和月份统计数据（包含订单项的运费 logiPrice 字段）
+            // 按供应商和月份统计数据（包含订单项的运费 logiPrice 字段和进货价）
             const vendorStats: Record<
                 string,
                 {
@@ -418,9 +434,13 @@ export const dashboardRouter = createTRPCRouter({
                             month: number;
                             orderCount: Set<string>;
                             totalAmount: number;
+                            totalCost: number;
+                            totalLogisticsCost: number;
                         }
                     >;
                     totalAmount: number;
+                    totalCost: number;
+                    totalLogisticsCost: number;
                     totalOrders: Set<string>;
                 }
             > = {};
@@ -437,6 +457,8 @@ export const dashboardRouter = createTRPCRouter({
                         vendorName: vendor.name || '未知供应商',
                         monthlyData: {},
                         totalAmount: 0,
+                        totalCost: 0,
+                        totalLogisticsCost: 0,
                         totalOrders: new Set(),
                     };
                 }
@@ -446,17 +468,35 @@ export const dashboardRouter = createTRPCRouter({
                         month,
                         orderCount: new Set(),
                         totalAmount: 0,
+                        totalCost: 0,
+                        totalLogisticsCost: 0,
                     };
                 }
 
-                // 累加金额和运费（item.price * item.quantity + item.logiPrice）
+                // 计算销售金额和成本
+                const saleAmount =
+                    item.price * item.quantity + (item.logiPrice || 0);
+                // 从规格中获取进货价，如果没有规格则成本为0
+                // 成本 = 进货价 × 数量 + 运费
+                const costAmount =
+                    (item.spec ? item.spec.inPrice * item.quantity : 0) +
+                    (item.logiPrice || 0);
+                const logisticsCost = item.logiPrice || 0;
+
+                // 累加金额、运费和进货成本
                 vendorStats[vendor.id].monthlyData[monthKey].orderCount.add(
                     item.order.id
                 );
                 vendorStats[vendor.id].monthlyData[monthKey].totalAmount +=
-                    item.price * item.quantity + (item.logiPrice || 0);
-                vendorStats[vendor.id].totalAmount +=
-                    item.price * item.quantity + (item.logiPrice || 0);
+                    saleAmount;
+                vendorStats[vendor.id].monthlyData[monthKey].totalCost +=
+                    costAmount;
+                vendorStats[vendor.id].monthlyData[
+                    monthKey
+                ].totalLogisticsCost += logisticsCost;
+                vendorStats[vendor.id].totalAmount += saleAmount;
+                vendorStats[vendor.id].totalCost += costAmount;
+                vendorStats[vendor.id].totalLogisticsCost += logisticsCost;
                 vendorStats[vendor.id].totalOrders.add(item.order.id);
             });
 
@@ -469,6 +509,8 @@ export const dashboardRouter = createTRPCRouter({
                         month: monthData.month,
                         orderCount: monthData.orderCount.size,
                         totalAmount: monthData.totalAmount,
+                        totalCost: monthData.totalCost,
+                        totalLogisticsCost: monthData.totalLogisticsCost,
                     }))
                     .sort((a, b) => a.month - b.month),
             }));

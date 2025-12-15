@@ -12,16 +12,52 @@ import {
     Center,
     Badge,
     VStack,
+    Input,
 } from '@chakra-ui/react';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { api } from '@/trpc/react';
 
 export default function VendorDataPage() {
-    const [selectedYear, setSelectedYear] = useState<number>(
-        new Date().getFullYear()
-    );
+    const [dateMode, setDateMode] = useState<'preset' | 'custom'>('preset');
+    const [presetRange, setPresetRange] = useState<string>('week');
+    const [startDate, setStartDate] = useState<string>('');
+    const [endDate, setEndDate] = useState<string>('');
     const [page, setPage] = useState(1);
     const pageSize = 20;
+
+    // 计算日期范围
+    const dateRange = useMemo(() => {
+        if (dateMode === 'custom' && startDate && endDate) {
+            return {
+                startDate: new Date(startDate),
+                endDate: new Date(new Date(endDate).setHours(23, 59, 59, 999)),
+            };
+        }
+
+        // 获取昨天的日期（不包含今天）
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const end = new Date(yesterday.setHours(23, 59, 59, 999));
+        let start = new Date(yesterday);
+
+        switch (presetRange) {
+            case 'week':
+                start.setDate(start.getDate() - 6); // 昨天往前推6天，总共7天
+                break;
+            case 'month':
+                start.setMonth(start.getMonth() - 1);
+                break;
+            case 'quarter':
+                start.setMonth(start.getMonth() - 3);
+                break;
+            case 'year':
+                start.setFullYear(start.getFullYear() - 1);
+                break;
+        }
+        start.setHours(0, 0, 0, 0);
+
+        return { startDate: start, endDate: end };
+    }, [dateMode, presetRange, startDate, endDate]);
 
     // 获取供应商数据 - 只获取当前用户的数据
     const {
@@ -30,17 +66,17 @@ export default function VendorDataPage() {
         error,
     } = api.dashboard.getVendorData.useQuery({
         // 移除 vendorId 参数，让后端根据当前用户身份获取数据
-        year: selectedYear,
+        startDate: dateRange.startDate,
+        endDate: dateRange.endDate,
         page,
         pageSize,
     });
 
-    // 生成年份选项（最近5年）
-    const currentYear = new Date().getFullYear();
-    const yearOptions = Array.from({ length: 5 }, (_, i) => currentYear - i);
-
-    const handleYearChange = (year: number) => {
-        setSelectedYear(year);
+    const handleReset = () => {
+        setDateMode('preset');
+        setPresetRange('week');
+        setStartDate('');
+        setEndDate('');
         setPage(1);
     };
 
@@ -90,34 +126,110 @@ export default function VendorDataPage() {
                 borderWidth={1}
                 borderColor="gray.200"
             >
-                <Flex align="end">
-                    <NativeSelect.Root w="200px">
-                        <NativeSelect.Field
-                            value={selectedYear}
-                            onChange={(e) =>
-                                handleYearChange(Number(e.currentTarget.value))
-                            }
-                        >
-                            {yearOptions.map((year) => (
-                                <option key={year} value={year}>
-                                    {year}年
-                                </option>
-                            ))}
-                        </NativeSelect.Field>
-                        <NativeSelect.Indicator />
-                    </NativeSelect.Root>
+                <VStack gap={4} align="stretch">
+                    <Flex gap={4} wrap="wrap" align="end">
+                        <Box>
+                            <Text fontSize="sm" mb={2} fontWeight="medium">
+                                日期模式
+                            </Text>
+                            <NativeSelect.Root width="150px">
+                                <NativeSelect.Field
+                                    value={dateMode}
+                                    onChange={(e) => {
+                                        setDateMode(
+                                            e.currentTarget.value as
+                                                | 'preset'
+                                                | 'custom'
+                                        );
+                                        setPage(1);
+                                    }}
+                                >
+                                    <option value="preset">快捷选择</option>
+                                    <option value="custom">自定义日期</option>
+                                </NativeSelect.Field>
+                                <NativeSelect.Indicator />
+                            </NativeSelect.Root>
+                        </Box>
 
-                    <Button
-                        ml={4}
-                        colorScheme="blue"
-                        onClick={() => {
-                            setSelectedYear(currentYear);
-                            setPage(1);
-                        }}
-                    >
-                        重置筛选
-                    </Button>
-                </Flex>
+                        {dateMode === 'preset' ? (
+                            <Box>
+                                <Text fontSize="sm" mb={2} fontWeight="medium">
+                                    时间范围
+                                </Text>
+                                <NativeSelect.Root width="150px">
+                                    <NativeSelect.Field
+                                        value={presetRange}
+                                        onChange={(e) => {
+                                            setPresetRange(
+                                                e.currentTarget.value
+                                            );
+                                            setPage(1);
+                                        }}
+                                    >
+                                        <option value="week">最近一周</option>
+                                        <option value="month">
+                                            最近一个月
+                                        </option>
+                                        <option value="quarter">
+                                            最近三个月
+                                        </option>
+                                        <option value="year">最近一年</option>
+                                    </NativeSelect.Field>
+                                    <NativeSelect.Indicator />
+                                </NativeSelect.Root>
+                            </Box>
+                        ) : (
+                            <>
+                                <Box>
+                                    <Text
+                                        fontSize="sm"
+                                        mb={2}
+                                        fontWeight="medium"
+                                    >
+                                        开始日期
+                                    </Text>
+                                    <Input
+                                        type="date"
+                                        value={startDate}
+                                        onChange={(e) => {
+                                            setStartDate(e.target.value);
+                                            setPage(1);
+                                        }}
+                                        width="180px"
+                                    />
+                                </Box>
+                                <Box>
+                                    <Text
+                                        fontSize="sm"
+                                        mb={2}
+                                        fontWeight="medium"
+                                    >
+                                        结束日期
+                                    </Text>
+                                    <Input
+                                        type="date"
+                                        value={endDate}
+                                        onChange={(e) => {
+                                            setEndDate(e.target.value);
+                                            setPage(1);
+                                        }}
+                                        width="180px"
+                                    />
+                                </Box>
+                            </>
+                        )}
+
+                        <Button colorScheme="blue" onClick={handleReset}>
+                            重置筛选
+                        </Button>
+                    </Flex>
+
+                    <Text fontSize="sm" color="gray.600">
+                        当前查询时间段:{' '}
+                        {dateRange.startDate.toLocaleDateString('zh-CN')} -{' '}
+                        {dateRange.endDate.toLocaleDateString('zh-CN')}
+                    </Text>
+                </VStack>
             </Box>
 
             {/* 数据表格 */}
@@ -148,10 +260,8 @@ export default function VendorDataPage() {
                             color="blue.600"
                             fontWeight="medium"
                         >
-                            暂无数据 -{' '}
-                            {selectedYear !== currentYear
-                                ? '当前筛选条件下暂无数据，请尝试调整筛选条件'
-                                : '暂无供应商订单数据'}
+                            暂无数据 -
+                            当前筛选条件下暂无数据，请尝试调整筛选条件
                         </Text>
                     </Box>
                 ) : (
@@ -167,7 +277,10 @@ export default function VendorDataPage() {
                                             总订单数
                                         </Table.ColumnHeader>
                                         <Table.ColumnHeader>
-                                            总订单金额
+                                            总进货成本
+                                        </Table.ColumnHeader>
+                                        <Table.ColumnHeader>
+                                            总快递成本
                                         </Table.ColumnHeader>
                                         <Table.ColumnHeader>
                                             月度数据详情
@@ -175,83 +288,132 @@ export default function VendorDataPage() {
                                     </Table.Row>
                                 </Table.Header>
                                 <Table.Body>
-                                    {vendorData.vendors.map((vendor) => (
-                                        <Table.Row key={vendor.vendorId}>
-                                            <Table.Cell>
-                                                <Text
-                                                    fontWeight="medium"
-                                                    fontSize="md"
-                                                >
-                                                    {vendor.vendorName}
-                                                </Text>
-                                            </Table.Cell>
-                                            <Table.Cell>
-                                                {vendor.totalOrders} 单
-                                            </Table.Cell>
-                                            <Table.Cell>
-                                                <Text
-                                                    fontWeight="bold"
-                                                    color="red.500"
-                                                    fontSize="lg"
-                                                >
-                                                    ¥
-                                                    {vendor.totalAmount.toLocaleString(
-                                                        'zh-CN',
-                                                        {
-                                                            minimumFractionDigits: 2,
-                                                        }
-                                                    )}
-                                                </Text>
-                                            </Table.Cell>
-                                            <Table.Cell>
-                                                <Flex gap={2} wrap="wrap">
-                                                    {vendor.monthlyData
-                                                        .length === 0 ? (
-                                                        <Text
-                                                            fontSize="sm"
-                                                            color="gray.500"
-                                                        >
-                                                            暂无月度数据
-                                                        </Text>
-                                                    ) : (
-                                                        vendor.monthlyData.map(
-                                                            (monthData) => (
-                                                                <Badge
-                                                                    key={
-                                                                        monthData.month
-                                                                    }
-                                                                    colorScheme="purple"
-                                                                    variant="outline"
-                                                                    fontSize="xs"
-                                                                    px={2}
-                                                                    py={1}
-                                                                    title={`${monthData.month}月: ${monthData.orderCount}单, ¥${monthData.totalAmount.toFixed(2)}`}
-                                                                >
-                                                                    {
-                                                                        monthData.month
-                                                                    }
-                                                                    月:{' '}
-                                                                    {
-                                                                        monthData.orderCount
-                                                                    }
-                                                                    单 /{' '}
-                                                                    <Text color="red.500">
-                                                                        ¥
-                                                                        {monthData.totalAmount.toLocaleString(
-                                                                            'zh-CN',
-                                                                            {
-                                                                                maximumFractionDigits: 0,
+                                    {vendorData.vendors.map((vendor) => {
+                                        const profit =
+                                            vendor.totalAmount -
+                                            vendor.totalCost;
+                                        const profitMargin =
+                                            vendor.totalAmount > 0
+                                                ? (profit /
+                                                      vendor.totalAmount) *
+                                                  100
+                                                : 0;
+
+                                        return (
+                                            <Table.Row key={vendor.vendorId}>
+                                                <Table.Cell>
+                                                    <Text
+                                                        fontWeight="medium"
+                                                        fontSize="md"
+                                                    >
+                                                        {vendor.vendorName}
+                                                    </Text>
+                                                </Table.Cell>
+                                                <Table.Cell>
+                                                    {vendor.totalOrders} 单
+                                                </Table.Cell>
+                                                <Table.Cell>
+                                                    <Text
+                                                        fontWeight="bold"
+                                                        color="orange.600"
+                                                        fontSize="lg"
+                                                    >
+                                                        ¥
+                                                        {vendor.totalCost.toLocaleString(
+                                                            'zh-CN',
+                                                            {
+                                                                minimumFractionDigits: 2,
+                                                            }
+                                                        )}
+                                                    </Text>
+                                                </Table.Cell>
+                                                <Table.Cell>
+                                                    <Text
+                                                        fontWeight="bold"
+                                                        color="purple.600"
+                                                        fontSize="lg"
+                                                    >
+                                                        ¥
+                                                        {vendor.totalLogisticsCost.toLocaleString(
+                                                            'zh-CN',
+                                                            {
+                                                                minimumFractionDigits: 2,
+                                                            }
+                                                        )}
+                                                    </Text>
+                                                </Table.Cell>
+                                                <Table.Cell>
+                                                    <Flex gap={2} wrap="wrap">
+                                                        {vendor.monthlyData
+                                                            .length === 0 ? (
+                                                            <Text
+                                                                fontSize="sm"
+                                                                color="gray.500"
+                                                            >
+                                                                暂无月度数据
+                                                            </Text>
+                                                        ) : (
+                                                            vendor.monthlyData.map(
+                                                                (monthData) => {
+                                                                    // 计算进货成本（不含快递费）
+                                                                    const purchaseCost =
+                                                                        monthData.totalCost -
+                                                                        monthData.totalLogisticsCost;
+                                                                    return (
+                                                                        <Badge
+                                                                            key={
+                                                                                monthData.month
                                                                             }
-                                                                        )}
-                                                                    </Text>
-                                                                </Badge>
+                                                                            colorScheme="purple"
+                                                                            variant="outline"
+                                                                            fontSize="xs"
+                                                                            px={
+                                                                                2
+                                                                            }
+                                                                            py={
+                                                                                1
+                                                                            }
+                                                                            title={`${monthData.month}月: ${monthData.orderCount}单, 进货成本¥${purchaseCost.toFixed(2)}, 快递成本¥${monthData.totalLogisticsCost.toFixed(2)}`}
+                                                                        >
+                                                                            {
+                                                                                monthData.month
+                                                                            }
+                                                                            月:{' '}
+                                                                            {
+                                                                                monthData.orderCount
+                                                                            }
+                                                                            单 /{' '}
+                                                                            <Text color="orange.600">
+                                                                                进¥
+                                                                                {purchaseCost.toLocaleString(
+                                                                                    'zh-CN',
+                                                                                    {
+                                                                                        maximumFractionDigits: 0,
+                                                                                    }
+                                                                                )}
+                                                                            </Text>
+                                                                            {
+                                                                                ' / '
+                                                                            }
+                                                                            <Text color="purple.600">
+                                                                                快¥
+                                                                                {monthData.totalLogisticsCost.toLocaleString(
+                                                                                    'zh-CN',
+                                                                                    {
+                                                                                        maximumFractionDigits: 0,
+                                                                                    }
+                                                                                )}
+                                                                            </Text>
+                                                                        </Badge>
+                                                                    );
+                                                                }
                                                             )
-                                                        )
-                                                    )}
-                                                </Flex>
-                                            </Table.Cell>
-                                        </Table.Row>
-                                    ))}
+                                                        )}
+                                                    </Flex>
+                                                </Table.Cell>
+                                            </Table.Row>
+                                        );
+                                    })}
                                 </Table.Body>
                             </Table.Root>
                         </Box>

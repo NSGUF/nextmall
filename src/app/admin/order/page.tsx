@@ -300,10 +300,36 @@ export default function OrderManagePage() {
                 header: '订单金额',
                 width: 100,
                 cell: ({ row }: { row: any }) => (
-                    <Text fontSize="sm" fontWeight="medium" color="red.500">
+                    <Text fontSize="sm" fontWeight="medium" color="blue.600">
                         ¥{row.original.totalPrice}
                     </Text>
                 ),
+            },
+            {
+                accessorKey: 'totalCost',
+                header: '成本金额',
+                width: 100,
+                cell: ({ row }: { row: any }) => {
+                    // 计算成本 = 所有订单项的(进货价 × 数量 + 运费)
+                    const totalCost = row.original.items.reduce(
+                        (sum: number, item: any) => {
+                            const itemCost =
+                                (item.spec?.inPrice || 0) * item.quantity +
+                                (item.logiPrice || 0);
+                            return sum + itemCost;
+                        },
+                        0
+                    );
+                    return (
+                        <Text
+                            fontSize="sm"
+                            fontWeight="medium"
+                            color="orange.600"
+                        >
+                            ¥{totalCost.toFixed(2)}
+                        </Text>
+                    );
+                },
             },
             {
                 accessorKey: 'status',
