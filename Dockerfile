@@ -9,7 +9,7 @@ WORKDIR /app
 # 复制包管理文件和 Prisma schema
 COPY package.json pnpm-lock.yaml* ./
 COPY prisma ./prisma
-RUN corepack enable pnpm && pnpm i --frozen-lockfile
+RUN corepack enable pnpm && pnpm config set registry https://mirrors.cloud.tencent.com/npm/ && pnpm i --frozen-lockfile
 
 # 构建阶段
 FROM base AS builder
