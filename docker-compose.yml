@@ -32,35 +32,35 @@ services:
         ports:
             - '8081:8080'
     # Next.js 应用
-    # app:
-    #     build:
-    #         context: .
-    #         dockerfile: Dockerfile
-    #     container_name: nextmall-app
-    #     restart: always
-    #     ports:
-    #         - '3000:3000'
-    #     environment:
-    #         - NODE_ENV=production
-    #         # 优先使用.env文件中的DATABASE_URL，如果.env中没有则使用默认值
-    #         - DATABASE_URL=${DATABASE_URL}
-    #         - AUTH_SECRET=${AUTH_SECRET}
-    #         - AUTH_URL=${AUTH_URL:-http://localhost:3000}
-    #         - AUTH_TRUST_HOST=true
-    #         - FIRST_SUPERUSER=${FIRST_SUPERUSER:-admin}
-    #         - FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD:-admin}
-    #         - SMTP_FROM_NAME=${SMTP_FROM_NAME:-nextmall}
-    #         - SMTP_HOST=${SMTP_HOST}
-    #         - SMTP_USER=${SMTP_USER}
-    #         - SMTP_PASS=${SMTP_PASS}
-    #         - SMTP_PORT=${SMTP_PORT}
-    #         - TITLE=${TITLE:-nextmall}
-    #         - DESCRIPTION=${DESCRIPTION:-nextmall description}
-    #     depends_on:
-    #         db:
-    #             condition: service_healthy
-    #     volumes:
-    #         - output:/app/output
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: nextmall-app
+        restart: always
+        ports:
+            - '3000:3000'
+        environment:
+            - NODE_ENV=production
+            # 优先使用.env文件中的DATABASE_URL，如果.env中没有则使用默认值
+            - DATABASE_URL=${DATABASE_URL}
+            - AUTH_SECRET=${AUTH_SECRET}
+            - AUTH_URL=${AUTH_URL:-http://localhost:3000}
+            - AUTH_TRUST_HOST=true
+            - FIRST_SUPERUSER=${FIRST_SUPERUSER:-admin}
+            - FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD:-admin}
+            - SMTP_FROM_NAME=${SMTP_FROM_NAME:-nextmall}
+            - SMTP_HOST=${SMTP_HOST}
+            - SMTP_USER=${SMTP_USER}
+            - SMTP_PASS=${SMTP_PASS}
+            - SMTP_PORT=${SMTP_PORT}
+            - TITLE=${TITLE:-nextmall}
+            - DESCRIPTION=${DESCRIPTION:-nextmall description}
+        depends_on:
+            db:
+                condition: service_healthy
+        volumes:
+            - output:/app/output
 
 volumes:
     postgres:
