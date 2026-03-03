@@ -14,10 +14,11 @@ import {
     Flex,
     Textarea,
     Text,
+    Checkbox,
 } from '@chakra-ui/react';
 import DataTable from '../_components/DataTable';
 import { api } from '@/trpc/react';
-import { useForm, Controller, useFieldArray } from 'react-hook-form';
+import { useForm, Controller, useFieldArray, useWatch } from 'react-hook-form';
 import { useConfirmDialog } from '@/app/hooks/useConfirmDialog';
 import { FiTrash2 } from 'react-icons/fi';
 import { ContentLoading } from '@/app/_components/LoadingSpinner';
@@ -715,15 +716,78 @@ export default function AdminPage() {
                                                     }
                                                 )}
                                             />
-                                            <Input
-                                                placeholder="库存"
-                                                type="number"
-                                                {...register(
-                                                    `specs.${idx}.stock` as const,
-                                                    {
-                                                        required: '必填',
-                                                        valueAsNumber: true,
-                                                    }
+                                            <Controller
+                                                name={
+                                                    `specs.${idx}.stock` as const
+                                                }
+                                                control={control}
+                                                rules={{ required: '必填' }}
+                                                render={({
+                                                    field: stockField,
+                                                }) => (
+                                                    <Flex
+                                                        align="center"
+                                                        gap={1}
+                                                    >
+                                                        <Input
+                                                            placeholder="库存"
+                                                            type="number"
+                                                            value={
+                                                                stockField.value ===
+                                                                -1
+                                                                    ? ''
+                                                                    : (stockField.value ??
+                                                                      '')
+                                                            }
+                                                            disabled={
+                                                                stockField.value ===
+                                                                -1
+                                                            }
+                                                            onChange={(e) => {
+                                                                const val =
+                                                                    e.target
+                                                                        .value;
+                                                                stockField.onChange(
+                                                                    val === ''
+                                                                        ? undefined
+                                                                        : parseInt(
+                                                                              val,
+                                                                              10
+                                                                          )
+                                                                );
+                                                            }}
+                                                            minW="70px"
+                                                        />
+                                                        <Checkbox.Root
+                                                            size="sm"
+                                                            checked={
+                                                                stockField.value ===
+                                                                -1
+                                                            }
+                                                            onCheckedChange={(
+                                                                e
+                                                            ) => {
+                                                                if (e.checked) {
+                                                                    stockField.onChange(
+                                                                        -1
+                                                                    );
+                                                                } else {
+                                                                    stockField.onChange(
+                                                                        undefined
+                                                                    );
+                                                                }
+                                                            }}
+                                                        >
+                                                            <Checkbox.HiddenInput />
+                                                            <Checkbox.Control />
+                                                            <Checkbox.Label
+                                                                whiteSpace="nowrap"
+                                                                fontSize="sm"
+                                                            >
+                                                                无限
+                                                            </Checkbox.Label>
+                                                        </Checkbox.Root>
+                                                    </Flex>
                                                 )}
                                             />
                                             <Box flex="1">

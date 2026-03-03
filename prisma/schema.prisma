@@ -79,6 +79,7 @@ model User {
     cartItems     Cart[] // 购物车
     createdAt     DateTime  @default(now()) // 创建时间
     updatedAt     DateTime  @updatedAt @default(now()) // 更新时间
+    receiveSms    Boolean   @default(false) // 是否接收订单短信通知
     isDeleted     Boolean   @default(false) // 是否已删除
     createdCourses Course[] // 自动修复：反向关系，用户创建的课程
     coursePlayRecords CoursePlayRecord[] // 自动修复：反向关系，用户的课程播放记录

@@ -138,7 +138,7 @@ export const productRouter = createTRPCRouter({
                             value: z.string(),
                             price: z.number(),
                             inPrice: z.number(),
-                            stock: z.number(),
+                            stock: z.number().int().min(-1),
                             image: z.string(),
                         })
                     )
@@ -187,7 +187,7 @@ export const productRouter = createTRPCRouter({
                             value: z.string(),
                             price: z.number(),
                             inPrice: z.number(),
-                            stock: z.number(),
+                            stock: z.number().int().min(-1),
                             image: z.string(),
                         })
                     )

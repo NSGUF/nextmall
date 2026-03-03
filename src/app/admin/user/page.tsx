@@ -31,6 +31,7 @@ type User = {
     phone: string;
     status: boolean;
     role: ROLES;
+    receiveSms: boolean;
     createdAt: Date;
     updatedAt: Date;
 };
@@ -42,6 +43,7 @@ type UserForm = {
     status: boolean;
     role: ROLES;
     password?: string;
+    receiveSms: boolean;
 };
 const frameworks = createListCollection({
     items: [
@@ -108,6 +110,7 @@ export default function UserManagePage() {
         formState: { errors, isSubmitting },
         setValue,
         control,
+        watch,
     } = useForm<UserForm>({
         defaultValues: {
             name: '',
@@ -116,8 +119,11 @@ export default function UserManagePage() {
             status: true,
             role: ROLES.NORMAL,
             password: '',
+            receiveSms: true,
         },
     });
+
+    const watchRole = watch('role');
 
     const openEdit = (user?: any) => {
         setEditing(user ?? null);
@@ -129,6 +135,7 @@ export default function UserManagePage() {
                 status: user.status ?? true,
                 role: user.role ?? ROLES.NORMAL,
                 password: '', // 编辑时密码为空，表示不修改
+                receiveSms: user.receiveSms ?? true,
             });
         } else {
             reset({
@@ -138,6 +145,7 @@ export default function UserManagePage() {
                 status: true,
                 role: ROLES.NORMAL,
                 password: '',
+                receiveSms: true,
             });
         }
         onOpen();
@@ -240,6 +248,30 @@ export default function UserManagePage() {
                         NORMAL: '普通用户',
                     };
                     return <Text>{roleMap[row.original.role]}</Text>;
+                },
+            },
+            {
+                accessorKey: 'receiveSms',
+                header: '短信通知',
+                width: 90,
+                cell: ({ row }: { row: { original: User } }) => {
+                    if (
+                        row.original.role === ROLES.SUPERADMIN ||
+                        row.original.role === ROLES.VENDOR
+                    ) {
+                        return (
+                            <Text
+                                color={
+                                    row.original.receiveSms
+                                        ? 'green.500'
+                                        : 'gray.400'
+                                }
+                            >
+                                {row.original.receiveSms ? '已开启' : '未开启'}
+                            </Text>
+                        );
+                    }
+                    return <Text color="gray.400">-</Text>;
                 },
             },
             {
@@ -549,6 +581,38 @@ export default function UserManagePage() {
                                         )}
                                     />
                                 </Field.Root>
+
+                                {(watchRole === ROLES.SUPERADMIN ||
+                                    watchRole === ROLES.VENDOR) && (
+                                    <Field.Root>
+                                        <Field.Label>
+                                            接收订单短信通知
+                                        </Field.Label>
+                                        <Controller
+                                            name="receiveSms"
+                                            control={control}
+                                            render={({ field }) => (
+                                                <Switch.Root
+                                                    name={field.name}
+                                                    checked={!!field.value}
+                                                    onCheckedChange={({
+                                                        checked,
+                                                    }) =>
+                                                        field.onChange(checked)
+                                                    }
+                                                >
+                                                    <Switch.HiddenInput
+                                                        onBlur={field.onBlur}
+                                                    />
+                                                    <Switch.Control>
+                                                        <Switch.Thumb />
+                                                    </Switch.Control>
+                                                    <Switch.Label />
+                                                </Switch.Root>
+                                            )}
+                                        />
+                                    </Field.Root>
+                                )}
 
                                 <Wrap gap={2} justify="flex-end" mt={4}>
                                     <Button

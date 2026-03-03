@@ -8,6 +8,7 @@ import {
 import { TRPCError } from '@trpc/server';
 import { logger, logOperation } from '@/server/api/utils/logger';
 import { ROLES } from '@/app/const/status';
+import { sendSMSOrder } from '@/server/sms';
 
 export const orderRouter = createTRPCRouter({
     // 获取订单列表
@@ -252,7 +253,7 @@ export const orderRouter = createTRPCRouter({
                     throw new Error(`商品规格不存在: ${item.specId}`);
                 }
 
-                if (spec.stock < item.quantity) {
+                if (spec.stock !== -1 && spec.stock < item.quantity) {
                     throw new Error(
                         `商品库存不足: ${product.title} - ${spec.value}`
                     );
@@ -290,15 +291,17 @@ export const orderRouter = createTRPCRouter({
                     },
                 });
 
-                // 减少库存
-                await ctx.db.productSpec.update({
-                    where: { id: item.specId },
-                    data: {
-                        stock: {
-                            decrement: item.quantity,
+                // 减少库存（无限库存跳过）
+                if (spec.stock !== -1) {
+                    await ctx.db.productSpec.update({
+                        where: { id: item.specId },
+                        data: {
+                            stock: {
+                                decrement: item.quantity,
+                            },
                         },
-                    },
-                });
+                    });
+                }
 
                 // 增加销量
                 await ctx.db.product.update({
@@ -314,6 +317,72 @@ export const orderRouter = createTRPCRouter({
                 await logger.orderCreate(ctx, order.id, totalAmount);
 
                 orders.push(order);
+            }
+
+            // 短信通知：收集所有涉及的供应商 ID
+            const vendorIds = [
+                ...new Set(
+                    orders.flatMap((order) =>
+                        order.items.map((item) => item.product.vendorId)
+                    )
+                ),
+            ];
+
+            // 查询已开启 receiveSms 的供应商和管理员
+            try {
+                const smsReceivers = await ctx.db.user.findMany({
+                    where: {
+                        receiveSms: true,
+                        isDeleted: false,
+                        status: true,
+                        phone: { not: null },
+                        OR: [
+                            { role: 'SUPERADMIN' },
+                            { role: 'VENDOR', id: { in: vendorIds } },
+                        ],
+                    },
+                    select: { phone: true },
+                });
+
+                const phones = [
+                    ...new Set(
+                        smsReceivers
+                            .map((u) => u.phone)
+                            .filter((p): p is string => !!p)
+                    ),
+                ];
+
+                if (phones.length > 0) {
+                    const phoneStr = phones.join(',');
+                    const orderIds = orders.map((o) => o.id).join(',');
+                    // fire-and-forget 模式，不阻塞用户下单
+                    sendSMSOrder(phoneStr)
+                        .then(() => {
+                            console.log(
+                                '[SMS] 订单通知短信发送成功，接收人:',
+                                phoneStr
+                            );
+                            logger.smsOrderNotify(
+                                ctx,
+                                phoneStr,
+                                orderIds,
+                                true
+                            );
+                        })
+                        .catch((err) => {
+                            console.error('[SMS] 订单通知短信发送失败:', err);
+                            logger.smsOrderNotify(
+                                ctx,
+                                phoneStr,
+                                orderIds,
+                                false,
+                                err instanceof Error ? err.message : String(err)
+                            );
+                        });
+                }
+            } catch (smsError) {
+                // 短信发送失败不影响下单
+                console.error('[SMS] 订单短信通知异常:', smsError);
             }
 
             return orders;
@@ -496,16 +565,21 @@ export const orderRouter = createTRPCRouter({
                 throw new Error('订单不存在或无法取消');
             }
 
-            // 恢复库存
+            // 恢复库存（无限库存跳过）
             for (const item of order.items) {
-                await ctx.db.productSpec.update({
+                const spec = await ctx.db.productSpec.findUnique({
                     where: { id: item.specId },
-                    data: {
-                        stock: {
-                            increment: item.quantity,
-                        },
-                    },
                 });
+                if (spec && spec.stock !== -1) {
+                    await ctx.db.productSpec.update({
+                        where: { id: item.specId },
+                        data: {
+                            stock: {
+                                increment: item.quantity,
+                            },
+                        },
+                    });
+                }
             }
             // 恢复销量
             for (const item of order.items) {

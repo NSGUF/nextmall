@@ -117,8 +117,12 @@ export const cartRouter = createTRPCRouter({
                 throw new Error('购物车商品不存在');
             }
 
-            // 检查库存
-            if (cartItem.spec && cartItem.spec.stock < input.quantity) {
+            // 检查库存（无限库存跳过）
+            if (
+                cartItem.spec &&
+                cartItem.spec.stock !== -1 &&
+                cartItem.spec.stock < input.quantity
+            ) {
                 throw new Error(`库存不足，当前库存：${cartItem.spec.stock}`);
             }
 

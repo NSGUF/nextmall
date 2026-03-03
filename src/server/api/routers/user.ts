@@ -264,6 +264,7 @@ export const userRouter = createTRPCRouter({
                     phone: true,
                     status: true,
                     role: true,
+                    receiveSms: true,
                     createdAt: true,
                     updatedAt: true,
                     // 不返回密码等敏感信息
@@ -293,9 +294,20 @@ export const userRouter = createTRPCRouter({
                     .enum([ROLES.SUPERADMIN, ROLES.VENDOR, ROLES.NORMAL])
                     .default(ROLES.NORMAL),
                 password: z.string().min(6, '密码至少6位').optional(),
+                receiveSms: z.boolean().optional().default(false),
             })
         )
         .mutation(async ({ ctx, input }) => {
+            // 检查手机号是否已存在
+            if (input.phone) {
+                const phoneExists = await ctx.db.user.findFirst({
+                    where: { phone: input.phone },
+                });
+                if (phoneExists) {
+                    throw new Error('手机号已被注册');
+                }
+            }
+
             // 检查邮箱是否已存在
             if (input.email) {
                 const existing = await ctx.db.user.findUnique({
@@ -320,6 +332,7 @@ export const userRouter = createTRPCRouter({
                     status: input.status ?? true,
                     role: input.role,
                     password: hashedPassword,
+                    receiveSms: input.receiveSms,
                 },
             });
 
@@ -347,6 +360,7 @@ export const userRouter = createTRPCRouter({
                     ROLES.NORMAL,
                 ]),
                 password: z.string().min(6, '密码至少6位').optional(),
+                receiveSms: z.boolean().optional(),
             })
         )
         .mutation(async ({ ctx, input }) => {
@@ -358,6 +372,16 @@ export const userRouter = createTRPCRouter({
             });
             if (!existingUser) {
                 throw new Error('用户不存在');
+            }
+
+            // 检查手机号是否被其他用户使用
+            if (input.phone && input.phone !== existingUser.phone) {
+                const phoneExists = await ctx.db.user.findFirst({
+                    where: { phone: input.phone },
+                });
+                if (phoneExists) {
+                    throw new Error('手机号已被其他用户使用');
+                }
             }
 
             // 检查邮箱是否被其他用户使用

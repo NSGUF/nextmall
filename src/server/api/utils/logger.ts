@@ -213,6 +213,7 @@ export const LOG_ACTIONS = {
     // 短信验证码相关
     SMS_SEND: 'SMS_SEND',
     SMS_VERIFY: 'SMS_VERIFY',
+    SMS_ORDER_NOTIFY: 'SMS_ORDER_NOTIFY',
 
     // 管理员相关
     ADMIN_LOGIN: 'ADMIN_LOGIN',
@@ -458,6 +459,24 @@ export const logger = {
             description: `验证短信验证码: ${phone} (${type}) - ${success ? '成功' : '失败'}`,
             status: success ? 'SUCCESS' : 'FAILED',
             requestData: { phone, type },
+        }),
+
+    smsOrderNotify: (
+        ctx: LogContext,
+        phones: string,
+        orderId: string,
+        success: boolean,
+        errorMessage?: string
+    ) =>
+        logOperation(ctx, {
+            action: LOG_ACTIONS.SMS_ORDER_NOTIFY,
+            module: LOG_MODULES.SMS,
+            description: `订单短信通知: ${phones}${success ? '' : ' - 失败'}`,
+            targetId: orderId,
+            targetType: 'Order',
+            status: success ? 'SUCCESS' : 'FAILED',
+            requestData: { phones, orderId },
+            errorMessage,
         }),
 
     // 商品操作扩展

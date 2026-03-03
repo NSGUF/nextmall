@@ -56,6 +56,10 @@ services:
             - SMTP_PORT=${SMTP_PORT}
             - TITLE=${TITLE:-nextmall}
             - DESCRIPTION=${DESCRIPTION:-nextmall description}
+            - ALIBABA_CLOUD_ACCESS_KEY_ID=${ALIBABA_CLOUD_ACCESS_KEY_ID}
+            - ALIBABA_CLOUD_ACCESS_KEY_SECRET=${ALIBABA_CLOUD_ACCESS_KEY_SECRET}
+            - SMS_SIGN_NAME=${SMS_SIGN_NAME}
+            - SMS_TEMPLATE_CODE=${SMS_TEMPLATE_CODE}
         depends_on:
             db:
                 condition: service_healthy

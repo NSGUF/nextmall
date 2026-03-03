@@ -286,6 +286,7 @@ export const dashboardRouter = createTRPCRouter({
             where: {
                 stock: {
                     lt: 10,
+                    not: -1,
                 },
                 product: {
                     isDeleted: false,

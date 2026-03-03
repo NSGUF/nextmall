@@ -17,6 +17,10 @@ export const env = createEnv({
         NODE_ENV: z
             .enum(['development', 'test', 'production'])
             .default('development'),
+        ALIBABA_CLOUD_ACCESS_KEY_ID: z.string().optional(),
+        ALIBABA_CLOUD_ACCESS_KEY_SECRET: z.string().optional(),
+        SMS_SIGN_NAME: z.string().optional(),
+        SMS_TEMPLATE_CODE: z.string().optional(),
     },
 
     /**
@@ -38,6 +42,11 @@ export const env = createEnv({
         AUTH_TRUST_HOST: process.env.AUTH_TRUST_HOST,
         DATABASE_URL: process.env.DATABASE_URL,
         NODE_ENV: process.env.NODE_ENV,
+        ALIBABA_CLOUD_ACCESS_KEY_ID: process.env.ALIBABA_CLOUD_ACCESS_KEY_ID,
+        ALIBABA_CLOUD_ACCESS_KEY_SECRET:
+            process.env.ALIBABA_CLOUD_ACCESS_KEY_SECRET,
+        SMS_SIGN_NAME: process.env.SMS_SIGN_NAME,
+        SMS_TEMPLATE_CODE: process.env.SMS_TEMPLATE_CODE,
     },
     /**
      * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

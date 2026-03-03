@@ -148,7 +148,7 @@ pnpm install
 cp .env.example .env
 
 # 推送数据库结构
-c
+pnpm db:push
 
 # 创建管理员账号
 npx prisma db seed
@@ -166,6 +166,17 @@ pnpm start
 ```
 
 ### 🔧 其他可用命令
+
+```bash
+
+# 重置流程
+# 重置数据库但不执行 seed 脚本
+pnpm prisma migrate reset --skip-seed
+# 生成初始迁移（命名为 init），会自动创建所有表
+pnpm prisma migrate dev --name init
+# 执行 seed 脚本填充初始数据
+pnpm prisma db seed
+```
 
 ```bash
 # 数据库操作

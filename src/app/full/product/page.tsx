@@ -219,7 +219,10 @@ export default function ProductPage() {
                                                         mt={1}
                                                     >
                                                         库存{' '}
-                                                        {selectedSpec?.stock}
+                                                        {selectedSpec?.stock ===
+                                                        -1
+                                                            ? '充足'
+                                                            : selectedSpec?.stock}
                                                     </Text>
                                                     <Flex
                                                         align="center"
@@ -246,8 +249,10 @@ export default function ProductPage() {
                                                         </Box>
                                                         <IconButton
                                                             disabled={
+                                                                selectedSpec.stock !==
+                                                                    -1 &&
                                                                 quantity >=
-                                                                selectedSpec.stock
+                                                                    selectedSpec.stock
                                                             }
                                                             variant="ghost"
                                                             size="2xs"

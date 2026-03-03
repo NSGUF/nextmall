@@ -29,6 +29,10 @@
         "seed": "node prisma/seed.js"
     },
     "dependencies": {
+        "@alicloud/credentials": "^2.4.4",
+        "@alicloud/dysmsapi20170525": "^4.5.0",
+        "@alicloud/openapi-client": "^0.4.15",
+        "@alicloud/tea-util": "^1.4.11",
         "@auth/prisma-adapter": "^2.7.2",
         "@chakra-ui/react": "^3.22.0",
         "@prisma/client": "^6.5.0",

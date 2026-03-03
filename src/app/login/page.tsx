@@ -100,14 +100,14 @@ export default function Login() {
                 errors={errors}
             />
             <Flex w="100%" justify="space-between">
-                <Link
+                {/* <Link
                     href="/recover-password"
                     color="gray.500"
                     textDecoration="underline"
                     className="main-link"
                 >
                     忘记密码?
-                </Link>
+                </Link> */}
                 <Text>
                     还没有账号?{' '}
                     <Link

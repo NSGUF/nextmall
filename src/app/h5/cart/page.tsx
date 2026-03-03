@@ -238,7 +238,8 @@ export default function CartPage() {
     ) => {
         const vendor = cartState[vendorIdx];
         const item = vendor.items[itemIdx];
-        const maxStock = item.spec?.stock || 999;
+        const maxStock =
+            item.spec?.stock === -1 ? 99999 : item.spec?.stock || 999;
         const newQuantity = Math.max(
             1,
             Math.min(maxStock, item.quantity + delta)
@@ -577,8 +578,12 @@ export default function CartPage() {
                                                         onChange={(e) => {
                                                             const maxStock =
                                                                 item.spec
-                                                                    ?.stock ||
-                                                                999;
+                                                                    ?.stock ===
+                                                                -1
+                                                                    ? 99999
+                                                                    : item.spec
+                                                                          ?.stock ||
+                                                                      999;
                                                             const newQuantity =
                                                                 Math.max(
                                                                     1,
@@ -615,8 +620,10 @@ export default function CartPage() {
                                                         variant="ghost"
                                                         p={0}
                                                         disabled={
+                                                            item.spec?.stock !==
+                                                                -1 &&
                                                             item.quantity >=
-                                                            item.spec?.stock
+                                                                item.spec?.stock
                                                         }
                                                         onClick={(event) => {
                                                             event.stopPropagation();
