@@ -273,9 +273,6 @@ const Sidebar = () => {
             p={2}
             // rounded="md"
             bg="white"
-            _dark={{
-                bg: 'transparent',
-            }}
             borderWidth={1}
             borderTopWidth={0}
             className="text-sm min-w-[250px] overflow-y-auto overflow-x-hidden "
