@@ -331,8 +331,13 @@ export default function UserManagePage() {
                 mb={4}
             >
                 <Heading size="lg">用户管理</Heading>
-                {/* 新增用户按钮 */}
-                <Button colorScheme="blue" onClick={() => openEdit(undefined)}>
+            </Box>
+            <Box>
+                <Button
+                    colorScheme="blue"
+                    size="sm"
+                    onClick={() => openEdit(undefined)}
+                >
                     新增用户
                 </Button>
             </Box>
@@ -392,7 +397,6 @@ export default function UserManagePage() {
                         bg="white"
                         p={6}
                         borderRadius="md"
-                        minW={400}
                         maxH="90vh"
                         overflowY="auto"
                     >

@@ -7,9 +7,10 @@ import {
     FiList,
     FiLogOut,
     FiUser,
+    FiX,
 } from 'react-icons/fi';
 import { useSession } from 'next-auth/react';
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import {
     MenuRoot,
     MenuTrigger,
@@ -30,12 +31,14 @@ import { Button } from '@/app/_components/ui';
 import { useAuth } from '@/app/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import { ROLES } from '@/app/const/status';
+import { SidebarContext } from '@/app/admin/_components/SidebarContext';
 
 const Header = () => {
     const { data: session } = useSession();
     const { logout } = useAuth();
     const router = useRouter();
     const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+    const { sidebarOpen, setSidebarOpen } = useContext(SidebarContext);
 
     const userName = session?.user?.name ?? session?.user?.phone ?? '用户';
     const userRole = session?.user?.role;
@@ -54,47 +57,19 @@ const Header = () => {
             _dark={{ bg: 'black' }}
             backdropFilter="blur(2px)"
         >
-            <Flex justifyContent="flex-end" alignItems="center" h="full">
-                {/* <IconButton
-                    aria-label="Menu"
+            <Flex justifyContent="space-between" alignItems="center" h="full">
+                <IconButton
+                    aria-label="Toggle menu"
                     variant="ghost"
                     fontSize="xl"
                     rounded="full"
+                    display={{ base: 'flex', md: 'none' }}
+                    onClick={() => setSidebarOpen(!sidebarOpen)}
                 >
-                    <FiMenu />
-                </IconButton> */}
+                    {sidebarOpen ? <FiX /> : <FiMenu />}
+                </IconButton>
 
                 <Wrap gap={0} alignItems="center">
-                    {/* <IconButton
-                        aria-label="Notifications"
-                        title="Notifications"
-                        variant="ghost"
-                        rounded="full"
-                        color="gray.600"
-                        _dark={{ color: 'initial' }}
-                    >
-                        <FiBell size={24} color="#1e40af" />
-                    </IconButton>
-                    <IconButton
-                        aria-label="Reminder"
-                        title="Reminder"
-                        variant="ghost"
-                        rounded="full"
-                        color="gray.600"
-                        _dark={{ color: 'initial' }}
-                    >
-                        <FiCalendar size={21} />
-                    </IconButton>
-                    <IconButton
-                        aria-label="Tasks"
-                        title="Tasks"
-                        variant="ghost"
-                        rounded="full"
-                        color="gray.600"
-                        _dark={{ color: 'initial' }}
-                    >
-                        <FiList size={21} />
-                    </IconButton> */}
                     <MenuRoot>
                         <MenuTrigger asChild>
                             <Box cursor="pointer">

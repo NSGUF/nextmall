@@ -389,6 +389,7 @@ export default function AdminPage() {
                     display="flex"
                     alignItems="center"
                     justifyContent="center"
+                    px={{ base: 2, md: 0 }} // Add horizontal padding on mobile
                 >
                     <Box
                         bg="white"
@@ -396,7 +397,7 @@ export default function AdminPage() {
                         overflowY="auto"
                         p={6}
                         borderRadius="md"
-                        minW={600}
+                        // minW={600}
                     >
                         <Heading size="md" mb={4}>
                             {editing ? '编辑' : '新增'}商品

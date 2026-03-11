@@ -1,6 +1,6 @@
 'use client';
 
-import React, { memo, useEffect, useState } from 'react';
+import React, { memo, useEffect, useState, useContext } from 'react';
 import {
     FiBox,
     FiBook,
@@ -24,10 +24,12 @@ import { Box, Heading, Image, Text, Wrap } from '@chakra-ui/react';
 import { Button } from '@/app/_components/ui';
 import { useSession } from 'next-auth/react';
 import { ROLES } from '@/app/const/status';
+import { SidebarContext } from '@/app/admin/_components/SidebarContext';
 
 const Sidebar = () => {
     const { data: session } = useSession();
     const userRole = session?.user?.role;
+    const { sidebarOpen, setSidebarOpen } = useContext(SidebarContext);
 
     type NavTreeType = {
         title: string;
@@ -144,7 +146,10 @@ const Sidebar = () => {
             <Box position="relative" minW="160px">
                 {/* If there is no submenu  */}
                 {!subMenu ? (
-                    <Link href={url ? url : '#'}>
+                    <Link
+                        href={url ? url : '#'}
+                        onClick={() => sidebarOpen && setSidebarOpen(false)}
+                    >
                         <Button
                             width="100%"
                             variant="ghost"
@@ -273,7 +278,14 @@ const Sidebar = () => {
             }}
             borderWidth={1}
             borderTopWidth={0}
-            className="text-sm min-w-[250px] overflow-y-auto overflow-x-hidden"
+            className="text-sm min-w-[250px] overflow-y-auto overflow-x-hidden "
+            display={{ base: sidebarOpen ? 'block' : 'none', md: 'block' }}
+            position={{ base: 'absolute', md: 'relative' }}
+            h="full"
+            w={{ base: '250px', md: 'auto' }}
+            zIndex={{ base: 10, md: 'auto' }}
+            bgColor={{ base: 'white', md: 'white' }}
+            _dark={{ bgColor: { base: 'gray.900', md: 'transparent' } }}
         >
             <Wrap alignItems="center" gap={3}>
                 <Image src="/logo.svg" height={11} />

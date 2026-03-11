@@ -371,7 +371,7 @@ export default function AdminPage() {
                     alignItems="center"
                     justifyContent="center"
                 >
-                    <Box bg="white" p={6} borderRadius="md" minW={400}>
+                    <Box bg="white" p={6} borderRadius="md">
                         <Heading size="md" mb={4}>
                             {editing ? '编辑' : '新增'}分类
                         </Heading>

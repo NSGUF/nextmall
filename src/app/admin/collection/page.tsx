@@ -327,7 +327,6 @@ export default function AdminPage() {
                         maxH="90vh"
                         overflowY="auto"
                         borderRadius="md"
-                        minW={400}
                     >
                         <Heading size="md" mb={4}>
                             {editing ? '编辑' : '新增'}Collection

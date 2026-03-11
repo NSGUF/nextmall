@@ -28,12 +28,18 @@ export default function AdminGuard({
             return;
         }
 
-        // const userRole = session.user?.role;
-        // if (!userRole || !allowedRoles.includes(userRole)) {
-        //     // 没有权限，跳转到首页
-        //     router.replace('/');
-        //     return;
-        // }
+        const userRole = session.user?.role;
+        if (!userRole || !allowedRoles.includes(userRole)) {
+            // 没有权限，跳转到对应首页
+            if (userRole === ROLES.VENDOR) {
+                router.replace('/vendor');
+            } else if ([ROLES.SUPERADMIN, ROLES.NORMAL].includes(userRole)) {
+                router.replace('/h5');
+            } else {
+                router.replace('/login');
+            }
+            return;
+        }
     }, [session, status, router, allowedRoles]);
 
     // 加载中
