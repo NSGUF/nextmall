@@ -77,6 +77,7 @@ export default function UserManagePage() {
 
     const users = userResponse?.data ?? [];
     const pageCount = userResponse?.pagination?.totalPages ?? 0;
+    console.log(pageCount);
 
     // 分页回调函数
     const handlePaginationChange = (newPagination: {
@@ -376,7 +377,9 @@ export default function UserManagePage() {
                         : col
                 )}
                 data={memoizedData as any}
+                manualPagination
                 pageCount={pageCount}
+                onPaginationChange={handlePaginationChange}
             />
 
             {/* 新增/编辑弹窗 */}
