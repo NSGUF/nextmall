@@ -596,7 +596,8 @@ export const orderRouter = createTRPCRouter({
                 where: {
                     id: input.id,
                     userId: ctx.session.user.id,
-                    status: 'CANCELLED',
+                    status: { in: ['PAID', 'CHECKED'] },
+                    isDeleted: false,
                 },
                 include: { items: true },
             });
@@ -621,6 +622,67 @@ export const orderRouter = createTRPCRouter({
                     });
                 }
             }
+            // 恢复销量
+            for (const item of order.items) {
+                await ctx.db.product.update({
+                    where: { id: item.productId },
+                    data: {
+                        sales: {
+                            decrement: item.quantity,
+                        },
+                    },
+                });
+            }
+
+            const result = await ctx.db.order.update({
+                where: { id: input.id },
+                data: { status: 'CANCELLED' },
+            });
+
+            // 记录取消订单日志
+            await logger.orderCancel(ctx, input.id);
+
+            return result;
+        }),
+
+    // 管理员取消订单
+    adminCancel: superAdminProcedure
+        .input(z.object({ id: z.string() }))
+        .mutation(async ({ ctx, input }) => {
+            const order = await ctx.db.order.findFirst({
+                where: {
+                    id: input.id,
+                    status: { in: ['PAID', 'CHECKED'] },
+                    isDeleted: false,
+                },
+                include: { items: true },
+            });
+
+            if (!order) {
+                throw new TRPCError({
+                    code: 'NOT_FOUND',
+                    message: '订单不存在或无法取消',
+                });
+            }
+
+            // 恢复库存（无限库存跳过）
+            for (const item of order.items) {
+                if (!item.specId) continue;
+                const spec = await ctx.db.productSpec.findUnique({
+                    where: { id: item.specId },
+                });
+                if (spec && spec.stock !== -1) {
+                    await ctx.db.productSpec.update({
+                        where: { id: item.specId },
+                        data: {
+                            stock: {
+                                increment: item.quantity,
+                            },
+                        },
+                    });
+                }
+            }
+
             // 恢复销量
             for (const item of order.items) {
                 await ctx.db.product.update({

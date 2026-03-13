@@ -95,6 +95,13 @@ export default function OrderManagePage() {
         },
     });
 
+    // 管理员取消订单
+    const adminCancelOrder = api.order.adminCancel.useMutation({
+        onSuccess: () => {
+            refetch();
+        },
+    });
+
     // 确认对话框
     const [approveOrderId, setApproveOrderId] = useState<string | null>(null);
     const {
@@ -135,6 +142,24 @@ export default function OrderManagePage() {
             setTrackingNumber('');
         }
     };
+
+    // 取消订单确认对话框
+    const [cancelOrderId, setCancelOrderId] = useState<string | null>(null);
+    const { ConfirmDialog: CancelConfirmDialog, open: openCancelConfirm } =
+        useConfirmDialog({
+            title: '取消订单',
+            content: '确定要取消该订单吗？取消后将恢复库存。',
+            confirmText: '确认取消',
+            cancelText: '返回',
+            buttonProps: { style: { display: 'none' } },
+            onConfirm: async () => {
+                if (cancelOrderId) {
+                    await adminCancelOrder.mutateAsync({ id: cancelOrderId });
+                    setCancelOrderId(null);
+                }
+            },
+            onCancel: () => setCancelOrderId(null),
+        });
 
     // 渲染商品信息
     const renderProductInfo = (items: any[]) => {
@@ -211,31 +236,59 @@ export default function OrderManagePage() {
             switch (status) {
                 case 'PAID':
                     return (
-                        <Button
-                            size="2xs"
-                            colorScheme="green"
-                            onClick={() => {
-                                setApproveOrderId(order.id);
-                                openApproveConfirm();
-                            }}
-                            loading={updateOrderStatus.isPending}
-                        >
-                            审核通过
-                        </Button>
+                        <HStack gap={2}>
+                            <Button
+                                size="2xs"
+                                colorScheme="green"
+                                onClick={() => {
+                                    setApproveOrderId(order.id);
+                                    openApproveConfirm();
+                                }}
+                                loading={updateOrderStatus.isPending}
+                            >
+                                审核通过
+                            </Button>
+                            <Button
+                                size="2xs"
+                                colorScheme="red"
+                                variant="outline"
+                                onClick={() => {
+                                    setCancelOrderId(order.id);
+                                    openCancelConfirm();
+                                }}
+                                loading={adminCancelOrder.isPending}
+                            >
+                                取消订单
+                            </Button>
+                        </HStack>
                     );
                 case 'CHECKED':
                     return (
-                        <Button
-                            size="2xs"
-                            colorScheme="blue"
-                            onClick={() => {
-                                setShipOrderId(order.id);
-                                setIsShipDialogOpen(true);
-                            }}
-                            loading={updateOrderStatus.isPending}
-                        >
-                            发货
-                        </Button>
+                        <HStack gap={2}>
+                            <Button
+                                size="2xs"
+                                colorScheme="blue"
+                                onClick={() => {
+                                    setShipOrderId(order.id);
+                                    setIsShipDialogOpen(true);
+                                }}
+                                loading={updateOrderStatus.isPending}
+                            >
+                                发货
+                            </Button>
+                            <Button
+                                size="2xs"
+                                colorScheme="red"
+                                variant="outline"
+                                onClick={() => {
+                                    setCancelOrderId(order.id);
+                                    openCancelConfirm();
+                                }}
+                                loading={adminCancelOrder.isPending}
+                            >
+                                取消订单
+                            </Button>
+                        </HStack>
                     );
                 case 'DELIVERED':
                     return (
@@ -265,6 +318,8 @@ export default function OrderManagePage() {
             setApproveOrderId,
             setShipOrderId,
             setIsShipDialogOpen,
+            adminCancelOrder.isPending,
+            openCancelConfirm,
         ]
     );
 
@@ -527,6 +582,7 @@ export default function OrderManagePage() {
             />
 
             {ApproveConfirmDialog}
+            {CancelConfirmDialog}
 
             {/* 发货弹窗 */}
             <DialogRoot

@@ -99,6 +99,35 @@ export default function OrderPage() {
         openConfirmReceived();
     };
 
+    // 取消订单 mutation
+    const cancelOrder = api.order.cancel.useMutation({
+        onSuccess: () => {
+            showSuccessToast('订单已取消');
+            refetch();
+        },
+        onError: (error) => {
+            showErrorToast(error.message);
+        },
+    });
+
+    // 取消订单对话框
+    const [cancelOrderId, setCancelOrderId] = useState<string | null>(null);
+    const { ConfirmDialog: CancelOrderDialog, open: openCancelOrder } =
+        useConfirmDialog({
+            title: '取消订单',
+            content: '确定要取消该订单吗？',
+            confirmText: '确认取消',
+            cancelText: '返回',
+            buttonProps: { style: { display: 'none' } },
+            onConfirm: async () => {
+                if (cancelOrderId) {
+                    await cancelOrder.mutateAsync({ id: cancelOrderId });
+                    setCancelOrderId(null);
+                }
+            },
+            onCancel: () => setCancelOrderId(null),
+        });
+
     // 当URL参数变化时更新选中的标签（现在由 TabBar 自动处理）
     // useEffect(() => {
     //     if (statusFromUrl) {
@@ -260,6 +289,24 @@ export default function OrderPage() {
                                         确认收货
                                     </Button>
                                 )}
+                                {(item.status === 'PAID' ||
+                                    item.status === 'CHECKED') && (
+                                    <Button
+                                        size="2xs"
+                                        colorScheme="red"
+                                        ml={2}
+                                        variant="outline"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            setCancelOrderId(item.id);
+                                            openCancelOrder();
+                                        }}
+                                        loading={cancelOrder.isPending}
+                                    >
+                                        取消订单
+                                    </Button>
+                                )}
                             </Flex>
                         </Box>
                     ))
@@ -269,6 +316,7 @@ export default function OrderPage() {
             </Box>
             {/* 确认收货对话框 */}
             {ConfirmReceivedDialog}
+            {CancelOrderDialog}
         </Box>
     );
 }

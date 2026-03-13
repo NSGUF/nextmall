@@ -19,7 +19,6 @@ import { api } from '@/trpc/react';
 import useCustomToast from '@/app/hooks/useCustomToast';
 import Link from 'next/link';
 import { useConfirmDialog } from '@/app/hooks/useConfirmDialog';
-import { Item } from 'node_modules/@chakra-ui/react/dist/types/components/accordion/namespace';
 
 // 订单状态映射
 const ORDER_STATUS_MAP = {
@@ -41,6 +40,16 @@ export default function OrderDetailPage() {
     // 获取订单数据
     const { data: order, refetch } = api.order.get.useQuery({
         id: orderId,
+    });
+
+    const cancelOrder = api.order.cancel.useMutation({
+        onSuccess: () => {
+            showSuccessToast('订单已取消');
+            refetch();
+        },
+        onError: (error) => {
+            showErrorToast(error.message);
+        },
     });
 
     // 确认收货 mutation
@@ -73,6 +82,21 @@ export default function OrderDetailPage() {
     const handleConfirmReceived = () => {
         openConfirmReceived();
     };
+
+    // 取消订单对话框
+    const { ConfirmDialog: CancelOrderDialog, open: openCancelOrder } =
+        useConfirmDialog({
+            title: '取消订单',
+            content: '确定要取消该订单吗？取消后将恢复库存。',
+            confirmText: '确认取消',
+            cancelText: '返回',
+            buttonProps: { style: { display: 'none' } },
+            onConfirm: async () => {
+                if (orderId) {
+                    await cancelOrder.mutateAsync({ id: orderId });
+                }
+            },
+        });
 
     const defaultAddress = order?.address || {};
 
@@ -258,8 +282,33 @@ export default function OrderDetailPage() {
                 </Box>
             )}
 
+            {/* 待审核/待发货状态支持取消订单 */}
+            {(order?.status === 'PAID' || order?.status === 'CHECKED') && (
+                <Box
+                    position="fixed"
+                    left={0}
+                    right={0}
+                    bottom={0}
+                    bg="transparent"
+                    zIndex={10}
+                    p={4}
+                >
+                    <Button
+                        w="100%"
+                        borderRadius="md"
+                        variant="outline"
+                        colorScheme="red"
+                        onClick={openCancelOrder}
+                        loading={cancelOrder.isPending}
+                    >
+                        取消订单
+                    </Button>
+                </Box>
+            )}
+
             {/* 确认收货对话框 */}
             {ConfirmReceivedDialog}
+            {CancelOrderDialog}
         </Box>
     );
 }
