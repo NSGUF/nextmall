@@ -207,7 +207,7 @@ export const orderRouter = createTRPCRouter({
             return order;
         }),
 
-    // 创建订单
+    // 创建订单（一次下单按供应商拆分，一家供应商一张订单）
     create: protectedProcedure
         .input(
             z.object({
@@ -235,9 +235,19 @@ export const orderRouter = createTRPCRouter({
                 throw new Error('收货地址不存在');
             }
 
-            const orders = [];
+            // 预加载商品与规格，检查库存，并按供应商分组
+            type PreparedItem = {
+                productId: string;
+                specId: string;
+                quantity: number;
+                remark?: string;
+                product: any;
+                spec: any;
+            };
 
-            // 为每个商品创建单独的订单
+            const preparedItems: PreparedItem[] = [];
+            const vendorIdsSet = new Set<string>();
+
             for (const item of items) {
                 const product = await ctx.db.product.findUnique({
                     where: { id: item.productId },
@@ -259,25 +269,56 @@ export const orderRouter = createTRPCRouter({
                     );
                 }
 
-                const totalAmount =
-                    spec.price * item.quantity + product.logiPrice;
+                preparedItems.push({
+                    productId: item.productId,
+                    specId: item.specId,
+                    quantity: item.quantity,
+                    remark: item.remark,
+                    product,
+                    spec,
+                });
 
-                // 创建单个订单
+                vendorIdsSet.add(product.vendorId);
+            }
+
+            // 按供应商分组创建订单
+            const orders = [];
+            const vendorGroups = new Map<string, PreparedItem[]>();
+
+            for (const item of preparedItems) {
+                const vendorId = item.product.vendorId as string;
+                if (!vendorGroups.has(vendorId)) {
+                    vendorGroups.set(vendorId, []);
+                }
+                vendorGroups.get(vendorId)!.push(item);
+            }
+
+            for (const [, groupItems] of vendorGroups) {
+                // 计算该供应商订单总价，并构造订单项
+                let totalAmount = 0;
+                const orderItemsData = groupItems.map((gi) => {
+                    const itemTotal =
+                        gi.spec.price * gi.quantity + gi.product.logiPrice;
+                    totalAmount += itemTotal;
+
+                    return {
+                        productId: gi.productId,
+                        specId: gi.specId,
+                        quantity: gi.quantity,
+                        price: gi.spec.price,
+                        remark: gi.remark,
+                        logiPrice: gi.product.logiPrice,
+                        specInfo: gi.spec.value,
+                    };
+                });
+
                 const order = await ctx.db.order.create({
                     data: {
                         userId,
                         addressId,
                         totalPrice: totalAmount,
                         items: {
-                            create: {
-                                productId: item.productId,
-                                specId: item.specId,
-                                quantity: item.quantity,
-                                price: spec.price,
-                                remark: item.remark,
-                                logiPrice: product.logiPrice,
-                                specInfo: spec.value,
-                            },
+                            create: orderItemsData,
                         },
                     },
                     include: {
@@ -291,8 +332,18 @@ export const orderRouter = createTRPCRouter({
                     },
                 });
 
-                // 减少库存（无限库存跳过）
-                if (spec.stock !== -1) {
+                // 记录订单创建日志
+                await logger.orderCreate(ctx, order.id, totalAmount);
+                orders.push(order);
+            }
+
+            // 统一更新库存和销量（所有订单项）
+            for (const item of preparedItems) {
+                const spec = await ctx.db.productSpec.findUnique({
+                    where: { id: item.specId },
+                });
+
+                if (spec && spec.stock !== -1) {
                     await ctx.db.productSpec.update({
                         where: { id: item.specId },
                         data: {
@@ -303,7 +354,6 @@ export const orderRouter = createTRPCRouter({
                     });
                 }
 
-                // 增加销量
                 await ctx.db.product.update({
                     where: { id: item.productId },
                     data: {
@@ -312,21 +362,10 @@ export const orderRouter = createTRPCRouter({
                         },
                     },
                 });
-
-                // 记录订单创建日志
-                await logger.orderCreate(ctx, order.id, totalAmount);
-
-                orders.push(order);
             }
 
             // 短信通知：收集所有涉及的供应商 ID
-            const vendorIds = [
-                ...new Set(
-                    orders.flatMap((order) =>
-                        order.items.map((item) => item.product.vendorId)
-                    )
-                ),
-            ];
+            const vendorIds = [...vendorIdsSet];
 
             // 查询已开启 receiveSms 的供应商和管理员
             try {
@@ -385,6 +424,7 @@ export const orderRouter = createTRPCRouter({
                 console.error('[SMS] 订单短信通知异常:', smsError);
             }
 
+            // 返回本次下单产生的所有订单（每个供应商一张）
             return orders;
         }),
 

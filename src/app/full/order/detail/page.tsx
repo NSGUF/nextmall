@@ -109,15 +109,14 @@ export default function OrderDetailPage() {
             </Box>
 
             {/* 商品信息 */}
-            {order?.items?.map(
-                ({ product, spec, quantity, remark, specInfo, logiPrice }) => (
-                    <Box
-                        bg="white"
-                        key={product.id}
-                        m={2}
-                        p={4}
-                        borderRadius="md"
-                    >
+            {order?.items?.map((item) => {
+                const { product, spec, quantity, remark, specInfo, logiPrice } =
+                    item;
+                const goodsAmount = (spec?.price ?? 0) * (quantity ?? 0);
+                const itemTotal = goodsAmount + (logiPrice ?? 0);
+
+                return (
+                    <Box bg="white" key={item.id} m={2} p={4} borderRadius="md">
                         <Flex gap={3}>
                             <Image
                                 src={
@@ -183,20 +182,19 @@ export default function OrderDetailPage() {
                             <Flex justify="space-between" my={2}>
                                 <Text color="gray.600">运费</Text>
                                 <Text color="red.600">
-                                    ¥{logiPrice.toFixed(2)}
+                                    ¥{(logiPrice ?? 0).toFixed(2)}
                                 </Text>
                             </Flex>
                             <Flex justify="space-between" my={2}>
                                 <Text color="gray.600">商品总价</Text>
                                 <Text ml={2} color="red.500">
-                                    ¥
-                                    {(order.totalPrice - logiPrice)?.toFixed(2)}
+                                    ¥{goodsAmount.toFixed(2)}
                                 </Text>
                             </Flex>
                             <Flex justify="space-between" my={2}>
                                 <Text color="gray.600">实付</Text>
                                 <Text color="red.600">
-                                    ¥{order.totalPrice.toFixed(2)}
+                                    ¥{itemTotal.toFixed(2)}
                                 </Text>
                             </Flex>
                             <Flex justify="space-between" my={2}>
@@ -215,8 +213,8 @@ export default function OrderDetailPage() {
                             </Flex>
                         </VStack>
                     </Box>
-                )
-            )}
+                );
+            })}
 
             {/* 待收货状态显示快递单号和确认收货按钮 */}
             {order?.status === 'DELIVERED' && (

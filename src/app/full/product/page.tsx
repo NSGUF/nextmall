@@ -5,7 +5,7 @@ import TopNav from '../_components/TopNav';
 import BannerCarousel from '@/app/h5/_components/BannerCarousel';
 import { api } from '@/trpc/react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Box, Flex, Text, Tag, Center, Image } from '@chakra-ui/react';
+import { Box, Flex, Text, Tag, Center, Image, Input } from '@chakra-ui/react';
 import { Button } from '@/app/_components/ui';
 import useCustomToast from '@/app/hooks/useCustomToast';
 import { FiChevronRight, FiMinus, FiStar, FiPlus } from 'react-icons/fi';
@@ -244,8 +244,71 @@ export default function ProductPage() {
                                                         >
                                                             <FiMinus />
                                                         </IconButton>
-                                                        <Box px={4}>
-                                                            {quantity}
+                                                        <Box px={2}>
+                                                            <Input
+                                                                type="number"
+                                                                size="xs"
+                                                                min={1}
+                                                                max={
+                                                                    selectedSpec.stock ===
+                                                                    -1
+                                                                        ? undefined
+                                                                        : selectedSpec.stock
+                                                                }
+                                                                value={quantity}
+                                                                onChange={(
+                                                                    e
+                                                                ) => {
+                                                                    const value =
+                                                                        e.target
+                                                                            .value;
+                                                                    if (
+                                                                        value ===
+                                                                        ''
+                                                                    ) {
+                                                                        setQuantity(
+                                                                            1
+                                                                        );
+                                                                        return;
+                                                                    }
+                                                                    const num =
+                                                                        Number(
+                                                                            value
+                                                                        );
+                                                                    if (
+                                                                        Number.isNaN(
+                                                                            num
+                                                                        )
+                                                                    ) {
+                                                                        return;
+                                                                    }
+                                                                    let next =
+                                                                        Math.floor(
+                                                                            num
+                                                                        );
+                                                                    if (
+                                                                        next < 1
+                                                                    ) {
+                                                                        next = 1;
+                                                                    }
+                                                                    if (
+                                                                        selectedSpec.stock !==
+                                                                            -1 &&
+                                                                        next >
+                                                                            selectedSpec.stock
+                                                                    ) {
+                                                                        next =
+                                                                            selectedSpec.stock;
+                                                                    }
+                                                                    setQuantity(
+                                                                        next
+                                                                    );
+                                                                }}
+                                                                textAlign="center"
+                                                                width="60px"
+                                                                variant="subtle"
+                                                                bg="transparent"
+                                                            />
                                                         </Box>
                                                         <IconButton
                                                             disabled={
