@@ -1,6 +1,15 @@
 'use client';
 
-import { Box, Flex, Image, Text, Button, Badge } from '@chakra-ui/react';
+import {
+    Box,
+    Flex,
+    Image,
+    Text,
+    Button,
+    Badge,
+    VStack,
+    HStack,
+} from '@chakra-ui/react';
 import TopNav from '@/app/full/_components/TopNav';
 import { useRouter, useSearchParams } from 'next/navigation';
 import TabBar from '@/app/h5/_components/TabBar';
@@ -172,90 +181,29 @@ export default function OrderPage() {
                     defaultValue: 'all',
                 }}
             />
-            <Box h="100" overflow="auto">
+            <Box h="100" overflow="auto" p={2}>
                 {order?.length ? (
                     order?.map((item) => (
                         <Box
                             key={item.id}
                             w="100%"
-                            textAlign="center"
                             bg="white"
-                            borderRadius="xs"
-                            boxShadow="1sx"
-                            p={4}
-                            py={2}
-                            _hover={{ boxShadow: 'md' }}
-                            position="relative"
+                            borderRadius="lg"
+                            boxShadow="sm"
+                            borderWidth="1px"
+                            borderColor="gray.100"
+                            p={3}
+                            mb={3}
                         >
-                            <Link
-                                href={'/full/order/detail?orderId=' + item.id}
-                            >
-                                <Flex
-                                    align="center"
-                                    justify="flex-start"
-                                    w="100%"
-                                    h="100%"
+                            {/* 头部：订单号 + 状态 */}
+                            <Flex align="center" justify="space-between" mb={2}>
+                                <Text
+                                    fontSize="xs"
+                                    color="gray.500"
+                                    fontFamily="mono"
                                 >
-                                    <Image
-                                        src={
-                                            item.items[0]?.spec?.image ??
-                                            '/logo.svg'
-                                        }
-                                        alt={item.items[0].product.title}
-                                        w="80px"
-                                        h="80px"
-                                        borderRadius="md"
-                                        objectFit="cover"
-                                        bg="gray.100"
-                                        mr={2}
-                                    />
-                                    <Flex
-                                        direction="column"
-                                        h="80px"
-                                        flex="1"
-                                        justify="space-between"
-                                        minW={0}
-                                    >
-                                        <Text
-                                            fontSize="md"
-                                            textAlign="left"
-                                            whiteSpace="nowrap"
-                                            w="100%"
-                                            fontWeight="medium"
-                                            overflow="hidden"
-                                            color="gray.700"
-                                            textOverflow="ellipsis"
-                                            minW={0}
-                                        >
-                                            {item.items[0].product.title}
-                                        </Text>
-                                        <Text
-                                            fontSize="sm"
-                                            color="red.500"
-                                            textAlign="left"
-                                            fontWeight="medium"
-                                        >
-                                            ￥{item.totalPrice.toFixed(2)}
-                                        </Text>
-                                        <Flex
-                                            align="center"
-                                            justify="space-between"
-                                        >
-                                            <Text
-                                                color="gray.400"
-                                                fontSize="xs"
-                                                textAlign="left"
-                                            >
-                                                {item.items[0]?.spec?.value ||
-                                                    '默认规格'}{' '}
-                                                x {item.items?.[0]?.quantity}
-                                            </Text>
-                                        </Flex>
-                                    </Flex>
-                                </Flex>
-                            </Link>
-                            {/* 订单状态 Badge */}
-                            <Flex position="absolute" bottom="8px" right="8px">
+                                    {item.id}
+                                </Text>
                                 <Badge
                                     colorPalette={
                                         ORDER_STATUS_MAP[
@@ -272,41 +220,147 @@ export default function OrderPage() {
                                         item.status as OrderStatus
                                     ]?.label || item.status}
                                 </Badge>
-                                {/* 待收货状态显示确认收货按钮 */}
-                                {item.status === 'DELIVERED' && (
-                                    <Button
-                                        size="2xs"
-                                        colorScheme="blue"
-                                        ml={2}
-                                        variant="solid"
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            e.stopPropagation();
-                                            handleConfirmReceived(item.id);
-                                        }}
-                                        loading={confirmReceived.isPending}
+                            </Flex>
+
+                            <Box h="1px" bg="gray.100" mb={2} />
+
+                            {/* 商品列表：点击进入详情 */}
+                            <Link
+                                href={'/full/order/detail?orderId=' + item.id}
+                            >
+                                <VStack align="stretch" gap={2} w="full">
+                                    {item.items?.map((orderItem: any) => (
+                                        <Flex
+                                            key={orderItem.id}
+                                            align="center"
+                                            justify="flex-start"
+                                            w="full"
+                                            gap={3}
+                                        >
+                                            <Image
+                                                src={
+                                                    orderItem.spec?.image ??
+                                                    orderItem.product
+                                                        ?.images?.[0] ??
+                                                    '/logo.svg'
+                                                }
+                                                alt={
+                                                    orderItem.product?.title ||
+                                                    '商品'
+                                                }
+                                                w="56px"
+                                                h="56px"
+                                                borderRadius="md"
+                                                objectFit="cover"
+                                                bg="gray.100"
+                                                flexShrink={0}
+                                            />
+                                            <Box flex="1" minW={0}>
+                                                <Text
+                                                    fontSize="sm"
+                                                    textAlign="left"
+                                                    whiteSpace="nowrap"
+                                                    w="100%"
+                                                    fontWeight="medium"
+                                                    overflow="hidden"
+                                                    color="gray.800"
+                                                    textOverflow="ellipsis"
+                                                    minW={0}
+                                                >
+                                                    {orderItem.product?.title ||
+                                                        '未知商品'}
+                                                </Text>
+                                                <HStack
+                                                    gap={2}
+                                                    mt={1}
+                                                    align="center"
+                                                >
+                                                    <Text
+                                                        color="gray.500"
+                                                        fontSize="xs"
+                                                        whiteSpace="nowrap"
+                                                        overflow="hidden"
+                                                        textOverflow="ellipsis"
+                                                        minW={0}
+                                                        flex="1"
+                                                    >
+                                                        {orderItem.spec
+                                                            ?.value ||
+                                                            orderItem.specInfo ||
+                                                            '默认规格'}
+                                                    </Text>
+                                                    <Text
+                                                        color="gray.600"
+                                                        fontSize="xs"
+                                                        flexShrink={0}
+                                                    >
+                                                        ×{orderItem.quantity}
+                                                    </Text>
+                                                </HStack>
+                                            </Box>
+                                        </Flex>
+                                    ))}
+                                </VStack>
+                            </Link>
+
+                            <Box h="1px" bg="gray.100" my={2} />
+
+                            {/* 底部：金额 + 操作 */}
+                            <Flex align="center" justify="space-between">
+                                <HStack gap={2}>
+                                    <Text fontSize="xs" color="gray.500">
+                                        共 {item.items?.length || 0} 件
+                                    </Text>
+                                    <Text
+                                        fontSize="sm"
+                                        color="gray.700"
+                                        fontWeight="medium"
                                     >
-                                        确认收货
-                                    </Button>
-                                )}
-                                {(item.status === 'PAID' ||
-                                    item.status === 'CHECKED') && (
-                                    <Button
-                                        size="2xs"
-                                        colorScheme="red"
-                                        ml={2}
-                                        variant="outline"
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            e.stopPropagation();
-                                            setCancelOrderId(item.id);
-                                            openCancelOrder();
-                                        }}
-                                        loading={cancelOrder.isPending}
+                                        合计
+                                    </Text>
+                                    <Text
+                                        fontSize="sm"
+                                        color="red.500"
+                                        fontWeight="bold"
                                     >
-                                        取消订单
-                                    </Button>
-                                )}
+                                        ￥{item.totalPrice.toFixed(2)}
+                                    </Text>
+                                </HStack>
+
+                                <HStack gap={2}>
+                                    {item.status === 'DELIVERED' && (
+                                        <Button
+                                            size="2xs"
+                                            colorScheme="blue"
+                                            variant="solid"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                handleConfirmReceived(item.id);
+                                            }}
+                                            loading={confirmReceived.isPending}
+                                        >
+                                            确认收货
+                                        </Button>
+                                    )}
+                                    {(item.status === 'PAID' ||
+                                        item.status === 'CHECKED') && (
+                                        <Button
+                                            size="2xs"
+                                            colorScheme="red"
+                                            variant="outline"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                setCancelOrderId(item.id);
+                                                openCancelOrder();
+                                            }}
+                                            loading={cancelOrder.isPending}
+                                        >
+                                            取消订单
+                                        </Button>
+                                    )}
+                                </HStack>
                             </Flex>
                         </Box>
                     ))
