@@ -219,7 +219,7 @@ export default function OrderManagePage() {
                 <Text fontSize="sm" color="gray.600" fontWeight="medium">
                     {address.name} {address.phone}
                 </Text>
-                <Text fontSize="xs" color="gray.500" lineClamp={2}>
+                <Text fontSize="xs" color="gray.500">
                     {address.province?.split('/')?.[1]}
                     {address.city?.split('/')?.[1]}{' '}
                     {address.district?.split('/')?.[1]} {address.detail}
