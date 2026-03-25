@@ -348,6 +348,7 @@ export default function AdminPage() {
                 manualSorting
                 onSortingChange={setSorting}
                 manualPagination
+                pagination={pagination}
                 pageCount={pageCount}
                 onPaginationChange={handlePaginationChange}
                 renderBulkActions={(rows) => {

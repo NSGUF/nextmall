@@ -273,6 +273,7 @@ export default function AdminPage() {
                 data={memoizedData}
                 selectable
                 manualSorting
+                pagination={pagination}
                 onSortingChange={setSorting}
                 manualPagination
                 pageCount={pageCount}

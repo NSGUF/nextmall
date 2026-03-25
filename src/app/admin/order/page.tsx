@@ -578,6 +578,7 @@ export default function OrderManagePage() {
                 manualSorting
                 manualPagination
                 pageCount={pageCount}
+                pagination={pagination}
                 onPaginationChange={handlePaginationChange}
             />
 

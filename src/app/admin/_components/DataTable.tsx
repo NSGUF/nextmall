@@ -47,6 +47,7 @@ interface DataTableProps<T extends object> {
     manualPagination?: boolean;
     manualSorting?: boolean;
     manualFiltering?: boolean;
+    pagination?: { pageIndex: number; pageSize: number };
     onPaginationChange?: (pagination: {
         pageIndex: number;
         pageSize: number;
@@ -65,16 +66,18 @@ const DataTable = <T extends object>({
     manualPagination = false,
     manualSorting = false,
     manualFiltering = false,
+    pagination: controlledPagination,
     onPaginationChange,
     onSortingChange,
     onFilterChange,
     renderBulkActions,
 }: DataTableProps<T>) => {
     const [rowSelection, setRowSelection] = useState({});
-    const [pagination, setPagination] = useState({
+    const [internalPagination, setInternalPagination] = useState({
         pageIndex: 0,
         pageSize: 10,
     });
+    const pagination = controlledPagination ?? internalPagination;
     const [columnPinning, setColumnPinning] = useState<ColumnPinningState>({
         left: [],
         right: [],
@@ -116,9 +119,12 @@ const DataTable = <T extends object>({
         onPaginationChange: (updater) => {
             const newPagination =
                 typeof updater === 'function' ? updater(pagination) : updater;
-            setPagination(newPagination);
-            // 同时触发父组件回调
-            if (manualPagination && onPaginationChange) {
+            console.log('[DataTable] onPaginationChange', {
+                old: pagination,
+                new: newPagination,
+            });
+            setInternalPagination(newPagination);
+            if (onPaginationChange) {
                 onPaginationChange(newPagination);
             }
         },
@@ -294,56 +300,19 @@ const DataTable = <T extends object>({
         );
     };
 
-    // Ark UI Pagination
-    const PaginationBar = () => (
-        <Pagination.Root
-            count={
-                manualPagination && pageCount !== undefined
-                    ? pageCount * table.getState().pagination.pageSize
-                    : data.length
-            }
-            pageSize={table.getState().pagination.pageSize}
-            page={table.getState().pagination.pageIndex + 1}
-            onPageChange={(details) => {
-                const newPageIndex = details.page - 1;
-                // 使用 TanStack Table 的方法，这会自动触发 onPaginationChange
-                table.setPageIndex(newPageIndex);
-            }}
-            mt={3}
-            display="flex"
-            justifyContent="space-between"
-            fontSize={13}
-        >
-            <Box display="flex" flexWrap="nowrap" alignItems="center" gap={4}>
-                {manualPagination && pageCount !== undefined && (
-                    <Pagination.PageText format="long" />
-                )}
-            </Box>
-            <ButtonGroup variant="ghost" size="sm">
-                <Pagination.PrevTrigger asChild>
-                    <IconButton aria-label="上一页">
-                        <FiChevronLeft />
-                    </IconButton>
-                </Pagination.PrevTrigger>
-                <Pagination.Items
-                    render={(page) => (
-                        <IconButton
-                            key={page.value}
-                            variant={{ base: 'ghost', _selected: 'outline' }}
-                            aria-label={`第${page.value}页`}
-                        >
-                            {page.value}
-                        </IconButton>
-                    )}
-                />
-                <Pagination.NextTrigger asChild>
-                    <IconButton aria-label="下一页">
-                        <FiChevronRight />
-                    </IconButton>
-                </Pagination.NextTrigger>
-            </ButtonGroup>
-        </Pagination.Root>
-    );
+    const currentPage = table.getState().pagination.pageIndex + 1;
+    const currentPageSize = table.getState().pagination.pageSize;
+    const totalCount =
+        manualPagination && pageCount !== undefined
+            ? pageCount * currentPageSize
+            : data.length;
+
+    console.log('[DataTable] render', {
+        currentPage,
+        currentPageSize,
+        totalCount,
+        paginationState: pagination,
+    });
 
     return (
         <Box>
@@ -524,7 +493,61 @@ const DataTable = <T extends object>({
                     </Table.Body>
                 </Table.Root>
             </Box>
-            <PaginationBar />
+            <Pagination.Root
+                key={currentPage}
+                count={totalCount}
+                pageSize={currentPageSize}
+                defaultPage={currentPage}
+                onPageChange={(details) => {
+                    console.log('[Pagination] onPageChange', {
+                        arkPage: details.page,
+                        currentPage,
+                    });
+                    const newPageIndex = details.page - 1;
+                    table.setPageIndex(newPageIndex);
+                }}
+                mt={3}
+                display="flex"
+                justifyContent="space-between"
+                fontSize={13}
+            >
+                <Box
+                    display="flex"
+                    flexWrap="nowrap"
+                    alignItems="center"
+                    gap={4}
+                >
+                    {manualPagination && pageCount !== undefined && (
+                        <Pagination.PageText format="long" />
+                    )}
+                </Box>
+                <ButtonGroup variant="ghost" size="sm">
+                    <Pagination.PrevTrigger asChild>
+                        <IconButton aria-label="上一页">
+                            <FiChevronLeft />
+                        </IconButton>
+                    </Pagination.PrevTrigger>
+                    <Pagination.Items
+                        render={(page) => (
+                            <IconButton
+                                key={page.value}
+                                variant={{
+                                    base: 'ghost',
+                                    _selected: 'outline',
+                                }}
+                                aria-label={`第${page.value}页`}
+                            >
+                                {page.value}
+                            </IconButton>
+                        )}
+                    />
+                    <Pagination.NextTrigger asChild>
+                        <IconButton aria-label="下一页">
+                            <FiChevronRight />
+                        </IconButton>
+                    </Pagination.NextTrigger>
+                </ButtonGroup>
+            </Pagination.Root>
         </Box>
     );
 };

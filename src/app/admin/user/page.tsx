@@ -379,6 +379,7 @@ export default function UserManagePage() {
                 data={memoizedData as any}
                 manualPagination
                 pageCount={pageCount}
+                pagination={pagination}
                 onPaginationChange={handlePaginationChange}
             />
 

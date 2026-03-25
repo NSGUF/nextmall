@@ -330,6 +330,7 @@ export default function AdminPage() {
                 onSortingChange={setSorting}
                 manualPagination
                 pageCount={pageCount}
+                pagination={pagination}
                 onPaginationChange={handlePaginationChange}
                 renderBulkActions={(rows) => {
                     const hasSelection = rows.length > 0;

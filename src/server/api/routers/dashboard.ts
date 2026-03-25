@@ -368,6 +368,8 @@ export const dashboardRouter = createTRPCRouter({
             // 构建查询条件
             const where: any = {
                 isDeleted: false,
+                // 取消订单不计入统计
+                status: { not: 'CANCELLED' },
             };
 
             // 日期范围优先使用 startDate 和 endDate，其次使用 year
